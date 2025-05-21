@@ -1,0 +1,9 @@
+require 'bundler/setup'
+
+namespace :opal do
+
+    task :build => [:environment, "global:aloha", :typecheck, :sourcecopy, :remove_sig] do
+        sh "cd opal/build/tmp && bundle exec opal -c -q opal-browser -p native -p promise -s sorbet -s sorbet-runtime -p browser/setup/full -e '#' -E > ../../../server/public/js/opal-browser.js"
+        sh "cd opal/build/tmp && bundle exec opal -Oc -s opal -s native -s promise -s sorbet-runtime -s browser/setup/full opal_app.rb > ../../../server/public/js/opal_app.js"
+    end
+end

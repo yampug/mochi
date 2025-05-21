@@ -1,0 +1,14 @@
+version: '3'
+
+tasks:
+  create_build_dir:
+    cmds:
+      - mkdir -p build_nb && rm -rf build_nb/*
+  build_opal_js:
+    cmds:
+      - task: create_build_dir
+      - opal -c -p native -p promise -e "#" -E -o build_nb/opal.js
+  opal_test_compile:
+    cmds:
+      - task: create_build_dir
+      - opal -Oc ruby/lib/HelloWorld.rb -o build_nb/hello_world.js --no-source-map

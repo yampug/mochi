@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="aloha" basedir=".">
+
+    <target name="build">
+        <exec executable="/bin/bash" failonerror="true">
+            <arg value="-c"/>
+            <arg value="./gradlew shadowJar"/>
+        </exec>
+    </target>
+
+    <target name="test-ts-from-fatjar">
+        <exec executable="/bin/bash" failonerror="true">
+            <arg value="-c"/>
+            <arg value="java -jar build/libs/aloha.jar /Users/bob/repos/alohajsonschema/testdata /Users/bob/repos/alohajsonschema/testdata /Users/bob/repos/alohajsonschema/testoutts ts"/>
+        </exec>
+    </target>
+
+</project>
