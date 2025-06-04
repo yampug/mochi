@@ -175,37 +175,45 @@ puts "Mochi v0.1"
 input_dir = ""
 output_dir = ""
 
-OptionParser.parse do |parser|
-  parser.banner = "Usage: mochi [options]"
+parser = OptionParser.new
+OptionParser.parse do |p|
+  p.banner = "Usage: mochi [options]"
 
-  parser.on("-i IN_DIR", "--input_dir=IN_DIR", "Input directory to read from") do |i|
+  p.on("-i IN_DIR", "--input_dir=IN_DIR", "Input directory to read from") do |i|
     input_dir = i
   end
 
-  parser.on("-o OUT_DIR", "--output_dir=OUT_DIR", "Ouput directory to write into") do |o|
+  p.on("-o OUT_DIR
+    ", "--output_dir=OUT_DIR", "Ouput directory to write into") do |o|
     output_dir = o
   end
 
-  parser.on("-h", "--help", "Show this help") do
-    puts parser
+  p.on("-h", "--help", "Show this help") do
+    puts p
     exit
   end
 
   # Handle cases where a required argument for an option is missing
-  parser.missing_option do |flag|
+  p.missing_option do |flag|
     STDERR.puts "ERROR: Missing argument for #{flag}"
-    STDERR.puts parser
+    STDERR.puts p
     exit 1
   end
 
   # Handle unknown options
-  parser.invalid_option do |flag|
+  p.invalid_option do |flag|
     STDERR.puts "ERROR: Unknown option: #{flag}"
-    STDERR.puts parser
+    STDERR.puts p
     exit 1
   end
+  
+  parser = p
 end
-puts "input_dir:#{input_dir}, output_dir:#{output_dir}"
+if input_dir.empty? || output_dir.empty?
+  puts parser
+  exit 1
+end
 
+puts "input_dir:#{input_dir}, output_dir:#{output_dir}"
 transpile_directory("../ruby/lib", "../devground")
 
