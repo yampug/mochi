@@ -4,3 +4,14 @@
 build
 ruby/Gemfile.lock
 mo_build
+mo_build_cr
+bundle.js
+crystal/lib
+crystal/mochi
+crystal/mochi.dwarf
+devground/a
+devground/bundle.js
+devground/bundle.min.js
+devground/opal-runtime.js
+devground/components.js
+devground/components.js

@@ -1,8 +1,8 @@
 package app.acrylic.rb.nebula.extractors
 
 import org.junit.Test
-import rb.nebula.extractors.RubyMethodExtractor.extractCssContent
-import rb.nebula.extractors.RubyMethodExtractor.extractHtmlContent
+import dev.mochirb.extractors.RubyMethodExtractor.extractCssContent
+import dev.mochirb.extractors.RubyMethodExtractor.extractHtmlContent
 import kotlin.test.assertEquals
 
 class RubyMethodExtractorTest {

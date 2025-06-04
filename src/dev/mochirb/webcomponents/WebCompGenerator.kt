@@ -1,8 +1,14 @@
-package rb.nebula.webcomponents
+package dev.mochirb.webcomponents
 
 object WebCompGenerator {
 
-    fun generate(mochiCompName: String, elName: String, css: String, html: String, reactables: String, bindings: Map<String, String>): WebComp {
+    fun generate(
+        mochiCompName: String,
+        elName: String,
+        css: String,
+        html: String,
+        reactables: String,
+        bindings: Map<String, String>): WebComp {
 
         println("reactables:$reactables")
 
@@ -21,7 +27,6 @@ object WebCompGenerator {
 //                    const currentValue = parseInt(trackedElement.getAttribute('pfcount'), 10);
 
             //console.log("Attribute '"+mutation.attributeName+" was modified.");
-            // Add your logic for other attribute changes on this element
             this.attributeChangedCallback("$key", null, newValue)
           }
         }

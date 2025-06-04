@@ -1,4 +1,4 @@
-package rb.nebula.utils
+package dev.mochirb.utils
 
 class Strings {
     companion object {

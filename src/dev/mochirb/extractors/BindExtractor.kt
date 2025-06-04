@@ -1,4 +1,4 @@
-package rb.nebula.extractors
+package dev.mochirb.extractors
 
 import org.jsoup.Jsoup
 

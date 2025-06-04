@@ -1,4 +1,4 @@
-package rb.nebula.extractors
+package dev.mochirb.extractors
 
 object RubyMethodExtractor {
 

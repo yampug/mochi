@@ -1,8 +1,8 @@
-package rb.nebula.parsing
+package dev.mochirb.parsing
 
 import org.jruby.embed.LocalContextScope
 import org.jruby.embed.ScriptingContainer
-import rb.nebula.utils.RubyDef
+import dev.mochirb.utils.RubyDef
 
 
 class RubyParser {

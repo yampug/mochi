@@ -1,9 +1,9 @@
-package rb.nebula.opal
+package dev.mochirb.opal
 
 import org.apache.commons.io.FileUtils
-import rb.nebula.parsing.RubyParser.Companion.extractMethodBody
-import rb.nebula.utils.BashUtils
-import rb.nebula.utils.RubyDef
+import dev.mochirb.parsing.RubyParser.Companion.extractMethodBody
+import dev.mochirb.utils.BashUtils
+import dev.mochirb.utils.RubyDef
 import java.io.File
 
 class OpalAssembly {

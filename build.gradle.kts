@@ -11,11 +11,11 @@ plugins {
     application
 }
 
-group = "io.aloha"
+group = "dev.mochirb"
 version = "0.0.2"
 
 application {
-    mainClassName = "io.aloha.AlohaMainKt"
+    mainClassName = "dev.mochirb.MochiMainKt"
 }
 
 repositories {
@@ -79,7 +79,7 @@ tasks.withType<ShadowJar> {
         // that is being created and not the manifest.
         ///////////////////////////////////////////////////////////
 
-        baseName = "aloha"
+        baseName = "mochi"
 
 
         description = ""
@@ -97,7 +97,7 @@ tasks.withType<ShadowJar> {
             attributes(
                 mutableMapOf<String, String>(
                     "Base-Name" to baseName!!,
-                    "Main-Class" to "io.aloha.AlohaMainKt",
+                    "Main-Class" to "dev.mochirb.MochiMainKt",
                     "Start-Class" to "",
                     "Implementation-Title" to "",
                     "Implementation-Version" to version!!

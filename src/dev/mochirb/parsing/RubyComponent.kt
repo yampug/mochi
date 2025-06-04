@@ -1,6 +1,6 @@
-package rb.nebula.parsing
+package dev.mochirb.parsing
 
-import rb.nebula.utils.RubyDef
+import dev.mochirb.utils.RubyDef
 
 data class RubyComponent(
     val moduleName: String,

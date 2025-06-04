@@ -1,4 +1,4 @@
-package rb.nebula.utils
+package dev.mochirb.utils
 
 import java.io.BufferedReader
 import java.io.InputStreamReader

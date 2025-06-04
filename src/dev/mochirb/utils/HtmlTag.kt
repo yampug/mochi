@@ -1,4 +1,4 @@
-package rb.nebula.utils
+package dev.mochirb.utils
 
 enum class HtmlTag {
     // Structure & Metadata

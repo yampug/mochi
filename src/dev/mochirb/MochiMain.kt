@@ -1,16 +1,15 @@
-package rb.nebula
+package dev.mochirb
 
 import com.google.gson.Gson
 import org.apache.commons.io.FileUtils
-import rb.nebula.extractors.BindExtractor
-import rb.nebula.extractors.RubyMethodExtractor
-import rb.nebula.parsing.RubyParser
-import rb.nebula.parsing.RubyParser.Companion.extractModuleName
-import rb.nebula.parsing.RubyVariable
-import rb.nebula.utils.BashUtils
-import rb.nebula.utils.RubyDef
-import rb.nebula.webcomponents.WebComp
-import rb.nebula.webcomponents.WebCompGenerator
+import dev.mochirb.extractors.BindExtractor
+import dev.mochirb.extractors.RubyMethodExtractor
+import dev.mochirb.parsing.RubyParser
+import dev.mochirb.parsing.RubyParser.Companion.extractModuleName
+import dev.mochirb.parsing.RubyVariable
+import dev.mochirb.utils.BashUtils
+import dev.mochirb.webcomponents.WebComp
+import dev.mochirb.webcomponents.WebCompGenerator
 import java.io.File
 import java.nio.charset.Charset
 import java.nio.file.Files
@@ -185,23 +184,37 @@ class MochiMain {
             val variables = getVariables(engine, rubyFileNoImports, modName)
 
             println("variables:$variables")
-            var subPath = ""
-            if (fileKey.contains("/")) {
-                subPath = "${File(fileKey).parent}/"
-            }
-            println("subPath: $subPath")
 
             // add getters & setters to the ruby class
             for (reactable in reactablesList) {
                 val varName = reactable
                 val secondLastIndex = findSecondLastIndex(amplifiedRubyCode, "end")
                 // add getter
-                amplifiedRubyCode = amplifiedRubyCode.substring(0, secondLastIndex + 3) + "\n\n\tdef get_${varName}\n\t\t@${varName}\n\tend\n"+ amplifiedRubyCode.substring(secondLastIndex + 3, amplifiedRubyCode.length)
+                amplifiedRubyCode = amplifiedRubyCode.substring(
+                    0,
+                    secondLastIndex + 3
+                ) + "\n\n\tdef get_${varName}\n\t\t@${varName}\n\tend\n" + amplifiedRubyCode.substring(
+                    secondLastIndex + 3,
+                    amplifiedRubyCode.length
+                )
                 // add setter
-                amplifiedRubyCode = amplifiedRubyCode.substring(0, secondLastIndex + 3) + "\n\n\tdef set_${varName}(value)\n\t\t@${varName} = value\n\tend\n"+ amplifiedRubyCode.substring(secondLastIndex + 3, amplifiedRubyCode.length)
+                amplifiedRubyCode = amplifiedRubyCode.substring(
+                    0,
+                    secondLastIndex + 3
+                ) + "\n\n\tdef set_${varName}(value)\n\t\t@${varName} = value\n\tend\n" + amplifiedRubyCode.substring(
+                    secondLastIndex + 3,
+                    amplifiedRubyCode.length
+                )
             }
 
-            webComp = WebCompGenerator.generate(modName, variables.get("@cmp_name")!!.value!!, css, bindings.html, reactables, bindings.bindings)
+            webComp = WebCompGenerator.generate(
+                modName,
+                variables.get("@cmp_name")!!.value!!,
+                css,
+                bindings.html,
+                reactables,
+                bindings.bindings
+            )
 
             for (line in webComp.jsCode.lines()) {
                 output.appendLine(line)

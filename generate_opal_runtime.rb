@@ -6,7 +6,7 @@ require 'opal'
 opal_runtime_javascript = Opal::Builder.build('opal').to_s
 
 # Define the output filename
-runtime_filename = 'opal-runtime.js'
+runtime_filename = 'devground/opal-runtime.js'
 
 # Write the generated JavaScript to the file
 File.open(runtime_filename, 'w') do |file|

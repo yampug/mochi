@@ -1,14 +1,21 @@
 version: '3'
 
 tasks:
-  create_build_dir:
+  dev:
     cmds:
-      - mkdir -p build_nb && rm -rf build_nb/*
-  build_opal_js:
+      - ./gradlew shadowJar
+      - java -jar build/libs/mochi.jar
+      - ruby generate_opal_runtime.rb
+      - cat devground/opal-runtime.js <(echo) devground/components.js > devground/bundle.js
+      - npx swc devground/bundle.js -o devground/bundle.min.js
+  test:
     cmds:
-      - task: create_build_dir
-      - opal -c -p native -p promise -e "#" -E -o build_nb/opal.js
-  opal_test_compile:
+      - cd crystal && crystal spec
+  run:
     cmds:
-      - task: create_build_dir
-      - opal -Oc ruby/lib/HelloWorld.rb -o build_nb/hello_world.js --no-source-map
+      - cd crystal && time crystal run src/mochi.cr -- -i "../ruby/lib" -o "../devground"
+      - cat devground/opal-runtime.js <(echo) devground/components.js > devground/bundle.js
+      - npx swc devground/bundle.js -o devground/bundle.min.js
+  build:
+    cmds:
+      - cd crystal && time crystal build src/mochi.cr

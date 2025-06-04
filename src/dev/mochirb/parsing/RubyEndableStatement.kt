@@ -1,4 +1,4 @@
-package rb.nebula.parsing
+package dev.mochirb.parsing
 
 enum class RubyEndableStatement(val id: String) {
     CLASS("class"),
