@@ -1,6 +1,8 @@
 require "file_utils"
 require "path"
 require "json"
+require "option_parser"
+
 require "./ruby/ruby_endable_statement"
 require "./ruby/ruby_def"
 require "./bind_extractor"
@@ -8,10 +10,7 @@ require "./ruby/ruby_understander"
 require "./webcomponents/web_component_generator"
 require "./webcomponents/web_component"
 require "./mochi_cmp"
-
-require "option_parser"
-
-
+require "./opal/opal_runtime_generator"
 
 def transpile_directory(input_dir : String, output_dir : String)
   puts "inputDir:'#{input_dir}', outDir:'#{output_dir}'"
@@ -38,18 +37,19 @@ def transpile_directory(input_dir : String, output_dir : String)
       end
     end
   end
-  total_ruby_code = get_all_ruby_code(components)
+  
+  total_ruby_code = ""
+  components.each do |mochi_comp|
+    total_ruby_code = total_ruby_code + (mochi_comp.ruby_code)
+  end
   total_js_code = ""
   
   components.each do |mochi_comp|
-    #             totalJsCode.appendLine(component.webComponent.jsCode)
-
     total_js_code = mochi_comp.web_component.js_code + "\n"
   end
   work_dir_path = "../mo_build_cr"
   
   maybe_create_clear_output_dir(work_dir_path)
-
 
   File.write("../mo_build_cr/total_ruby.rb", total_ruby_code)
   
@@ -62,15 +62,6 @@ def transpile_directory(input_dir : String, output_dir : String)
   File.write("#{output_dir}/components.js", output)
   
 end
-
-def get_all_ruby_code(components : Array(MochiComponent)) : String
-  ruby_code = ""
-  components.each do |mochi_comp|
-    ruby_code = ruby_code + (mochi_comp.ruby_code)
-  end
-  return ruby_code
-end
-
 
 def maybe_create_clear_output_dir(work_dir_path : String)
   if !Dir.exists?(work_dir_path)
@@ -183,8 +174,7 @@ OptionParser.parse do |p|
     input_dir = i
   end
 
-  p.on("-o OUT_DIR
-    ", "--output_dir=OUT_DIR", "Ouput directory to write into") do |o|
+  p.on("-o OUT_DIR", "--output_dir=OUT_DIR", "Ouput directory to write into") do |o|
     output_dir = o
   end
 
@@ -214,6 +204,14 @@ if input_dir.empty? || output_dir.empty?
   exit 1
 end
 
+tmp_dir = "/tmp/mochi"
+if Dir.exists?(tmp_dir)
+  FileUtils.rm_rf(tmp_dir)
+  Dir.mkdir(tmp_dir)
+else
+  Dir.mkdir_p(tmp_dir)
+end
 puts "input_dir:#{input_dir}, output_dir:#{output_dir}"
-transpile_directory("../ruby/lib", "../devground")
-
+transpile_directory(input_dir, output_dir)
+opal_rt_gen = OpalRuntimeGenerator.new()
+opal_rt_gen.generate(output_dir, tmp_dir)

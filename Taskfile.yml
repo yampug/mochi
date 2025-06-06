@@ -5,17 +5,18 @@ tasks:
     cmds:
       - ./gradlew shadowJar
       - java -jar build/libs/mochi.jar
-      - ruby generate_opal_runtime.rb
-      - cat devground/opal-runtime.js <(echo) devground/components.js > devground/bundle.js
-      - npx swc devground/bundle.js -o devground/bundle.min.js
+      - #ruby generate_opal_runtime.rb
+      - #cat devground/opal-runtime.js <(echo) devground/components.js > devground/bundle.js
+      - #npx swc devground/bundle.js -o devground/bundle.min.js
   test:
     cmds:
       - cd crystal && crystal spec
   run:
     cmds:
       - cd crystal && time crystal run src/mochi.cr -- -i "../ruby/lib" -o "../devground"
-      - cat devground/opal-runtime.js <(echo) devground/components.js > devground/bundle.js
-      - npx swc devground/bundle.js -o devground/bundle.min.js
+      - #cat devground/opal-runtime.js <(echo) devground/components.js > devground/bundle.js
+      - #npx swc devground/bundle.js -o devground/bundle.min.js
   build:
     cmds:
       - cd crystal && time crystal build src/mochi.cr
+    
