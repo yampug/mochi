@@ -12,9 +12,8 @@ require "./webcomponents/web_component"
 require "./mochi_cmp"
 require "./opal/opal_runtime_generator"
 
-def transpile_directory(input_dir : String, output_dir : String)
-  puts "inputDir:'#{input_dir}', outDir:'#{output_dir}'"
-
+def transpile_directory(input_dir : String, output_dir : String, build_dir : String)
+  puts "inputDir:'#{input_dir}', outDir:'#{output_dir}', build_dir:'#{build_dir}'"
 
   components = [] of MochiComponent
   Dir.glob(Path[input_dir, "**", "*.mo.rb"].to_s) do |path|
@@ -47,19 +46,16 @@ def transpile_directory(input_dir : String, output_dir : String)
   components.each do |mochi_comp|
     total_js_code = mochi_comp.web_component.js_code + "\n"
   end
-  work_dir_path = "../mo_build_cr"
-  
-  maybe_create_clear_output_dir(work_dir_path)
 
-  File.write("../mo_build_cr/total_ruby.rb", total_ruby_code)
+  File.write("#{build_dir}/total_ruby.rb", total_ruby_code)
   
-  `opal -cO ../mo_build_cr/total_ruby.rb -o ../mo_build_cr/total_ruby.js --no-source-map`
+  `opal -cO #{build_dir}/total_ruby.rb -o #{build_dir}/total_ruby.js --no-source-map`
   # TODO output
-  compiled_rb_code = File.read("../mo_build_cr/total_ruby.js")
+  compiled_rb_code = File.read("#{build_dir}/total_ruby.js")
   
   output = compiled_rb_code + "\n" + total_js_code
-  puts "Writing #{output_dir}/components.js"
-  File.write("#{output_dir}/components.js", output)
+  puts "Writing #{build_dir}/components.js"
+  File.write("#{build_dir}/components.js", output)
   
 end
 
@@ -217,13 +213,13 @@ else
   Dir.mkdir_p(tmp_dir)
 end
 puts "input_dir:#{input_dir}, output_dir:#{output_dir}"
-transpile_directory(input_dir, output_dir)
+transpile_directory(input_dir, output_dir, tmp_dir)
 opal_rt_gen = OpalRuntimeGenerator.new()
 opal_rt_gen.generate(output_dir, tmp_dir)
 
 # combine opal-runtime and transpiled mochi code into bundle.js
-file1_content = File.read("#{output_dir}/opal-runtime.js")
-file2_content = File.read("#{output_dir}/components.js")
+file1_content = File.read("#{tmp_dir}/opal-runtime.js")
+file2_content = File.read("#{tmp_dir}/components.js")
 combined_content = "#{file1_content}\n#{file2_content}"
 File.write("#{output_dir}/bundle.js", combined_content)
 

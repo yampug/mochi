@@ -4,7 +4,7 @@ class OpalRuntimeGenerator
   end
   
   def generate(output_dir : String, tmp_dir : String)
-    output_file = "#{output_dir}/opal-runtime.js"
+    output_file = "#{tmp_dir}/opal-runtime.js"
     rb_code = ""
     rb_code += "require 'opal'\n"
     rb_code += "opal_runtime_javascript = Opal::Builder.build('opal').to_s\n"
