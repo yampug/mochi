@@ -165,6 +165,7 @@ puts "Mochi v0.1"
 
 input_dir = ""
 output_dir = ""
+with_mini = false
 
 parser = OptionParser.new
 OptionParser.parse do |p|
@@ -178,6 +179,10 @@ OptionParser.parse do |p|
     output_dir = o
   end
 
+  p.on("-m", "--mini", "Minimize output") do |o|
+    with_mini = true
+  end
+  
   p.on("-h", "--help", "Show this help") do
     puts p
     exit
@@ -215,3 +220,19 @@ puts "input_dir:#{input_dir}, output_dir:#{output_dir}"
 transpile_directory(input_dir, output_dir)
 opal_rt_gen = OpalRuntimeGenerator.new()
 opal_rt_gen.generate(output_dir, tmp_dir)
+
+# combine opal-runtime and transpiled mochi code into bundle.js
+file1_content = File.read("#{output_dir}/opal-runtime.js")
+file2_content = File.read("#{output_dir}/components.js")
+combined_content = "#{file1_content}\n#{file2_content}"
+File.write("#{output_dir}/bundle.js", combined_content)
+
+# check swc is installed
+puts "With Mini?:#{with_mini}"
+if with_mini
+  unless Process.find_executable("swc")
+    STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
+    exit 1
+  end
+  `npx swc "#{output_dir}/bundle.js" -o #{output_dir}/bundle.js`
+end

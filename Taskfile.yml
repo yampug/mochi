@@ -13,9 +13,7 @@ tasks:
       - cd crystal && crystal spec
   run:
     cmds:
-      - cd crystal && time crystal run src/mochi.cr -- -i "../ruby/lib" -o "../devground"
-      - #cat devground/opal-runtime.js <(echo) devground/components.js > devground/bundle.js
-      - #npx swc devground/bundle.js -o devground/bundle.min.js
+      - cd crystal && time crystal run src/mochi.cr -- -i "../ruby/lib" -o "../devground" -m
   build:
     cmds:
       - cd crystal && time crystal build src/mochi.cr
