@@ -1,0 +1,6 @@
+{
+  "dependencies": [
+    "thin", 
+    "rack"
+  ]
+}

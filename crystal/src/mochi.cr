@@ -44,12 +44,15 @@ def transpile_directory(input_dir : String, output_dir : String, build_dir : Str
   total_js_code = ""
   
   components.each do |mochi_comp|
-    total_js_code = mochi_comp.web_component.js_code + "\n"
+    puts "component:#{mochi_comp.name}"
+    total_js_code = total_js_code + "\n" + mochi_comp.web_component.js_code + "\n"
   end
+  
+  total_js_code = total_js_code + "\n" + "console.log('Mochi booted');" + "\n"
 
   File.write("#{build_dir}/total_ruby.rb", total_ruby_code)
   
-  `opal -cO #{build_dir}/total_ruby.rb -o #{build_dir}/total_ruby.js --no-source-map`
+  `opal -cO -s opal -s native -s promise -s browser/setup/full #{build_dir}/total_ruby.rb -o #{build_dir}/total_ruby.js --no-source-map`
   # TODO output
   compiled_rb_code = File.read("#{build_dir}/total_ruby.js")
   
@@ -157,7 +160,7 @@ def js_to_cr_array(json_array_str : String) : Array(String)
   return string_array
 end
 
-puts "Mochi v0.1"
+puts "Mochi v0.1a"
 
 input_dir = ""
 output_dir = ""
@@ -221,7 +224,8 @@ opal_rt_gen.generate(output_dir, tmp_dir)
 file1_content = File.read("#{tmp_dir}/opal-runtime.js")
 file2_content = File.read("#{tmp_dir}/components.js")
 combined_content = "#{file1_content}\n#{file2_content}"
-File.write("#{output_dir}/bundle.js", combined_content)
+bundle_file_path = "#{output_dir}/bundle.js"
+File.write(bundle_file_path, combined_content)
 
 # check swc is installed
 puts "With Mini?:#{with_mini}"
@@ -230,5 +234,5 @@ if with_mini
     STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
     exit 1
   end
-  `npx swc "#{output_dir}/bundle.js" -o #{output_dir}/bundle.js`
+  `npx swc "#{bundle_file_path}" -o #{bundle_file_path}`
 end
