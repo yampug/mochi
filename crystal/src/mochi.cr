@@ -9,6 +9,7 @@ require "./ruby/ruby_endable_statement"
 require "./ruby/ruby_def"
 require "./bind_extractor"
 require "./ruby/ruby_understander"
+require "./ruby/ruby_rewriter"
 require "./webcomponents/web_component_generator"
 require "./webcomponents/web_component"
 require "./mochi_cmp"
@@ -21,6 +22,8 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
 
   components = [] of MochiComponent
   i = 1
+  rb_rewriter = RubyRewriter.new
+
   Dir.glob(Path[input_dir, "**", "*.rb"].to_s) do |path|
     if File.file?(path) && path.ends_with?(".rb")
       begin
@@ -31,9 +34,20 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
         #puts "Read: #{absolute_path}"
         rb_file = File.read(absolute_path)
         component = transpile_component(rb_file, i)
+        
+       
+        
+        
         i += 1
         if component
           components << component
+          
+          # replace ruby code with amplified version
+          src_dir = builder_man.ruby_src_dir
+          lib_path = rb_rewriter.extract_lib_path(absolute_path)
+          file_path = "#{src_dir}/#{lib_path}"
+          puts "lib_path:#{lib_path}, src_dir:#{src_dir}, file_path:#{file_path}"
+          File.write(file_path, component.ruby_code)
         end
         
         
@@ -43,17 +57,23 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
     end
   end
   
-  puts "Done with transpiling components"
+  puts "Done with preparing components for transpilation"
   
   
+  # rb_rewriter = RubyRewriter.new
+  # components.each do |mochi_comp|
+
+  #   lib_path = rb_rewriter.extract_lib_path(mochi_comp)
+  # end
   # transpile the ruby code
   # prep ruby code for transpilation
-  total_ruby_code = ""
-  components.each do |mochi_comp|
-    total_ruby_code = total_ruby_code + (mochi_comp.ruby_code)
-  end
-  File.write("#{build_dir}/total_ruby.rb", total_ruby_code)
+  # total_ruby_code = ""
+  # components.each do |mochi_comp|
+  #   total_ruby_code = total_ruby_code + (mochi_comp.ruby_code)
+  # end
+  # File.write("#{build_dir}/total_ruby.rb", total_ruby_code)
   
+  puts "Transpiling..."
   transpiled_ruby_code_path = "#{build_dir}/ruby.js"
   # TODO generate getters and setters for variables
   `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map`
@@ -67,11 +87,11 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   end
   components_js_code = components_js_code + "\n" + "console.log('Mochi booted.');" + "\n"
   
-
   output = transpiled_ruby_code + "\n" + components_js_code
   puts "Writing #{build_dir}/components.js"
   File.write("#{build_dir}/components.js", output)
-  
+  puts "Transpilation finished"
+
 end
 
 def maybe_create_clear_output_dir(work_dir_path : String)
