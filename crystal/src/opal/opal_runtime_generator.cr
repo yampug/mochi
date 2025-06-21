@@ -20,6 +20,8 @@ class OpalRuntimeGenerator
     File.write(script_file, rb_code)
     
     `ruby #{script_file}`
+    
+    
   end
   
   def generate(output_dir : String, tmp_dir : String)

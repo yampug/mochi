@@ -15,3 +15,6 @@ devground/bundle.min.js
 devground/opal-runtime.js
 devground/components.js
 devground/components.js
+e2e/node_modules
+e2e/test-results
+e2e/playwright-report

@@ -11,6 +11,22 @@ class Counter
     @modifications = 0
     # puts Text::Soundex.soundex('Knuth')
   end
+  
+  def get_count
+    @count
+  end
+  
+  def set_count(value)
+    @count = value
+  end
+  
+  def get_modifications
+    @modifications
+  end
+  
+  def set_modifications(value)
+    @modifications = value
+  end
 
   def reactables
     ["count", "modifications"]

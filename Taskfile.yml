@@ -10,3 +10,12 @@ tasks:
   build:
     cmds:
       - cd crystal && time crystal build src/mochi.cr
+  e2e:
+    deps:
+      - run
+    cmds:
+      - echo "-----------------------------------------------------------------------------------------------------"
+      - cd e2e && npx playwright test
+  ruby:
+    cmds:
+      - cd ruby && ruby ./lib/Root.rb

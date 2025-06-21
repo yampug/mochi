@@ -65,7 +65,7 @@ class RubyUnderstander
         if parenth_open && parenth_closed && parenth_open < parenth_closed && parenth_closed > 0
             params = line[(parenth_open.not_nil! + 1)...parenth_closed.not_nil!]
         
-            puts "params:'#{params}'"
+            #puts "params:'#{params}'"
             result = [] of String 
             params.split(",").each do |param|
             result << param.strip
@@ -85,7 +85,7 @@ class RubyUnderstander
         end_stat_counter = 0
         end_index_at_def = -1
         
-        puts "extracting methods from class '#{cls_name}'"
+        # puts "extracting methods from class '#{cls_name}'"
         
         rb_file.each_line do |line|
             trim = line.strip
@@ -134,6 +134,7 @@ class RubyUnderstander
                         result[actual_def_name] = tmp
                     end
             
+                    
                     def_name = nil
                     end_index_at_def = -1
                     lines_since_def = [] of String
@@ -145,20 +146,18 @@ class RubyUnderstander
     end
 
     def self.get_cmp_name(rb_file : String, cls_name : String) : String?
-    
-        puts "get variables"
-
+        # puts "get variables"
         
         rb_file.each_line do |line|
 
           trim = line.strip
           if trim.starts_with?("@cmp_name")
             
-            puts "got cmp_name line #{trim}"
+            #puts "got cmp_name line #{trim}"
             index_eq = trim.index("=")
             if index_eq
               cmp_name = trim[index_eq + 1...].strip.gsub("\"", "")
-              puts "cmp_name is '#{cmp_name}'"
+              #puts "cmp_name is '#{cmp_name}'"
               return cmp_name
             end
           end

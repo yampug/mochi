@@ -6,6 +6,14 @@ class PlusFive
   def initialize
     @pfcount = 0
   end
+  
+  def get_pfcount
+    @pfcount
+  end
+  
+  def set_pfcount(value)
+    @pfcount = value
+  end
 
   def reactables
     ["pfcount"]

@@ -2,6 +2,8 @@ require "file_utils"
 require "path"
 require "json"
 require "option_parser"
+require "random"
+require "time"
 
 require "./ruby/ruby_endable_statement"
 require "./ruby/ruby_def"
@@ -11,21 +13,25 @@ require "./webcomponents/web_component_generator"
 require "./webcomponents/web_component"
 require "./mochi_cmp"
 require "./opal/opal_runtime_generator"
+require "./builder_man"
 
-def transpile_directory(input_dir : String, output_dir : String, build_dir : String)
+def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan)
+  build_dir = builder_man.build_dir
   puts "inputDir:'#{input_dir}', outDir:'#{output_dir}', build_dir:'#{build_dir}'"
 
   components = [] of MochiComponent
-  Dir.glob(Path[input_dir, "**", "*.mo.rb"].to_s) do |path|
-    if File.file?(path) && path.ends_with?(".mo.rb")
+  i = 1
+  Dir.glob(Path[input_dir, "**", "*.rb"].to_s) do |path|
+    if File.file?(path) && path.ends_with?(".rb")
       begin
         puts "Processing #{path}"
         content = File.read(path)
         absolute_path = Path[path].expand.to_s
         #translations[absolute_path] = content
-        puts "Read: #{absolute_path}"
+        #puts "Read: #{absolute_path}"
         rb_file = File.read(absolute_path)
-        component = transpile_component(rb_file)
+        component = transpile_component(rb_file, i)
+        i += 1
         if component
           components << component
         end
@@ -37,26 +43,32 @@ def transpile_directory(input_dir : String, output_dir : String, build_dir : Str
     end
   end
   
+  puts "Done with transpiling components"
+  
+  
+  # transpile the ruby code
+  # prep ruby code for transpilation
   total_ruby_code = ""
   components.each do |mochi_comp|
     total_ruby_code = total_ruby_code + (mochi_comp.ruby_code)
   end
-  total_js_code = ""
-  
-  components.each do |mochi_comp|
-    puts "component:#{mochi_comp.name}"
-    total_js_code = total_js_code + "\n" + mochi_comp.web_component.js_code + "\n"
-  end
-  
-  total_js_code = total_js_code + "\n" + "console.log('Mochi booted');" + "\n"
-
   File.write("#{build_dir}/total_ruby.rb", total_ruby_code)
   
-  `opal -cO -s opal -s native -s promise -s browser/setup/full #{build_dir}/total_ruby.rb -o #{build_dir}/total_ruby.js --no-source-map`
-  # TODO output
-  compiled_rb_code = File.read("#{build_dir}/total_ruby.js")
+  transpiled_ruby_code_path = "#{build_dir}/ruby.js"
+  # TODO generate getters and setters for variables
+  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map`
+  transpiled_ruby_code = File.read(transpiled_ruby_code_path)
   
-  output = compiled_rb_code + "\n" + total_js_code
+  # assemble the js code (webcomponents etc)
+  components_js_code = ""
+  components.each do |mochi_comp|
+    #puts "component:#{mochi_comp.name}"
+    components_js_code = components_js_code + "\n" + mochi_comp.web_component.js_code + "\n"
+  end
+  components_js_code = components_js_code + "\n" + "console.log('Mochi booted.');" + "\n"
+  
+
+  output = transpiled_ruby_code + "\n" + components_js_code
   puts "Writing #{build_dir}/components.js"
   File.write("#{build_dir}/components.js", output)
   
@@ -78,8 +90,10 @@ def maybe_create_clear_output_dir(work_dir_path : String)
   end
 end
 
-def transpile_component(rb_file : String)
+def transpile_component(rb_file : String, i : Int32)
   cls_name = RubyUnderstander.class_name(rb_file)
+
+  print_cmp_start_separator(cls_name, i)
   puts "ClassName:'#{cls_name}'"
 
   methods = RubyUnderstander.extract_method_bodies(rb_file, cls_name)
@@ -93,16 +107,15 @@ def transpile_component(rb_file : String)
     css = RubyUnderstander.extract_raw_string_from_def_body(methods["css"].body, "css")
     html = RubyUnderstander.extract_raw_string_from_def_body(methods["html"].body, "html")
     reactables = RubyUnderstander.extract_raw_string_from_def_body(methods["reactables"].body, "reactables")
-    puts "reactables:'#{reactables}'"
+    # puts "reactables:'#{reactables}'"
     
     reactables_arr = js_to_cr_array(reactables)
     reactables_arr.each do |item|
-      puts "Item: #{item}"
+      # puts "Item: #{item}"
     end
     bindings = BindExtractor.extract(html)
     cmp_name = RubyUnderstander.get_cmp_name(rb_file, cls_name)
     
-    puts "---------------------------------------------------"
     
     if cmp_name
       # add getters & setters to the ruby class
@@ -132,6 +145,7 @@ def transpile_component(rb_file : String)
         bindings.bindings
       )
       
+      print_cmp_end_seperator(cls_name, i)
       return MochiComponent.new(
         cls_name,
         ruby_code = amped_ruby_code,
@@ -141,6 +155,7 @@ def transpile_component(rb_file : String)
       )
     end
   end
+  print_cmp_end_seperator(cls_name, i)
 end
 
 def find_second_last_index(text : String, substring_to_find : String) : Int32?
@@ -158,9 +173,28 @@ def js_to_cr_array(json_array_str : String) : Array(String)
   parsed_array = JSON.parse(json_array_str).as_a
   string_array = parsed_array.map(&.as_s)
   return string_array
+end 
+
+def generate_build_id : String
+  random_part = Random.new.hex(16)
+  time_part = Time.utc.to_unix_ns
+  return "#{random_part}#{time_part}"
 end
 
-puts "Mochi v0.1a"
+def print_cmp_start_separator(cmp_name : String, i : Int32)
+  puts "==============================  (#{i})  START   #{cmp_name}   =================================="
+end
+
+def print_cmp_end_seperator(cmp_name : String, i : Int32)
+  puts "==============================  (#{i})   END   #{cmp_name}   ===================================="
+end
+
+def print_separator
+  puts "------------------------------------------------------------------------------------"
+end
+
+puts "Mochi v0.1b"
+
 
 input_dir = ""
 output_dir = ""
@@ -177,6 +211,7 @@ OptionParser.parse do |p|
   p.on("-o OUT_DIR", "--output_dir=OUT_DIR", "Ouput directory to write into") do |o|
     output_dir = o
   end
+  
 
   p.on("-m", "--mini", "Minimize output") do |o|
     with_mini = true
@@ -203,36 +238,62 @@ OptionParser.parse do |p|
   
   parser = p
 end
+
+# 1. Prepare Input / Output directories
 if input_dir.empty? || output_dir.empty?
   puts parser
   exit 1
 end
 
-tmp_dir = "/tmp/mochi"
-if Dir.exists?(tmp_dir)
-  FileUtils.rm_rf(tmp_dir)
-  Dir.mkdir(tmp_dir)
-else
-  Dir.mkdir_p(tmp_dir)
-end
-puts "input_dir:#{input_dir}, output_dir:#{output_dir}"
-transpile_directory(input_dir, output_dir, tmp_dir)
-opal_rt_gen = OpalRuntimeGenerator.new()
-opal_rt_gen.generate(output_dir, tmp_dir)
+puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
+builder_man = BuilderMan.new
+puts "BuildID: #{builder_man.build_id}"
+build_dir = builder_man.build_dir
+builder_man.copy_ruby_code_base
 
-# combine opal-runtime and transpiled mochi code into bundle.js
-file1_content = File.read("#{tmp_dir}/opal-runtime.js")
-file2_content = File.read("#{tmp_dir}/components.js")
-combined_content = "#{file1_content}\n#{file2_content}"
-bundle_file_path = "#{output_dir}/bundle.js"
-File.write(bundle_file_path, combined_content)
+print_separator
+puts "2. Transpiling Mochi Components"
+transpile_directory(input_dir, output_dir, builder_man)
+
+
+print_separator
+puts "3. Generating Opal Runtime"
+opal_rt_time = Time.measure do
+  opal_rt_gen = OpalRuntimeGenerator.new()
+  opal_rt_gen.generate(output_dir, build_dir)
+end
+puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
+
+
+print_separator
+puts "4. Bundling"
+bundle_file_path = ""
+bundling_time_taken = Time.measure do
+  # combine opal-runtime and transpiled mochi code into bundle.js
+  file1_content = File.read("#{build_dir}/opal-runtime.js")
+  file2_content = File.read("#{build_dir}/components.js")
+  combined_content = "#{file1_content}\n#{file2_content}"
+  bundle_file_path = "#{output_dir}/bundle.js"
+  File.write(bundle_file_path, combined_content)
+end
+puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
+
 
 # check swc is installed
-puts "With Mini?:#{with_mini}"
-if with_mini
-  unless Process.find_executable("swc")
-    STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
-    exit 1
+print_separator
+puts "5. Minify the output: #{with_mini}"
+mini_time_taken = Time.measure do
+
+  if with_mini
+    unless Process.find_executable("swc")
+      STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
+      exit 1
+    end
+    `npx swc "#{bundle_file_path}" -o #{bundle_file_path}`
   end
-  `npx swc "#{bundle_file_path}" -o #{bundle_file_path}`
 end
+puts "> Minification took #{mini_time_taken.total_milliseconds.to_i}ms"
+
+
+print_separator
+puts "Done."
