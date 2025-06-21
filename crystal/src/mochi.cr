@@ -30,13 +30,9 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
         puts "Processing #{path}"
         content = File.read(path)
         absolute_path = Path[path].expand.to_s
-        #translations[absolute_path] = content
-        #puts "Read: #{absolute_path}"
+
         rb_file = File.read(absolute_path)
-        component = transpile_component(rb_file, i)
-        
-       
-        
+        component = transpile_component(rb_file, i, absolute_path)
         
         i += 1
         if component
@@ -49,30 +45,16 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
           puts "lib_path:#{lib_path}, src_dir:#{src_dir}, file_path:#{file_path}"
           File.write(file_path, component.ruby_code)
         end
-        
-        
       rescue ex
         puts "Error reading file #{path}: #{ex.message}"
       end
     end
   end
   
-  puts "Done with preparing components for transpilation"
-  
-  
-  # rb_rewriter = RubyRewriter.new
-  # components.each do |mochi_comp|
+  mochi_root = rb_rewriter.gen_mochi_ruby_root(components)
+  File.write("#{builder_man.ruby_src_dir}/lib/Root.rb", mochi_root)
 
-  #   lib_path = rb_rewriter.extract_lib_path(mochi_comp)
-  # end
-  # transpile the ruby code
-  # prep ruby code for transpilation
-  # total_ruby_code = ""
-  # components.each do |mochi_comp|
-  #   total_ruby_code = total_ruby_code + (mochi_comp.ruby_code)
-  # end
-  # File.write("#{build_dir}/total_ruby.rb", total_ruby_code)
-  
+  puts "Done with preparing components for transpilation"
   puts "Transpiling..."
   transpiled_ruby_code_path = "#{build_dir}/ruby.js"
   # TODO generate getters and setters for variables
@@ -110,7 +92,7 @@ def maybe_create_clear_output_dir(work_dir_path : String)
   end
 end
 
-def transpile_component(rb_file : String, i : Int32)
+def transpile_component(rb_file : String, i : Int32, absolute_path : String)
   cls_name = RubyUnderstander.class_name(rb_file)
 
   print_cmp_start_separator(cls_name, i)
@@ -167,6 +149,7 @@ def transpile_component(rb_file : String, i : Int32)
       
       print_cmp_end_seperator(cls_name, i)
       return MochiComponent.new(
+        absolute_path,
         cls_name,
         ruby_code = amped_ruby_code,
         web_component,
@@ -213,8 +196,7 @@ def print_separator
   puts "------------------------------------------------------------------------------------"
 end
 
-puts "Mochi v0.1b"
-
+puts "Mochi v0.1c"
 
 input_dir = ""
 output_dir = ""
