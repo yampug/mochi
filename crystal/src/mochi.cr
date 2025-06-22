@@ -57,8 +57,9 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   puts "Done with preparing components for transpilation"
   puts "Transpiling..."
   transpiled_ruby_code_path = "#{build_dir}/ruby.js"
-  # TODO generate getters and setters for variables
-  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map`
+  `cd #{builder_man.ruby_src_dir} && bundler install`
+  puts "gems installed"
+  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map` 
   transpiled_ruby_code = File.read(transpiled_ruby_code_path)
   
   # assemble the js code (webcomponents etc)

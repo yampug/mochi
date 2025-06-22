@@ -26,6 +26,11 @@ class RubyRewriter
   def gen_mochi_ruby_root(components : Array(MochiComponent)) : String
     rb_code = ""
     
+    rb_code += "require 'opal'\n"
+    rb_code += "require 'native'\n"
+    rb_code += "require 'promise'\n"
+    rb_code += "require 'browser/setup/full'\n"
+
     components.each do |mochi_comp|
       lib_path = extract_lib_path(mochi_comp.absolute_path)
       if lib_path
@@ -42,6 +47,13 @@ class RubyRewriter
     components.each do |mochi_comp|
       rb_code += "#{mochi_comp.name}.new\n"
     end
+    
+    # rb_code += "$document.ready do\n"
+    # rb_code += "  puts \"Hello World from opal-browser\"\n"
+    # rb_code += "end\n"
+    
+        
+    
     
     rb_code
   end

@@ -5,7 +5,7 @@
 
     </head>
     <body>
-        <script lang="application/javascript" src="./bundle.js"></script>
+        <script lang="application/javascript" src="./bundle.js" onload='Opal.require("native"); Opal.require("promise"); Opal.require("browser/setup/full");'></script>
         <my-counter count="3"></my-counter>
         <my-counter count="4"></my-counter>
         <plus-five/>
