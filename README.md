@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/yampug/mochi/blob/main/github/assets/banner_dark.png?raw=true">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/yampug/mochi/blob/main/github/assets/banner_light.png?raw=true">
+    <img alt="Mochi Banner" src="https://github.com/yampug/mochi/blob/main/github/assets/banner_light.png?raw=true">
+  </picture>
+</p>
+
 Mochi is web framework aimed at bringing Ruby to the modern web.
 Under the hood Mochi leverages [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components)
 & [Opal](https://opalrb.com/) to make this possible.
