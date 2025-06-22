@@ -14,10 +14,12 @@ The project is still very early on its journey, so be cautious but eventually it
 
 ## Getting Started
 
-### Your first Mochi Component
+### Your first Component
+`TODO`
 
+### Compiling 
+`TODO`
 
-### Compiling your component
+## License
 
-`java -jar mochi.jar rb.nebula.MochiMainKt /path/to/my/component.mo.rb`
-
+[MIT](LICENSE.md)
