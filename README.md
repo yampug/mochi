@@ -16,7 +16,7 @@ The project is still very early on its journey, so proceed at your own risk for 
 
 ## Getting Started
 
-### Your first Component
+### Example Component
 `TODO`
 
 ### Compiling 
