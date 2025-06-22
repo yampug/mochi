@@ -263,7 +263,7 @@ print_separator
 puts "3. Generating Opal Runtime"
 opal_rt_time = Time.measure do
   opal_rt_gen = OpalRuntimeGenerator.new()
-  opal_rt_gen.generate(output_dir, build_dir)
+  opal_rt_gen.generate(build_dir)
 end
 puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
 
@@ -273,11 +273,14 @@ puts "4. Bundling"
 bundle_file_path = ""
 bundling_time_taken = Time.measure do
   # combine opal-runtime and transpiled mochi code into bundle.js
-  file1_content = File.read("#{build_dir}/opal-runtime.js")
-  file2_content = File.read("#{build_dir}/components.js")
-  combined_content = "#{file1_content}\n#{file2_content}"
-  bundle_file_path = "#{output_dir}/bundle.js"
-  File.write(bundle_file_path, combined_content)
+  # file1_content = File.read("#{build_dir}/opal-runtime.js")
+  # file2_content = File.read("#{build_dir}/components.js")
+  # combined_content = "#{file1_content}\n#{file2_content}"
+  # bundle_file_path = "#{output_dir}/bundle.js"
+  # File.write(bundle_file_path, combined_content)
+  
+  `cp "#{build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
+  `cp "#{build_dir}/components.js" "#{output_dir}/bundle.js"`
 end
 puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
 
@@ -292,7 +295,9 @@ mini_time_taken = Time.measure do
       STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
       exit 1
     end
-    `npx swc "#{bundle_file_path}" -o #{bundle_file_path}`
+    #`npx swc "#{bundle_file_path}" -o #{bundle_file_path}`
+    
+    `npx swc "#{output_dir}/opal-runtime.js" -o "#{output_dir}/opal-runtime.js"`
   end
 end
 puts "> Minification took #{mini_time_taken.total_milliseconds.to_i}ms"
