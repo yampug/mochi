@@ -17,9 +17,60 @@ The project is still very early on its journey, so proceed at your own risk for 
 ## Getting Started
 
 ### Example Component
-`TODO`
+A simple example counter component with 2 buttons to increment and decrement the current count:
 
-### Compiling 
+```ruby
+class Counter
+
+  @cmp_name = "my-counter"
+  @count
+
+  def initialize
+    @count = 0
+  end
+
+  def reactables
+    ["count"]
+  end
+
+  def html
+    %Q{
+      <div class="wrapper">
+        <h1>Count: {count}</h1>
+        <button on:click={increment}>Increment</button>
+        <button on:click={decrement}>Decrement</button>
+      </div>
+    }
+  end
+
+  def css
+    %Q{
+      .wrapper {
+        background: red;
+      }
+    }
+  end
+
+  def increment
+    @count = @count + 1
+  end
+
+  def decrement
+    @count = @count - 1
+  end
+
+  def mounted
+    puts "Counter mounted"
+  end
+
+  def unmounted
+    puts "Counter unmounted"
+  end
+end
+
+```
+
+### Compiling
 `TODO`
 
 ## License
