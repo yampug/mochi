@@ -6,7 +6,11 @@
   </picture>
 </p>
 
-Mochi is web framework aimed at bringing Ruby to the modern web.
+[![License](https://img.shields.io/badge/license-MIT-green?labelColor=gray)](LICENSE.md)
+
+## What is Mochi?
+
+Mochi is a web framework aimed at bringing Ruby to the modern web.
 Under the hood Mochi leverages [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components)
 & [Opal](https://opalrb.com/) to make this possible.
 
