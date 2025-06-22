@@ -10,11 +10,9 @@
 
 ## What is Mochi?
 
-Mochi is a web framework aimed at bringing Ruby to the modern web.
-Under the hood Mochi leverages [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components)
-& [Opal](https://opalrb.com/) to make this possible.
+Mochi brings modern web development to Ruby by leveraging the excellent work from [Opal](https://opalrb.com/) and tighly coupling it with the open [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) standard.
 
-The project is still very early on its journey, so be cautious but eventually it should be able to underpin big web projects.
+The project is still very early on its journey, so proceed at your own risk for now.
 
 ## Getting Started
 
