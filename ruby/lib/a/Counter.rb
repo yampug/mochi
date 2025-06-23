@@ -16,12 +16,12 @@ class Counter
     # puts Text::Levenshtein.distance('test', 'test')
   end
 
-  # sig { returns(T::Array[String]) }
+  sig { returns(T::Array[String]) }
   def reactables
     ["count", "modifications"]
   end
 
-  # sig { returns(String) }
+  sig { returns(String) }
   def html
     %Q{
       <div class="wrapper">
@@ -35,7 +35,7 @@ class Counter
     }
   end
 
-  # sig { returns(String) }
+  sig { returns(String) }
   def css
     %Q{
       .wrapper {
