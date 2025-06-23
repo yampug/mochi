@@ -1,7 +1,10 @@
+# typed: true
 # require "text"
-#require 'opal-browser'
+require './lib/sorbet-types/srb_type_opal.rb'
+require './lib/sorbet-types/srb_type_browser.rb'
 
 class Counter
+  extend T::Sig
 
   @cmp_name = "my-counter"
   @count
@@ -13,10 +16,12 @@ class Counter
     # puts Text::Levenshtein.distance('test', 'test')
   end
 
+  # sig { returns(T::Array[String]) }
   def reactables
     ["count", "modifications"]
   end
 
+  # sig { returns(String) }
   def html
     %Q{
       <div class="wrapper">
@@ -30,6 +35,7 @@ class Counter
     }
   end
 
+  # sig { returns(String) }
   def css
     %Q{
       .wrapper {
@@ -59,21 +65,21 @@ class Counter
     
     puts "Making a GET request to: #{url}"
     
-    Browser::HTTP.get(url).then do |response|
-      if response.ok?
-        puts "Request successful with status: #{response.status_code}"
-        response.text.then do |text_data|
-          puts "Response text received:"
-          puts text_data
-        end
+    # Browser::HTTP.get(url).then do |response|
+    #   if response.ok?
+    #     puts "Request successful with status: #{response.status_code}"
+    #     response.text.then do |text_data|
+    #       puts "Response text received:"
+    #       puts text_data
+    #     end
     
-      else
-        puts "Request failed with status: #{response.status_code}"
-      end
-    end.catch do |error|
-      puts "An error occurred during the request:"
-      puts error.message
-    end
+    #   else
+    #     puts "Request failed with status: #{response.status_code}"
+    #   end
+    # end.catch do |error|
+    #   puts "An error occurred during the request:"
+    #   puts error.message
+    # end
 
   end
 

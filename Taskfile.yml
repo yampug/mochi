@@ -19,3 +19,6 @@ tasks:
   ruby:
     cmds:
       - cd ruby && ruby ./lib/Root.rb
+  sorbet:
+    cmds:
+      - cd ruby && srb tc

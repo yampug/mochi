@@ -52,10 +52,40 @@ class RubyRewriter
     # rb_code += "  puts \"Hello World from opal-browser\"\n"
     # rb_code += "end\n"
     
-        
-    
-    
     rb_code
+  end
+  
+  
+  def comment_out_sorbet_signatures(ruby_code : String) : String
+    ruby_code.each_line.map do |line|
+      if line.strip.starts_with?("sig {")
+        "#" + line
+      else
+        line
+      end
+    end.join("\n")
+  end
+  
+  def comment_out_all_sorbet_signatures_in_dir(path : String)
+    unless File.directory?(path)
+      STDERR.puts "Error: Provided path is not a directory -> #{path}"
+      return
+    end
+    
+    Dir.each_child(path) do |child|
+      full_path = File.join(path, child)
+  
+      if File.directory?(full_path)
+        comment_out_all_sorbet_signatures_in_dir(full_path)
+      elsif File.file?(full_path)
+        begin
+          content = File.read(full_path)
+          File.write(full_path, comment_out_sorbet_signatures(content))
+        rescue ex
+          STDERR.puts "  -> Could not write to file: #{full_path}. Reason: #{ex.message}"
+        end
+      end
+    end
   end
   
 end

@@ -11,7 +11,9 @@
 ## What is Mochi?
 
 Mochi brings modern web development to Ruby by leveraging the excellent work from [Opal](https://opalrb.com/) and tighly coupling it with the open [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) standard.
+Mochi provides also native [Sorbet](https://sorbet.org) support for all that type-checking goodness, as this can be a bit daunting to get going yourself, since Sorbet doesn't play nice will Opal out of the box. 
 
+So all in all Mochi brings type-safe Ruby to the modern web.
 The project is still very early on its journey, so proceed at your own risk for now.
 
 ## Getting Started

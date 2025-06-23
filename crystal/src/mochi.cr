@@ -51,6 +51,10 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
     end
   end
   
+  # comment out Sorbet signatures
+  # RubyUnderstander.comment_out_sorbet_signatures(
+  rb_rewriter.comment_out_all_sorbet_signatures_in_dir("#{builder_man.ruby_src_dir}/lib")
+  
   mochi_root = rb_rewriter.gen_mochi_ruby_root(components)
   File.write("#{builder_man.ruby_src_dir}/lib/Root.rb", mochi_root)
 
@@ -59,7 +63,7 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   transpiled_ruby_code_path = "#{build_dir}/ruby.js"
   `cd #{builder_man.ruby_src_dir} && bundler install`
   puts "gems installed"
-  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map` 
+  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map` 
   transpiled_ruby_code = File.read(transpiled_ruby_code_path)
   
   # assemble the js code (webcomponents etc)
@@ -98,6 +102,10 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
 
   print_cmp_start_separator(cls_name, i)
   puts "ClassName:'#{cls_name}'"
+  
+  if cls_name.blank?
+    return
+  end
 
   methods = RubyUnderstander.extract_method_bodies(rb_file, cls_name)
   #puts methods
@@ -149,6 +157,7 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
       )
       
       print_cmp_end_seperator(cls_name, i)
+      # puts no_types_ruby_code
       return MochiComponent.new(
         absolute_path,
         cls_name,
@@ -158,6 +167,8 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
         css
       )
     end
+  else
+    puts "Skipping '#{cls_name}', no css method"
   end
   print_cmp_end_seperator(cls_name, i)
 end
