@@ -260,14 +260,14 @@ if input_dir.empty? || output_dir.empty?
 end
 
 puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
-builder_man = BuilderMan.new
+builder_man = BuilderMan.new(input_dir)
 puts "BuildID: #{builder_man.build_id}"
 build_dir = builder_man.build_dir
 builder_man.copy_ruby_code_base
 
 print_separator
 puts "2. Transpiling Mochi Components"
-transpile_directory(input_dir, output_dir, builder_man)
+transpile_directory("#{input_dir}/lib", output_dir, builder_man)
 
 
 print_separator

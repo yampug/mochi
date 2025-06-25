@@ -2,9 +2,11 @@ require "file_utils"
 
 class BuilderMan
 
+  @input_dir : String
   @build_id : String
 
-  def initialize
+  def initialize(input_dir : String)
+    @input_dir = input_dir
     @build_id = generate_build_id
     # create mochi dir
     create_mochi_dir_if_missing
@@ -40,13 +42,13 @@ class BuilderMan
   end
 
   def copy_ruby_code_base
-    source_dir = "/Users/bob/repos/mochi/ruby/*"
+    source_dir = "#{@input_dir}/*"
     destination_dir = ruby_src_dir
 
     `mkdir #{destination_dir} && cp -r #{source_dir} #{destination_dir}`
 
     # copy batteries
-    bat_source_dir = "/Users/bob/repos/mochi/batteries/*"
+    bat_source_dir = "#{@input_dir}/../batteries/*"
     `cp -r #{bat_source_dir} #{destination_dir}/lib`
   end
 end

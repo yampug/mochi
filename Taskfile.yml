@@ -6,7 +6,7 @@ tasks:
       - cd crystal && crystal spec
   run:
     cmds:
-      - cd crystal && time crystal run src/mochi.cr -- -i "../ruby/lib" -o "../devground" -m
+      - cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
   build:
     cmds:
       - cd crystal && time crystal build src/mochi.cr
