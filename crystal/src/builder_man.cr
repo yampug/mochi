@@ -48,7 +48,7 @@ class BuilderMan
     `mkdir #{destination_dir} && cp -r #{source_dir} #{destination_dir}`
 
     # copy batteries
-    bat_source_dir = "#{@input_dir}/../batteries/*"
-    `cp -r #{bat_source_dir} #{destination_dir}/lib`
+    #bat_source_dir = "#{@input_dir}/../batteries/*"
+    #`cp -r #{bat_source_dir} #{destination_dir}/lib`
   end
 end

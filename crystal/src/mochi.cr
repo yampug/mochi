@@ -16,6 +16,8 @@ require "./mochi_cmp"
 require "./opal/opal_runtime_generator"
 require "./builder_man"
 
+require "./batteries/sorbet_types_battery"
+
 def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan)
   build_dir = builder_man.build_dir
   puts "inputDir:'#{input_dir}', outDir:'#{output_dir}', build_dir:'#{build_dir}'"
@@ -259,6 +261,7 @@ if input_dir.empty? || output_dir.empty?
   exit 1
 end
 
+print_separator
 puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
 builder_man = BuilderMan.new(input_dir)
 puts "BuildID: #{builder_man.build_id}"
@@ -266,12 +269,21 @@ build_dir = builder_man.build_dir
 builder_man.copy_ruby_code_base
 
 print_separator
-puts "2. Transpiling Mochi Components"
-transpile_directory("#{input_dir}/lib", output_dir, builder_man)
-
+puts "2. Packing in Batteries"
+batt_time = Time.measure do
+  SorbetTypesBat.generate(builder_man.ruby_src_dir)
+end
+puts "> Batteries took #{batt_time.total_milliseconds.to_i}ms"
 
 print_separator
-puts "3. Generating Opal Runtime"
+puts "3. Transpiling Mochi Components"
+mochi_comp_time = Time.measure do
+  transpile_directory("#{input_dir}/lib", output_dir, builder_man)
+end
+puts "> Compilation took #{mochi_comp_time.total_milliseconds.to_i}ms"
+
+print_separator
+puts "4. Generating Opal Runtime"
 opal_rt_time = Time.measure do
   opal_rt_gen = OpalRuntimeGenerator.new()
   opal_rt_gen.generate(build_dir)
@@ -280,7 +292,7 @@ puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
 
 
 print_separator
-puts "4. Bundling"
+puts "5. Bundling"
 bundle_file_path = ""
 bundling_time_taken = Time.measure do
   # combine opal-runtime and transpiled mochi code into bundle.js
@@ -298,7 +310,7 @@ puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
 
 # check swc is installed
 print_separator
-puts "5. Minify the output: #{with_mini}"
+puts "6. Minify the output: #{with_mini}"
 mini_time_taken = Time.measure do
 
   if with_mini
