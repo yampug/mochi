@@ -295,13 +295,7 @@ print_separator
 puts "5. Bundling"
 bundle_file_path = ""
 bundling_time_taken = Time.measure do
-  # combine opal-runtime and transpiled mochi code into bundle.js
-  # file1_content = File.read("#{build_dir}/opal-runtime.js")
-  # file2_content = File.read("#{build_dir}/components.js")
-  # combined_content = "#{file1_content}\n#{file2_content}"
-  # bundle_file_path = "#{output_dir}/bundle.js"
-  # File.write(bundle_file_path, combined_content)
-  
+
   `cp "#{build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
   `cp "#{build_dir}/components.js" "#{output_dir}/bundle.js"`
 end
@@ -318,7 +312,6 @@ mini_time_taken = Time.measure do
       STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
       exit 1
     end
-    #`npx swc "#{bundle_file_path}" -o #{bundle_file_path}`
     
     `npx swc "#{output_dir}/opal-runtime.js" -o "#{output_dir}/opal-runtime.js"`
   end
