@@ -1,7 +1,7 @@
 # typed: true
 class PlusFive
 
-  @cmp_name = "plus-five"
+  @tag_name = "plus-five"
   @pfcount
 
   def initialize

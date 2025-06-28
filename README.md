@@ -26,7 +26,7 @@ A simple example counter component with 2 buttons to increment and decrement the
 ```ruby
 class Counter
 
-  @cmp_name = "my-counter"
+  @tag_name = "my-counter"
   @count
 
   def initialize

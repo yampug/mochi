@@ -151,14 +151,14 @@ class RubyUnderstander
         rb_file.each_line do |line|
 
           trim = line.strip
-          if trim.starts_with?("@cmp_name")
+          if trim.starts_with?("@tag_name")
             
             #puts "got cmp_name line #{trim}"
             index_eq = trim.index("=")
             if index_eq
-              cmp_name = trim[index_eq + 1...].strip.gsub("\"", "")
+              tag_name = trim[index_eq + 1...].strip.gsub("\"", "")
               #puts "cmp_name is '#{cmp_name}'"
-              return cmp_name
+              return tag_name
             end
           end
         end

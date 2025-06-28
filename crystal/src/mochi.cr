@@ -128,10 +128,10 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
       # puts "Item: #{item}"
     end
     bindings = BindExtractor.extract(html)
-    cmp_name = RubyUnderstander.get_cmp_name(rb_file, cls_name)
+    tag_name = RubyUnderstander.get_cmp_name(rb_file, cls_name)
     
     
-    if cmp_name
+    if tag_name
       # add getters & setters to the ruby class
       reactables_arr.each do |reactable|
         var_name = reactable
@@ -152,7 +152,7 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
       
       web_component = web_comp_generator.generate(
         mochi_cmp_name = cls_name, 
-        tag_name = cmp_name.not_nil!,
+        tag_name = tag_name.not_nil!,
         css,
         html = bindings.html.not_nil!,
         reactables,
@@ -199,12 +199,12 @@ def generate_build_id : String
   return "#{random_part}#{time_part}"
 end
 
-def print_cmp_start_separator(cmp_name : String, i : Int32)
-  puts "==============================  (#{i})  START   #{cmp_name}   =================================="
+def print_cmp_start_separator(tag_name : String, i : Int32)
+  puts "==============================  (#{i})  START   #{tag_name}   =================================="
 end
 
-def print_cmp_end_seperator(cmp_name : String, i : Int32)
-  puts "==============================  (#{i})   END   #{cmp_name}   ===================================="
+def print_cmp_end_seperator(tag_name : String, i : Int32)
+  puts "==============================  (#{i})   END   #{tag_name}   ===================================="
 end
 
 def print_separator

@@ -7,7 +7,7 @@ require "./lib/mochi.rb"
 class Counter
   extend T::Sig
 
-  @cmp_name = "my-counter"
+  @tag_name = "my-counter"
   @count
   @modifications
 
