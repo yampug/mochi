@@ -17,6 +17,7 @@ require "./opal/opal_runtime_generator"
 require "./builder_man"
 
 require "./batteries/sorbet_types_battery"
+require "./batteries/core_battery"
 
 def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan)
   build_dir = builder_man.build_dir
@@ -272,6 +273,7 @@ print_separator
 puts "2. Packing in Batteries"
 batt_time = Time.measure do
   SorbetTypesBat.generate(builder_man.ruby_src_dir)
+  CoreBattery.generate(builder_man.ruby_src_dir)
 end
 puts "> Batteries took #{batt_time.total_milliseconds.to_i}ms"
 

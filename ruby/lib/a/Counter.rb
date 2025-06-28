@@ -2,6 +2,7 @@
 # require "text"
 require './lib/sorbet-types/srb_type_opal.rb'
 require './lib/sorbet-types/srb_type_browser.rb'
+require "./mochi.rb"
 
 class Counter
   extend T::Sig
@@ -90,6 +91,17 @@ class Counter
 
   def mounted
     puts "Counter mounted"
+    interval_id = Mochi.interval(proc do
+      t = Time.now
+      puts "time: #{t}"
+  
+    end, 1000)
+    
+    Mochi.timeout(proc do
+      Mochi.clear_interval(interval_id)
+    end, 5000)
+    
+    Fetcher.create
   end
 
   def unmounted
