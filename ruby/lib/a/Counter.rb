@@ -1,8 +1,8 @@
 # typed: true
 # require "text"
-require './lib/sorbet-types/srb_type_opal.rb'
-require './lib/sorbet-types/srb_type_browser.rb'
-require "./mochi.rb"
+require './lib/sorbet-types/sorbet.rb'
+require './lib/sorbet-types/browser.rb'
+require "./lib/mochi.rb"
 
 class Counter
   extend T::Sig

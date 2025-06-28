@@ -8,7 +8,7 @@ class CoreBattery
       Dir.mkdir_p(output_dir)
     end
 
-    File.write("#{output_dir}/../mochi.rb", self.generate_core_utils)
+    File.write("#{output_dir}/mochi.rb", self.generate_core_utils)
   end
   
   def self.generate_core_utils : String

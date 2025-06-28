@@ -9,14 +9,14 @@ class SorbetTypesBat
       Dir.mkdir_p(output_dir)
     end
 
-    File.write("#{output_dir}/srb_type_browser.rb", self.generate_browser_types)
-    File.write("#{output_dir}/srb_type_opal.rb", self.generate_opal_types)
+    File.write("#{output_dir}/browser.rb", self.generate_browser_types)
+    File.write("#{output_dir}/sorbet.rb", self.generate_opal_types)
   end
   
   def self.generate_browser_types : String
     <<-'RUBY'
       require 'sorbet-runtime'
-      require './lib/sorbet-types/srb_type_opal.rb'
+      require './lib/sorbet-types/sorbet.rb'
       
       module Browser
         module HTTP
