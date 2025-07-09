@@ -36,11 +36,11 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
 
         rb_file = File.read(absolute_path)
         component = transpile_component(rb_file, i, absolute_path)
-        
+
         i += 1
         if component
           components << component
-          
+
           # replace ruby code with amplified version
           src_dir = builder_man.ruby_src_dir
           lib_path = rb_rewriter.extract_lib_path(absolute_path)
@@ -53,11 +53,11 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
       end
     end
   end
-  
+
   # comment out Sorbet signatures
   # RubyUnderstander.comment_out_sorbet_signatures(
   rb_rewriter.comment_out_all_sorbet_signatures_in_dir("#{builder_man.ruby_src_dir}/lib")
-  
+
   mochi_root = rb_rewriter.gen_mochi_ruby_root(components)
   File.write("#{builder_man.ruby_src_dir}/lib/Root.rb", mochi_root)
 
@@ -66,9 +66,9 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   transpiled_ruby_code_path = "#{build_dir}/ruby.js"
   `cd #{builder_man.ruby_src_dir} && bundler install`
   puts "gems installed"
-  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map` 
+  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map`
   transpiled_ruby_code = File.read(transpiled_ruby_code_path)
-  
+
   # assemble the js code (webcomponents etc)
   components_js_code = ""
   components.each do |mochi_comp|
@@ -76,7 +76,7 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
     components_js_code = components_js_code + "\n" + mochi_comp.web_component.js_code + "\n"
   end
   components_js_code = components_js_code + "\n" + "console.log('Mochi booted.');" + "\n"
-  
+
   output = transpiled_ruby_code + "\n" + components_js_code
   puts "Writing #{build_dir}/components.js"
   File.write("#{build_dir}/components.js", output)
@@ -105,7 +105,7 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
 
   print_cmp_start_separator(cls_name, i)
   puts "ClassName:'#{cls_name}'"
-  
+
   if cls_name.blank?
     return
   end
@@ -122,43 +122,43 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
     html = RubyUnderstander.extract_raw_string_from_def_body(methods["html"].body, "html")
     reactables = RubyUnderstander.extract_raw_string_from_def_body(methods["reactables"].body, "reactables")
     # puts "reactables:'#{reactables}'"
-    
+
     reactables_arr = js_to_cr_array(reactables)
     reactables_arr.each do |item|
       # puts "Item: #{item}"
     end
     bindings = BindExtractor.extract(html)
     tag_name = RubyUnderstander.get_cmp_name(rb_file, cls_name)
-    
-    
+
+
     if tag_name
       # add getters & setters to the ruby class
       reactables_arr.each do |reactable|
         var_name = reactable
         second_last_index = find_second_last_index(amped_ruby_code, "end")
-      
+
         if second_last_index
           insertion_point = second_last_index + 3
           # add getter
           getter_code_to_insert = "\n\n\tdef get_#{var_name}\n\t\t@#{var_name}\n\tend\n"
           amped_ruby_code = amped_ruby_code[0...insertion_point] + getter_code_to_insert + amped_ruby_code[insertion_point..-1]
-          
+
           # add setter
           setter_code_to_insert = "\n\n\tdef set_#{var_name}(value)\n\t\t@#{var_name} = value\n\tend\n"
           amped_ruby_code = amped_ruby_code[0...insertion_point] + setter_code_to_insert + amped_ruby_code[insertion_point..-1]
         end
-      end      
+      end
       web_comp_generator = WebComponentGenerator.new
-      
+
       web_component = web_comp_generator.generate(
-        mochi_cmp_name = cls_name, 
+        mochi_cmp_name = cls_name,
         tag_name = tag_name.not_nil!,
         css,
         html = bindings.html.not_nil!,
         reactables,
         bindings.bindings
       )
-      
+
       print_cmp_end_seperator(cls_name, i)
       # puts no_types_ruby_code
       return MochiComponent.new(
@@ -178,7 +178,7 @@ end
 
 def find_second_last_index(text : String, substring_to_find : String) : Int32?
   last_idx = text.rindex(substring_to_find)
-  
+
   unless last_idx && last_idx > 0
     return -1
   end
@@ -187,11 +187,11 @@ def find_second_last_index(text : String, substring_to_find : String) : Int32?
   return second_last_idx
 end
 
-def js_to_cr_array(json_array_str : String) : Array(String) 
+def js_to_cr_array(json_array_str : String) : Array(String)
   parsed_array = JSON.parse(json_array_str).as_a
   string_array = parsed_array.map(&.as_s)
   return string_array
-end 
+end
 
 def generate_build_id : String
   random_part = Random.new.hex(16)
@@ -216,6 +216,7 @@ puts "Mochi v0.1c"
 input_dir = ""
 output_dir = ""
 with_mini = false
+with_tc = false
 
 parser = OptionParser.new
 OptionParser.parse do |p|
@@ -228,12 +229,15 @@ OptionParser.parse do |p|
   p.on("-o OUT_DIR", "--output_dir=OUT_DIR", "Ouput directory to write into") do |o|
     output_dir = o
   end
-  
 
   p.on("-m", "--mini", "Minimize output") do |o|
     with_mini = true
   end
-  
+
+  p.on("-tc", "--typecheck", "Run typechecks with Sorbet") do |o|
+    with_tc = true
+  end
+
   p.on("-h", "--help", "Show this help") do
     puts p
     exit
@@ -252,7 +256,7 @@ OptionParser.parse do |p|
     STDERR.puts p
     exit 1
   end
-  
+
   parser = p
 end
 
@@ -292,9 +296,26 @@ opal_rt_time = Time.measure do
 end
 puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
 
+step_nr = 5
+
+if with_tc
+  print_separator
+  puts "#{step_nr}. Running typechecks"
+  step_nr += 1
+  tc_time = Time.measure do  
+    `cd #{builder_man.ruby_src_dir} && bundle install`
+    `cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init`
+    puts ""
+    puts "Typecheck Results:"
+    `cd #{builder_man.ruby_src_dir} && srb tc`
+  end
+  puts "> Sorbet Typecheck took #{tc_time.total_milliseconds.to_i}ms"
+end
+
 
 print_separator
-puts "5. Bundling"
+puts "#{step_nr}. Bundling"
+step_nr += 1
 bundle_file_path = ""
 bundling_time_taken = Time.measure do
 
@@ -306,7 +327,8 @@ puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
 
 # check swc is installed
 print_separator
-puts "6. Minify the output: #{with_mini}"
+puts "#{step_nr}. Minify the output: #{with_mini}"
+step_nr += 1
 mini_time_taken = Time.measure do
 
   if with_mini
@@ -314,7 +336,7 @@ mini_time_taken = Time.measure do
       STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
       exit 1
     end
-    
+
     `npx swc "#{output_dir}/opal-runtime.js" -o "#{output_dir}/opal-runtime.js"`
   end
 end
