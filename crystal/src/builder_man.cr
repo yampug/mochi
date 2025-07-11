@@ -22,7 +22,7 @@ class BuilderMan
   end
 
   def create_mochi_dir_if_missing
-    build_dir = "/tmp/mochi"
+    build_dir = "#{Dir.current}/build"
     if Dir.exists?(build_dir)
     else
       Dir.mkdir_p(build_dir)
@@ -30,7 +30,7 @@ class BuilderMan
   end
 
   def build_dir : String
-    "/tmp/mochi/#{@build_id}"
+    "#{Dir.current}/build"
   end
 
   def ruby_src_dir : String

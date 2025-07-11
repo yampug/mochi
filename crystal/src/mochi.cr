@@ -283,6 +283,7 @@ print_separator
 puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
 builder_man = BuilderMan.new(input_dir)
 puts "BuildID: #{builder_man.build_id}"
+puts "Working Dir: #{Dir.current}"
 build_dir = builder_man.build_dir
 builder_man.copy_ruby_code_base
 
