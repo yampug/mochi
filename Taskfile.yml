@@ -7,12 +7,15 @@ tasks:
   run:
     cmds:
       - cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
+  run-tc:
+    cmds:
+      - cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
   build:
     cmds:
       - cd crystal && time crystal build src/mochi.cr
   e2e:
     deps:
-      - run
+      - run-tc
     cmds:
       - echo "-----------------------------------------------------------------------------------------------------"
       - cd e2e && npx playwright test

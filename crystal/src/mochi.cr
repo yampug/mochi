@@ -33,7 +33,6 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   Dir.glob(Path[input_dir, "**", "*.rb"].to_s) do |path|
     if File.file?(path) && path.ends_with?(".rb")
       nr_files += 1
-      puts "File #{nr_files}..."
       spawn do
         begin
           puts "Processing #{path}"
