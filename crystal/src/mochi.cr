@@ -27,33 +27,46 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   i = 1
   rb_rewriter = RubyRewriter.new
 
+  nr_files = 0
+  done_channel = Channel(Nil).new
+
   Dir.glob(Path[input_dir, "**", "*.rb"].to_s) do |path|
     if File.file?(path) && path.ends_with?(".rb")
-      begin
-        puts "Processing #{path}"
-        content = File.read(path)
-        absolute_path = Path[path].expand.to_s
-
-        rb_file = File.read(absolute_path)
-        component = transpile_component(rb_file, i, absolute_path)
-
-        i += 1
-        if component
-          components << component
-
-          # replace ruby code with amplified version
-          src_dir = builder_man.ruby_src_dir
-          lib_path = rb_rewriter.extract_lib_path(absolute_path)
-          file_path = "#{src_dir}/#{lib_path}"
-          puts "lib_path:#{lib_path}, src_dir:#{src_dir}, file_path:#{file_path}"
-          File.write(file_path, component.ruby_code)
+      nr_files += 1
+      puts "File #{nr_files}..."
+      spawn do
+        begin
+          puts "Processing #{path}"
+          content = File.read(path)
+          absolute_path = Path[path].expand.to_s
+  
+          rb_file = File.read(absolute_path)
+          component = transpile_component(rb_file, i, absolute_path)
+  
+          i += 1
+          if component
+            components << component
+  
+            # replace ruby code with amplified version
+            src_dir = builder_man.ruby_src_dir
+            lib_path = rb_rewriter.extract_lib_path(absolute_path)
+            file_path = "#{src_dir}/#{lib_path}"
+            puts "lib_path:#{lib_path}, src_dir:#{src_dir}, file_path:#{file_path}"
+            File.write(file_path, component.ruby_code)
+          end
+          done_channel.send(nil)
         end
       rescue ex
         puts "Error reading file #{path}: #{ex.message}"
       end
     end
-  end
 
+  end
+  
+  nr_files.times do |i|
+    done_channel.receive
+  end
+  
   # comment out Sorbet signatures
   # RubyUnderstander.comment_out_sorbet_signatures(
   rb_rewriter.comment_out_all_sorbet_signatures_in_dir("#{builder_man.ruby_src_dir}/lib")
