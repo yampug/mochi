@@ -75,7 +75,26 @@ end
 ```
 
 ### Compiling
-`TODO`
+Prerequestities:
+* [Crystal](https://crystal-lang.org) 
+* [Task](https://taskfile.dev) 
+
+```
+git clone http://github.com/yampug/mochi
+cd mochi
+task build
+```
+
+### Usage
+
+```
+mochi -i "/path/to/my/beautiful/ruby_code" -o "/path/where/I/want/to/output" -m -tc
+```
+
+* -i: input directory
+* -o: output directory
+* -m: Minimise the generated js code (Optional) 
+* -tc: Run Sorbet Typechecks (Optional) 
 
 ## License
 
