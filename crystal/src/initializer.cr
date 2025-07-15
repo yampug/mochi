@@ -56,9 +56,21 @@ class Initializer
             <script src="./build/bundle.js"></script>
             <style>
                 body { background: #24262c; }
+                .logo-block {
+                    display: flex;
+                    justify-content: center;
+                    gap: 22px;
+                    align-items: anchor-center;
+                    color: white;
+                }
+                .logo { height: 64px; }
             </style>
         </head>
         <body>
+            <div class="logo-block">
+                <img class="logo" src="https://github.com/yampug/mochi/blob/main/devground/mochi.png?raw=true"/>
+                <h1>Hello Mochi 👋</h1>
+            </div>
             <my-counter count="3"></my-counter>
             <my-counter count="4"></my-counter>
         </body>
