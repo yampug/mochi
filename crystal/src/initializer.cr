@@ -14,12 +14,10 @@ class Initializer
       src_path = "#{proj_path}/lib"
       Dir.mkdir_p(src_path)
     
-      
       File.write("#{proj_path}/Taskfile.yml", generate_taskfile)
       File.write("#{proj_path}/Gemfile", generate_gemfile)
       File.write("#{proj_path}/index.html", generate_index_html)
       File.write("#{src_path}/MyCounter.rb", generate_my_first_mochi_component)
-
     end
   end 
   
@@ -30,7 +28,7 @@ class Initializer
     tasks:
       build:
         cmds:
-          - mochi -i "./lib" -o "./build" -m
+          - mochi -i "./" -o "./build" -m
     YML
   end
   
@@ -56,6 +54,9 @@ class Initializer
               src="./build/opal-runtime.js"
               onload='Opal.require("native"); Opal.require("promise"); Opal.require("browser/setup/full");'></script>
             <script src="./build/bundle.js"></script>
+            <style>
+                body { background: #24262c; }
+            </style>
         </head>
         <body>
             <my-counter count="3"></my-counter>
@@ -93,7 +94,20 @@ class Initializer
       def css
         %Q{
           .wrapper {
-            background: red;
+            background: linear-gradient(45deg, black, transparent);
+            color: white;
+            padding: 10px;
+          }
+          button {
+            border: 1px solid #ff92b3;
+            padding: 8px 10px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            background: #a53269;
+          }
+          button:hover {
+            background: #c7588d;
           }
         }
       end
