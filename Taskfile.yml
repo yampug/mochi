@@ -4,6 +4,9 @@ tasks:
   test:
     cmds:
       - cd crystal && crystal spec
+  intest:
+    cmds:
+      - cd crystal && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"
   run:
     cmds:
       - cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m

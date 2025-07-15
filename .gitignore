@@ -9,6 +9,7 @@ bundle.js
 crystal/lib
 crystal/mochi
 crystal/mochi.dwarf
+crystal/motestproj
 devground/a
 devground/bundle.js
 devground/bundle.min.js
