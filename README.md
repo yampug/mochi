@@ -87,6 +87,12 @@ task build
 
 ### Usage
 
+#### Creating a new project
+```
+mochi --initialize="my_fancy_project"
+```
+
+#### Compiling your code
 ```
 mochi -i "/path/to/my/beautiful/ruby_code" -o "/path/where/I/want/to/output" -m -tc
 ```
@@ -95,6 +101,9 @@ mochi -i "/path/to/my/beautiful/ruby_code" -o "/path/where/I/want/to/output" -m 
 * -o: output directory
 * -m: Minimise the generated js code (Optional) 
 * -tc: Run Sorbet Typechecks (Optional) 
+* --initialize: Creates a new preconfigured project directory 
+
+
 
 ## License
 
