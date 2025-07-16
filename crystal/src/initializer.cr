@@ -54,14 +54,23 @@ class Initializer
               src="./build/opal-runtime.js"
               onload='Opal.require("native"); Opal.require("promise"); Opal.require("browser/setup/full");'></script>
             <script src="./build/bundle.js"></script>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Caprasimo&display=swap" rel="stylesheet">
             <style>
-                body { background: #24262c; }
+                body { 
+                    background: #24262c;
+                }
                 .logo-block {
                     display: flex;
                     justify-content: center;
                     gap: 22px;
                     align-items: anchor-center;
                     color: white;
+                    width: 100%;
+                    font-family: "Caprasimo", serif;
+                    font-weight: 400;
+                    font-style: normal;                    
                 }
                 .logo { height: 64px; }
             </style>
@@ -69,10 +78,11 @@ class Initializer
         <body>
             <div class="logo-block">
                 <img class="logo" src="https://github.com/yampug/mochi/blob/main/devground/mochi.png?raw=true"/>
-                <h1>Hello Mochi 👋</h1>
+                <h1>Hello Mochi</h1>
             </div>
-            <my-counter count="3"></my-counter>
-            <my-counter count="4"></my-counter>
+            <div>
+                <my-counter count="3"></my-counter>
+            </div>
         </body>
     </html>
     HTML
@@ -106,9 +116,11 @@ class Initializer
       def css
         %Q{
           .wrapper {
-            background: linear-gradient(45deg, black, transparent);
+            background: linear-gradient(45deg, black, #f37b812e);
             color: white;
-            padding: 10px;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #623c3c;
           }
           button {
             border: 1px solid #ff92b3;
