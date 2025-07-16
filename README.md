@@ -76,7 +76,8 @@ end
 
 ### Compiling
 Prerequestities:
-* [Crystal](https://crystal-lang.org) 
+* [Crystal](https://crystal-lang.org)
+* [Opal](https://opalrb.com)
 * [Task](https://taskfile.dev) 
 
 ```
