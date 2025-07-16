@@ -42,7 +42,7 @@ class RubyRewriter
     rb_code += "end\n"
     
     
-    rb_code += "puts \"Rootv2 loaded.\"\n"
+    # rb_code += "puts \"Rootv2 loaded.\"\n"
     rb_code += "\n"
     components.each do |mochi_comp|
       rb_code += "#{mochi_comp.name}.new\n"

@@ -18,7 +18,7 @@ The project is still very early on its journey, so proceed at your own risk for 
 
 ## Getting Started
 
-There is a [starter template](https://github.com/yampug/mochi-starter-template) currently in the works (not ready yet) to make the first steps as easy as possible. While Rake may not be everybodies cup of coffee, it should provide a good base to start from.
+Over at [yampug/mochi-starter-template](https://github.com/yampug/mochi-starter-template) you find a preconfigured starter tempalte make the first steps as easy as possible.
 
 ### Example Component
 A simple example counter component with 2 buttons to increment and decrement the current count:
