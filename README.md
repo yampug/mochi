@@ -76,7 +76,7 @@ end
 
 ### Compiling
 Prerequestities:
-* [Crystal](https://crystal-lang.org)
+* <img alt="Crystallang Icon" src="https://github.com/yampug/mochi/blob/main/github/assets/crystal_icon.ico?raw=true"> [Crystal](https://crystal-lang.org)
 * [Opal](https://opalrb.com)
 * [Task](https://taskfile.dev) 
 
