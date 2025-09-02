@@ -1,5 +1,6 @@
 .DS_Store
 .gradle
+.claude
 .idea
 build
 ruby/Gemfile.lock
