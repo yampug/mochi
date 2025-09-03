@@ -1,5 +1,8 @@
 # typed: true
 # require "text"
+# await: true
+require 'json'
+require "await"
 require './lib/sorbet-types/sorbet.rb'
 require './lib/sorbet-types/browser.rb'
 require "./lib/mochi.rb"
@@ -101,7 +104,24 @@ class Counter
       Mochi.clear_interval(interval_id)
     end, 5000)
     
-    Fetcher.create
+    fetcher = Fetcher.create
+    
+    resp = fetcher.get("/abc").__await__
+    `console.log(resp)`
+    `console.log(new Map(resp.headers))`
+    http_resp = HttpResponse.new(resp)
+    puts http_resp
+    body = http_resp.body_as_text().__await__
+    puts body
+    puts http_resp
+    puts http_resp.headers()
+    
+    
+    resp2 = fetcher.get("/dummy_json").__await__
+    http_resp2 = HttpResponse.new(resp2)
+    puts http_resp2
+    json =  http_resp2.body_as_hash().__await__
+    puts json
   end
 
   def unmounted

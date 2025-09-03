@@ -22,3 +22,5 @@ e2e/test-results
 e2e/playwright-report
 taz_icon.png
 crystal/build
+testapp/package-lock.json
+testapp/node_modules

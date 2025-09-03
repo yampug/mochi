@@ -28,3 +28,6 @@ tasks:
   sorbet:
     cmds:
       - cd ruby && srb tc
+  dev-server:
+    cmds:
+      - cd testapp && npm run dev
