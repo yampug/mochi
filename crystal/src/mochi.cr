@@ -224,7 +224,7 @@ def print_separator
   puts "------------------------------------------------------------------------------------"
 end
 
-puts "Mochi v0.1d"
+puts "Mochi v0.1cd"
 
 project_name = ""
 input_dir = ""

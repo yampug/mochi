@@ -35,16 +35,79 @@ class CoreBattery
       class Fetcher
       
         def self.create
-          puts "created fetcher"
           return Fetcher.new
         end
         
-        def get(url)
-          puts "fetching #{url}"
-          promise = `fetch(#{url})`
-          resp = promise.await
-          return resp
+        def fetch(url, config)
+          js_config = config.to_js
+          promise = `fetch(#{url}, #{js_config})`
+          resp = promise.__await__
+          return HttpResponse.new(resp)
         end
+      end
+      
+      class FetchConfig
+        attr_reader :method, :headers, :body, :keep_alive
+        
+        def initialize(method, headers, body, keep_alive)
+          @method = method
+          @headers = headers
+          @body = body
+          @keep_alive = keep_alive
+        end
+        
+        def to_s
+          return "FetchConfig(method:'#{method}', headers:#{headers}, body:#{body}, keep_alive:#{keep_alive})"
+        end
+        
+        def to_js
+          rb_hash = {
+            method: method,
+            headers: headers.to_n,
+            keep_alive: keep_alive
+          }
+          # only attach the body on POST and HEAD requests
+          if (method == "POST" || method == "HEAD")
+            rb_hash[:body] = body.to_s
+          end
+          return rb_hash.to_n
+        end
+      end
+      
+      class FetchConfigBuilder
+        attr_reader :method, :headers, :body, :keep_alive
+        
+        def initialize
+          @method = "GET"
+          @headers = {}
+          @body = ""
+          @keep_alive = false
+        end
+        
+        def set_method(method)
+          @method = method
+          return self
+        end
+        
+        def set_headers(headers)
+          @headers = headers
+          return self
+        end
+        
+        def set_body(body)
+          @body = body
+          return self
+        end
+        
+        def set_keep_alive(keep_alive)
+          @keep_alive = keep_alive
+          return self
+        end
+        
+        def build
+          return FetchConfig.new(method, headers, body, keep_alive)
+        end
+        
       end
       
       # Unpacks the JS Object into a native Ruby Object for ease of access

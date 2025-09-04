@@ -68,23 +68,6 @@ class Counter
     url = 'https://www.ign.com'
     
     puts "Making a GET request to: #{url}"
-    
-    # Browser::HTTP.get(url).then do |response|
-    #   if response.ok?
-    #     puts "Request successful with status: #{response.status_code}"
-    #     response.text.then do |text_data|
-    #       puts "Response text received:"
-    #       puts text_data
-    #     end
-    
-    #   else
-    #     puts "Request failed with status: #{response.status_code}"
-    #   end
-    # end.catch do |error|
-    #   puts "An error occurred during the request:"
-    #   puts error.message
-    # end
-
   end
 
   def decrement
@@ -106,22 +89,28 @@ class Counter
     
     fetcher = Fetcher.create
     
-    resp = fetcher.get("/abc").__await__
-    `console.log(resp)`
-    `console.log(new Map(resp.headers))`
-    http_resp = HttpResponse.new(resp)
+    http_resp = fetcher.fetch("/abc", FetchConfigBuilder.new().build()).__await__
+    #`console.log(resp)`
+    #`console.log(new Map(resp.headers))`
+    #http_resp = HttpResponse.new(resp)
     puts http_resp
     body = http_resp.body_as_text().__await__
     puts body
     puts http_resp
     puts http_resp.headers()
     
-    
-    resp2 = fetcher.get("/dummy_json").__await__
-    http_resp2 = HttpResponse.new(resp2)
+    config = FetchConfigBuilder.new()
+      .set_method("GET")
+      .set_headers({
+        "Abc": "def"
+      })
+      .set_keep_alive(true)
+      .build()
+    `console.log(config)`
+    http_resp2 = fetcher.fetch("/dummy_json", config).__await__
     puts http_resp2
-    json =  http_resp2.body_as_hash().__await__
-    puts json
+    hash =  http_resp2.body_as_hash().__await__
+    puts hash
   end
 
   def unmounted
