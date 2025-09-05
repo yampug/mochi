@@ -63,9 +63,9 @@ class WebComponentGenerator
           }
           
           connectedCallback() {
-            this.rubyComp.$mounted();
             this.shadow = this.attachShadow({ mode: "open" });
             this.render();
+            this.rubyComp.$mounted(this.shadow);
           }
           
           syncAttributes() {

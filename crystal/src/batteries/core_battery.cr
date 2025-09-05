@@ -166,6 +166,160 @@ class CoreBattery
           return "HttpResponse(url:#{url}, type:#{type}, ok:#{ok}, redirected:#{redirected}, status:#{status}, status_text:#{status_text}, body_used:#{body_used}, headers:#{headers})"
         end
       end
+      
+      class Charts
+      
+        def initialize
+        end
+        
+        def self.setup_environment
+            scriptSrc = "https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"
+            scriptId = "mc_ec_lib"
+            `
+            if (document.getElementById(scriptId)) {
+                return;
+            }
+
+            const script = document.createElement('script');
+
+            script.id = scriptId;
+            script.src = scriptSrc;
+
+            document.head.appendChild(script);
+            `
+            puts "Successfully set up charts environment."
+        end
+    
+        def self.init_on_element_by_query(shadow_root, query)
+          return `echarts.init(#{shadow_root}.querySelector(#{query}))`
+        end
+        
+        def self.load_config(chart_el, config)
+          option = config.to_js
+          `#{chart_el}.setOption(#{option});`
+        end
+        
+      end
+      
+      class ChartSeries
+        def initialize(name, type, data)
+          @name = name
+          @type = type
+          @data = data
+        end
+      end
+      
+      class ChartSeriesBuilder
+        attr_reader :name, :type, :data
+      
+        def initialize
+          @name = ""
+          @type = "bar"
+          @data = []
+        end
+        
+        def set_name(name)
+          @name = name
+          return self
+        end
+        
+        def set_type(type)
+          @type = type
+          return self
+        end
+        
+        def set_data(data)
+          @data = data
+          return self
+        end
+        
+        def build
+          return ChartSeries.new(name, type, data)
+        end
+      end
+      
+      class ChartConfig
+        attr_reader :title, :legend, :x_axis, :y_axis, :series
+        
+        def initialize(title, legend, x_axis, y_axis, series)
+          @title = title
+          @legend = legend
+          @x_axis = x_axis
+          @y_axis = y_axis
+          @series = series
+        end
+      
+        def to_js
+          result = {}
+          `
+          var option = {
+            title: {
+              text: #{title}
+            },
+            tooltip: {},
+            legend: {
+              data: #{legend}
+            },
+            xAxis: {},
+            yAxis: {},
+            series: #{series}
+          };
+          if (#{x_axis}.length > 0) {
+            option.xAxis = { data: #{x_axis} };
+          }
+          if (#{y_axis}.length > 0) {
+            option.yAxis = { data: #{y_axis} };
+          }
+          
+          console.log(option);
+          #{result} = option;
+          `
+        
+          return result
+        end
+        
+      end
+      
+      class ChartConfigBuilder
+        attr_reader :title, :legend, :x_axis, :y_axis, :series
+
+        def initialize
+          @title = ""
+          @legend = []
+          @x_axis = []
+          @y_axis = []
+          @series = []
+        end
+        
+        def set_title(title)
+          @title = title
+          return self
+        end
+        
+        def set_legend(legend)
+          @legend = legend
+          return self
+        end
+        
+        def set_x_axis(x_axis)
+          @x_axis = x_axis
+          return self
+        end
+        
+        def set_y_axis(y_axis)
+          @y_axis = y_axis
+          return self
+        end
+        
+        def set_series(series)
+          @series = series
+          return self
+        end
+        
+        def build
+          return ChartConfig.new(title, legend, x_axis, y_axis, series)
+        end
+      end
     RUBY
   end
 end
