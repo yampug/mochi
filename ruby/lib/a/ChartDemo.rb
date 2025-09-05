@@ -2,10 +2,8 @@
 class ChartDemo
 
   @tag_name = "chart-demo"
-  @pfcount
 
   def initialize
-    @pfcount = 0
   end
 
   def reactables

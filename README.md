@@ -18,7 +18,7 @@ The project is still very early on its journey, so proceed at your own risk for 
 
 ## Getting Started
 
-Over at [yampug/mochi-starter-template](https://github.com/yampug/mochi-starter-template) you find a preconfigured starter tempalte make the first steps as easy as possible.
+If you want to get your hands dirty and try out Mochi for yourself, I prepared over at [yampug/mochi-starter-template](https://github.com/yampug/mochi-starter-template) a preconfigured starter template, which should make the first steps as easy as possible.
 
 ### Example Component
 A simple example counter component with 2 buttons to increment and decrement the current count:
