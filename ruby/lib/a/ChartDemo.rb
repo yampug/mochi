@@ -27,6 +27,16 @@ class ChartDemo
     puts "ChartDemo mounted"
     `console.log(shadow_root)`
     
+    Log.info(self, "this is an info log")
+    Log.warn(self, "this is a warn log")
+    Log.trace(self, "this is a trace log")
+    Log.error(self, "this is a error log")
+    Log.object(self, `{"abc":123}`)
+    Log.pretty(self, `{"def":456}`)
+    Log.time_start(self, "simple_add")
+    abc = 1 + 1
+    Log.time_end(self, "simple_add")
+
     interval_id = Mochi.interval(proc do
       Charts.setup_environment
   
