@@ -437,6 +437,32 @@ class CoreBattery
         end
       
       end
+
+      class BrowserIdentifier
+
+        def self.is_chrome_based(vendor)
+          return vendor === "Google Inc."
+        end
+
+        def self.is_safari(vendor)
+          return vendor === "Apple Computer, Inc."
+        end
+
+        def self.identify
+          user_agent = `window.clientInformation.userAgent`
+          vendor = `window.clientInformation.vendor`
+
+          if is_chrome_based(vendor)
+            return "chrome_based"
+          end
+
+          if is_safari(vendor)
+            return "safari"
+          end
+
+          return "unknown"
+        end
+      end
     RUBY
   end
 end

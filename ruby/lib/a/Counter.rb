@@ -114,7 +114,8 @@ class Counter
       hash =  http_resp2.body_as_hash().__await__
       puts hash
     end
-    
+    browser = BrowserIdentifier.identify
+    puts "Browser: #{browser}"
   end
 
   def unmounted
