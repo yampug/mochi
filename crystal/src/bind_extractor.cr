@@ -25,7 +25,7 @@ class BindExtractor
           tags = doc.css("*")
           #puts tags
           tags.each do |tag|
-              attrs_to_remove = [] of String
+              attrs_to_remove = []< of String
               attrs_to_add = {} of String => String
               #puts tag.attributes
               tag.attributes.each do |key, val|

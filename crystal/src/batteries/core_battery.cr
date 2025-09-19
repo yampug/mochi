@@ -320,7 +320,7 @@ class CoreBattery
           return ChartConfig.new(title, legend, x_axis, y_axis, series)
         end
       end
-      
+
       class Log
         
         def self.inner_log(cls, msg, level)

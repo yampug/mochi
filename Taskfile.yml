@@ -30,4 +30,4 @@ tasks:
       - cd ruby && srb tc
   dev-server:
     cmds:
-      - cd testapp && npm run dev
+      - crystal run testapp/test_app_server.cr
