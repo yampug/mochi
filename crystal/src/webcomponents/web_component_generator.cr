@@ -70,7 +70,7 @@ class WebComponentGenerator
           
           syncAttributes() {
             // sync attributes (method call may have altered them)
-            console.log("syncing attributes")
+            il.debug("syncing attributes")
             for (let i = 0; i < #{reactables_arr_anme}.length; i++) {
                 this.setAttribute(#{reactables_arr_anme}[i], this.rubyComp["$get_" + #{reactables_arr_anme}[i]]());
             }
@@ -83,7 +83,7 @@ class WebComponentGenerator
             `;
             
             for (let i = 0; i < #{reactables_arr_anme}.length; i++) {
-                console.log(#{reactables_arr_anme}[i]);
+                il.info(#{reactables_arr_anme}[i]);
                 html = html.replaceAll("{" + #{reactables_arr_anme}[i] + "}", this.rubyComp["$get_" + #{reactables_arr_anme}[i]]());
             }
             
@@ -152,7 +152,7 @@ class WebComponentGenerator
           }
           
           attributeChangedCallback(name, oldValue, newValue) {
-            console.log("Attribute " + name + " has changed from " + oldValue + " to " + newValue + "");
+            il.info("Attribute " + name + " has changed from " + oldValue + " to " + newValue + "");
             // TODO
             // TODO react to attributes changing
             if (oldValue === newValue) {
@@ -169,7 +169,7 @@ class WebComponentGenerator
                 }
                 this.render();
             } catch (e) {
-                console.error("Component render failed", e);
+                il.error("Component render failed", e);
             }
           }
         }

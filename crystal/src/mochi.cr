@@ -19,6 +19,7 @@ require "./initializer"
 
 require "./batteries/sorbet_types_battery"
 require "./batteries/core_battery"
+require "./js/js_logger"
 
 def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan)
   build_dir = builder_man.build_dir
@@ -343,6 +344,11 @@ else
   
     `cp "#{build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
     `cp "#{build_dir}/components.js" "#{output_dir}/bundle.js"`
+
+    bundle_js = File.read("#{output_dir}/bundle.js")
+
+    # bundle in js batteries
+    File.write("#{output_dir}/bundle.js", "#{bundle_js}\n#{JsLoggerGenerator.generate()}")
   end
   puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
   
