@@ -69,7 +69,6 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   end
   
   # comment out Sorbet signatures
-  # RubyUnderstander.comment_out_sorbet_signatures(
   rb_rewriter.comment_out_all_sorbet_signatures_in_dir("#{builder_man.ruby_src_dir}/lib")
 
   mochi_root = rb_rewriter.gen_mochi_ruby_root(components)
@@ -80,13 +79,12 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   transpiled_ruby_code_path = "#{build_dir}/ruby.js"
   `cd #{builder_man.ruby_src_dir} && bundler install`
   puts "gems installed"
-  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map`
+  `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map --no-method-missing`
   transpiled_ruby_code = File.read(transpiled_ruby_code_path)
 
   # assemble the js code (webcomponents etc)
   components_js_code = ""
   components.each do |mochi_comp|
-    #puts "component:#{mochi_comp.name}"
     components_js_code = components_js_code + "\n" + mochi_comp.web_component.js_code + "\n"
   end
   components_js_code = components_js_code + "\n" + "console.log('Mochi booted.');" + "\n"
@@ -132,6 +130,7 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
 
     #css = methods["css"]
     #puts "css:#{css.body[1...css.body.size - 1]}"
+    imports = RubyUnderstander.get_imports(rb_file)
     css = RubyUnderstander.extract_raw_string_from_def_body(methods["css"].body, "css")
     html = RubyUnderstander.extract_raw_string_from_def_body(methods["html"].body, "html")
     reactables = RubyUnderstander.extract_raw_string_from_def_body(methods["reactables"].body, "reactables")
@@ -178,6 +177,7 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
       return MochiComponent.new(
         absolute_path,
         cls_name,
+        imports,
         ruby_code = amped_ruby_code,
         web_component,
         html,

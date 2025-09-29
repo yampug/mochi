@@ -58,6 +58,20 @@ class RubyUnderstander
         end
     end
     
+    def self.get_imports(rb_file : String) : Array(String)
+        result = [] of String 
+
+        rb_file.each_line do |line|
+            trim = line.strip
+            if trim.starts_with?("require ")
+                import_value = trim[8...trim.size - 1].strip
+                result << import_value.strip
+            end
+        end
+
+        return result
+    end
+    
     def self.get_parameters(line : String) : Array(String)
         parenth_open = line.index("(")
         parenth_closed = line.index(")")
