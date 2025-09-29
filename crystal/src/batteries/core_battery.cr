@@ -30,6 +30,14 @@ class CoreBattery
         def self.clear_interval(interval_id)
           `clearInterval(#{interval_id});`
         end
+
+        def self.window()
+          return `window`
+        end
+
+        def self.document()
+          return `document`
+        end
       end
       
       class Fetcher
