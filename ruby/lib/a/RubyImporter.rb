@@ -4,14 +4,12 @@ require "a/hello_sayer"
 class RubyImportComp
 
   @tag_name = "ruby-importer"
-  @pfcount
 
   def initialize
-    @pfcount = 0
   end
 
   def reactables
-    ["pfcount"]
+    []
   end
 
   def html
@@ -26,10 +24,6 @@ class RubyImportComp
     %Q{
       
     }
-  end
-
-  def increment
-    @pfcount = @pfcount + 1
   end
 
   def mounted
