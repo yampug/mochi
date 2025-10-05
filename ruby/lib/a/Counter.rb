@@ -31,6 +31,12 @@ class Counter
       <div class="wrapper">
         <h1>Count123: {count}</h1>
         <h2>Modifications: {modifications}</h2>
+        {if @count > 5}
+          <p style="background: green; padding: 10px; border-radius: 8px;">Count is greater than 5!</p>
+        {end}
+        {if @count < 0}
+          <p style="background: orange; padding: 10px; border-radius: 8px;">Count is negative!</p>
+        {end}
         <button on:click={increment}>Increment</button>
         <button on:click={decrement}>Decrement</button>
         <plus-five bind:pfcount="{count}"></plus-five>
@@ -75,7 +81,7 @@ class Counter
     @modifications = @modifications + 1
   end
 
-  def mounted
+  def mounted(web_component)
     puts "Counter mounted"
     interval_id = Mochi.interval(proc do
       t = Time.now

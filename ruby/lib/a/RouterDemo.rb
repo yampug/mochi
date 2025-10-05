@@ -4,18 +4,26 @@ require "a/hello_sayer"
 class RouterDemo
 
   @tag_name = "router-demo"
+  @route
 
   def initialize
+    @route = "def"
   end
 
   def reactables
-    []
+    ["route"]
   end
 
   def html
     %Q{
       <div>
-        Router Demo
+        Router Demo {route}
+        <div>
+          {if @route == "root"}
+            <p style="background: green; padding: 10px; border-radius: 8px;">ROOT ROUTE</p>
+            <plus-five></plus-five>
+          {end}
+        </div>
       </div>
     }
   end
@@ -26,10 +34,12 @@ class RouterDemo
     }
   end
 
-  def mounted
+  def mounted(shadow_root, comp)
     router = AppRouter.new do
       on '/' do
         puts "Welcome to the Home Page!"
+        `#{comp}.rubyComp.route = "root"`
+        `#{comp}.syncAttributes()`
       end
 
       on '/users/:id/posts/:post_id' do |params|

@@ -1,19 +1,21 @@
 require "./web_component"
+require "../html/conditional_processor"
 
 class WebComponentGenerator
 
-  
+
   def initialize
   end
-  
+
   # tag_name = elName
   def generate(
-    mochi_cmp_name : String, 
-    tag_name : String, 
-    css : String, 
-    html : String, 
-    reactables : String, 
-    bindings : Hash(String, String)) : WebComponent
+    mochi_cmp_name : String,
+    tag_name : String,
+    css : String,
+    html : String,
+    reactables : String,
+    bindings : Hash(String, String),
+    conditionals : Array(ConditionalBlock) = [] of ConditionalBlock) : WebComponent
   
     web_cmp_name = ""
     js_code = ""
@@ -65,7 +67,7 @@ class WebComponentGenerator
           connectedCallback() {
             this.shadow = this.attachShadow({ mode: "open" });
             this.render();
-            this.rubyComp.$mounted(this.shadow);
+            this.rubyComp.$mounted(this.shadow, this);
           }
           
           syncAttributes() {
@@ -75,7 +77,35 @@ class WebComponentGenerator
                 this.setAttribute(#{reactables_arr_anme}[i], this.rubyComp["$get_" + #{reactables_arr_anme}[i]]());
             }
           }
-          
+
+          evaluateCondition(condition) {
+            // Parse and evaluate Ruby condition expression
+            // Handle simple cases: @var, @var > 5, @var.method?, etc.
+            try {
+              // Replace @varName with component getter calls
+              let jsCondition = condition.replace(/@(\\w+)/g, (match, varName) => {
+                return `this.rubyComp["$get_${varName}"]()`;
+              });
+
+              // Replace Ruby operators with JS equivalents
+              jsCondition = jsCondition.replace(/\\.empty\\?/g, '.length === 0');
+              jsCondition = jsCondition.replace(/\\.nil\\?/g, ' == null');
+              jsCondition = jsCondition.replace(/\\.present\\?/g, ' != null && ');
+
+              // Unescape HTML entities
+              jsCondition = jsCondition.replace(/&gt;/g, '>');
+              jsCondition = jsCondition.replace(/&lt;/g, '<');
+              jsCondition = jsCondition.replace(/&amp;/g, '&');
+              jsCondition = jsCondition.replace(/&quot;/g, '"');
+
+              // Evaluate the JavaScript expression
+              return eval(jsCondition);
+            } catch (e) {
+              il.error('Error evaluating condition: ' + condition, e);
+              return false;
+            }
+          }
+
           render() {
             // TODO check if vars actually changed (optimization)
             let html = `
@@ -89,7 +119,10 @@ class WebComponentGenerator
             
             if (this.shadow) {
                 this.shadow.innerHTML = html;
-  
+
+                // Evaluate conditional blocks
+                #{generate_conditional_evaluation_code(conditionals)}
+
                 const style = document.createElement("style");
                 style.textContent = `
                     #{css}
@@ -183,7 +216,22 @@ class WebComponentGenerator
       
       #puts js_code
     end
-    puts "> WebComponent '#{web_cmp_name}' generation took #{time.total_milliseconds.to_i}ms" 
+    puts "> WebComponent '#{web_cmp_name}' generation took #{time.total_milliseconds.to_i}ms"
     return WebComponent.new(name = web_cmp_name, js_code)
+  end
+
+  # Generate JavaScript code to evaluate conditional blocks at runtime
+  private def generate_conditional_evaluation_code(conditionals : Array(ConditionalBlock)) : String
+    return "" if conditionals.empty?
+
+    code = ""
+    code += "let conditionalElements = this.shadow.querySelectorAll('mochi-if');\n"
+    code += "                for (let condEl of conditionalElements) {\n"
+    code += "                  let condition = condEl.getAttribute('data-condition');\n"
+    code += "                  let result = this.evaluateCondition(condition);\n"
+    code += "                  condEl.style.display = result ? '' : 'none';\n"
+    code += "                }\n"
+
+    code
   end
 end

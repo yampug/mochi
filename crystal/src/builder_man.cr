@@ -15,9 +15,9 @@ class BuilderMan
     entries_to_delete = Dir.entries(build_dir).reject do |entry|
       entry == "." || entry == ".." || entry == opal_rt_file
     end
-    
+
     paths_to_delete = entries_to_delete.map { |entry| File.join(build_dir, entry) }
-    
+
     # create the build dir inside the mochi dir
     build_dir_path = build_dir
     if Dir.exists?(build_dir_path)

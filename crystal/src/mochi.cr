@@ -8,6 +8,7 @@ require "time"
 require "./ruby/ruby_endable_statement"
 require "./ruby/ruby_def"
 require "./bind_extractor"
+require "./html/conditional_processor"
 require "./ruby/ruby_understander"
 require "./ruby/ruby_rewriter"
 require "./webcomponents/web_component_generator"
@@ -140,7 +141,11 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
     reactables_arr.each do |item|
       # puts "Item: #{item}"
     end
-    bindings = BindExtractor.extract(html)
+
+    # Process conditionals before binding extraction
+    conditional_result = ConditionalProcessor.process(html)
+
+    bindings = BindExtractor.extract(conditional_result.html)
     tag_name = RubyUnderstander.get_cmp_name(rb_file, cls_name)
 
 
@@ -169,7 +174,8 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
         css,
         html = bindings.html.not_nil!,
         reactables,
-        bindings.bindings
+        bindings.bindings,
+        conditional_result.conditionals
       )
 
       print_cmp_end_seperator(cls_name, i)
