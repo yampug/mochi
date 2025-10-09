@@ -300,32 +300,40 @@ else
   puts "BuildID: #{builder_man.build_id}"
   puts "Working Dir: #{Dir.current}"
   build_dir = builder_man.build_dir
-  builder_man.copy_ruby_code_base
-  
+
   print_separator
-  puts "2. Packing in Batteries"
+  puts "2. Copying Ruby code to pre_tp"
+  builder_man.copy_ruby_code_to_pre_tp
+  puts "Ruby code copied to #{builder_man.pre_tp_dir}"
+
+  print_separator
+  puts "3. Copying pre_tp to src for transpilation"
+  builder_man.copy_ruby_code_base
+
+  print_separator
+  puts "4. Packing in Batteries"
   batt_time = Time.measure do
     SorbetTypesBat.generate(builder_man.ruby_src_dir)
     CoreBattery.generate(builder_man.ruby_src_dir)
   end
   puts "> Batteries took #{batt_time.total_milliseconds.to_i}ms"
-  
+
   print_separator
-  puts "3. Transpiling Mochi Components"
+  puts "5. Transpiling Mochi Components"
   mochi_comp_time = Time.measure do
     transpile_directory("#{input_dir}/lib", output_dir, builder_man)
   end
   puts "> Compilation took #{mochi_comp_time.total_milliseconds.to_i}ms"
-  
+
   print_separator
-  puts "4. Generating Opal Runtime"
+  puts "6. Generating Opal Runtime"
   opal_rt_time = Time.measure do
     opal_rt_gen = OpalRuntimeGenerator.new()
     opal_rt_gen.generate(build_dir)
   end
   puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
-  
-  step_nr = 5
+
+  step_nr = 7
   
   if with_tc
     print_separator

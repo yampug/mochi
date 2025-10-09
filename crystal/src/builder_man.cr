@@ -48,15 +48,26 @@ class BuilderMan
     "#{build_dir}/src"
   end
 
+  def pre_tp_dir : String
+    "#{build_dir}/pre_tp"
+  end
+
   def build_id : String
     @build_id
   end
 
-  def copy_ruby_code_base
+  def copy_ruby_code_to_pre_tp
     source_dir = "#{@input_dir}/*"
+    destination_dir = pre_tp_dir
+
+    `mkdir -p #{destination_dir} && cp -r #{source_dir} #{destination_dir}`
+  end
+
+  def copy_ruby_code_base
+    source_dir = "#{pre_tp_dir}/*"
     destination_dir = ruby_src_dir
 
-    `mkdir #{destination_dir} && cp -r #{source_dir} #{destination_dir}`
+    `mkdir -p #{destination_dir} && cp -r #{source_dir} #{destination_dir}`
 
     # copy batteries
     #bat_source_dir = "#{@input_dir}/../batteries/*"
