@@ -68,12 +68,14 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
   nr_files.times do |i|
     done_channel.receive
   end
-  
+
+
   # comment out Sorbet signatures
   rb_rewriter.comment_out_all_sorbet_signatures_in_dir("#{builder_man.ruby_src_dir}/lib")
 
   mochi_root = rb_rewriter.gen_mochi_ruby_root(components)
   File.write("#{builder_man.ruby_src_dir}/lib/Root.rb", mochi_root)
+
 
   puts "Done with preparing components for transpilation"
   puts "Transpiling..."
@@ -305,6 +307,11 @@ else
   puts "2. Copying Ruby code to pre_tp"
   builder_man.copy_ruby_code_to_pre_tp
   puts "Ruby code copied to #{builder_man.pre_tp_dir}"
+  # built-in components (need to be compiled)
+  rb_rewriter = RubyRewriter.new
+  
+  builtin_feather_icon_comp = rb_rewriter.gen_builtin_component_feather_icon
+  File.write("#{builder_man.pre_tp_dir}/lib/mochi_builtin_feathericon_comp.rb", builtin_feather_icon_comp)
 
   print_separator
   puts "3. Copying pre_tp to src for transpilation"
@@ -321,7 +328,7 @@ else
   print_separator
   puts "5. Transpiling Mochi Components"
   mochi_comp_time = Time.measure do
-    transpile_directory("#{input_dir}/lib", output_dir, builder_man)
+    transpile_directory("#{builder_man.pre_tp_dir}/lib", output_dir, builder_man)
   end
   puts "> Compilation took #{mochi_comp_time.total_milliseconds.to_i}ms"
 

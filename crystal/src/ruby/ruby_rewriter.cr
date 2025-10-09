@@ -30,6 +30,8 @@ class RubyRewriter
     rb_code += "require 'native'\n"
     rb_code += "require 'promise'\n"
     rb_code += "require 'browser/setup/full'\n"
+    # builtin imports
+    rb_code += "require 'mochi_builtin_feathericon_comp'\n"
 
     components.each do |mochi_comp|
       lib_path = extract_lib_path(mochi_comp.absolute_path)
@@ -47,14 +49,60 @@ class RubyRewriter
     components.each do |mochi_comp|
       rb_code += "#{mochi_comp.name}.new\n"
     end
-    
+
     # rb_code += "$document.ready do\n"
     # rb_code += "  puts \"Hello World from opal-browser\"\n"
     # rb_code += "end\n"
+
+    puts rb_code
     
     rb_code
   end
-  
+
+  def gen_builtin_component_feather_icon() : String
+    <<-'RUBY'
+      # typed: true
+      class FeatherIcon
+
+        @tag_name = "feather-icon"
+        @icon
+        @rendered_svg
+
+        def initialize
+          @icon = ""
+          @rendered_svg = ""
+        end
+
+        def reactables
+          ["icon", "rendered_svg"]
+        end
+
+        def html
+          %Q{
+            <div class="feather-icon">
+              {rendered_svg}
+            </div>
+          }
+        end
+
+        def css
+          %Q{
+            .feather-icon {
+            }
+          }
+        end
+
+        def mounted(shadow_root, comp)
+          @rendered_svg = `feather.icons[#{@icon}].toSvg([])`
+          `#{comp}.syncAttributes()`
+        end
+
+        def unmounted
+        end
+      end
+
+    RUBY
+  end
   
   def comment_out_sorbet_signatures(ruby_code : String) : String
     ruby_code.each_line.map do |line|
