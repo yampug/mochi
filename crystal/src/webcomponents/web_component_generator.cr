@@ -78,30 +78,17 @@ class WebComponentGenerator
             }
           }
 
-          evaluateCondition(condition) {
-            // Parse and evaluate Ruby condition expression
-            // Handle simple cases: @var, @var > 5, @var.method?, etc.
+          evaluateCondition(condId) {
+            // Call the pre-compiled Ruby method for this conditional
             try {
-              // Replace @varName with component getter calls
-              let jsCondition = condition.replace(/@(\\w+)/g, (match, varName) => {
-                return `this.rubyComp["$get_${varName}"]()`;
-              });
+              let methodName = `$__mochi_cond_${condId}`;
+              let result = this.rubyComp[methodName]();
 
-              // Replace Ruby operators with JS equivalents
-              jsCondition = jsCondition.replace(/\\.empty\\?/g, '.length === 0');
-              jsCondition = jsCondition.replace(/\\.nil\\?/g, ' == null');
-              jsCondition = jsCondition.replace(/\\.present\\?/g, ' != null && ');
-
-              // Unescape HTML entities
-              jsCondition = jsCondition.replace(/&gt;/g, '>');
-              jsCondition = jsCondition.replace(/&lt;/g, '<');
-              jsCondition = jsCondition.replace(/&amp;/g, '&');
-              jsCondition = jsCondition.replace(/&quot;/g, '"');
-
-              // Evaluate the JavaScript expression
-              return eval(jsCondition);
+              // Convert Ruby truthy/falsy to JavaScript boolean
+              // In Opal: false and nil are falsy, everything else is truthy
+              return result !== false && result !== Opal.nil;
             } catch (e) {
-              il.error('Error evaluating condition: ' + condition, e);
+              il.error('Error evaluating conditional method ' + condId, e);
               return false;
             }
           }
@@ -227,8 +214,8 @@ class WebComponentGenerator
     code = ""
     code += "let conditionalElements = this.shadow.querySelectorAll('mochi-if');\n"
     code += "                for (let condEl of conditionalElements) {\n"
-    code += "                  let condition = condEl.getAttribute('data-condition');\n"
-    code += "                  let result = this.evaluateCondition(condition);\n"
+    code += "                  let condId = parseInt(condEl.getAttribute('data-cond-id'));\n"
+    code += "                  let result = this.evaluateCondition(condId);\n"
     code += "                  condEl.style.display = result ? '' : 'none';\n"
     code += "                }\n"
 
