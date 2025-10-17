@@ -1,72 +1,68 @@
 require "../html/conditional_processor"
 
 class ConditionalMethodGenerator
+  METHOD_PREFIX = "__mochi_cond_"
+  END_KEYWORD   = "end"
+  FALLBACK_OFFSET = 3
 
-  # Generate Ruby method code for a single conditional
+  # inject before the class closing 'end'
+  def self.inject_methods_into_class(ruby_code : String, class_name : String, conditionals : Array(ConditionalBlock)) : String
+    return ruby_code if conditionals.empty?
+
+    insertion_point = find_insertion_point(ruby_code, class_name)
+    return ruby_code unless insertion_point
+
+    methods_code = generate_all_methods(conditionals, class_name)
+    insert_code(ruby_code, insertion_point, methods_code)
+  end
+
+  # generate all conditional methods as a single string
+  def self.generate_all_methods(conditionals : Array(ConditionalBlock), class_name : String) : String
+    conditionals.map { |block| generate_method(block, class_name) }.join("\n")
+  end
+
   def self.generate_method(block : ConditionalBlock, class_name : String) : String
-    method_name = "__mochi_cond_#{block.id}"
-
-    # Clean up condition for Ruby method body
+    method_name = method_name_for(block)
     condition = block.condition.strip
 
-    # Generate method with proper indentation
     <<-RUBY
 
-  # Auto-generated conditional method
+  # auto-generated conditional method
   def #{method_name}
     #{condition}
   end
 RUBY
   end
 
-  # Generate all conditional methods for a component
-  def self.generate_all_methods(conditionals : Array(ConditionalBlock), class_name : String) : String
-    return "" if conditionals.empty?
-
-    methods_code = ""
-    conditionals.each do |block|
-      methods_code += generate_method(block, class_name)
-      methods_code += "\n"
-    end
-
-    methods_code
+  private def self.method_name_for(block : ConditionalBlock) : String
+    "#{METHOD_PREFIX}#{block.id}"
   end
 
-  # Inject conditional methods into Ruby class code
-  def self.inject_methods_into_class(ruby_code : String, class_name : String, conditionals : Array(ConditionalBlock)) : String
-    return ruby_code if conditionals.empty?
+  private def self.find_insertion_point(ruby_code : String, class_name : String) : Int32?
+    second_last_end = find_second_last_end(ruby_code)
 
-    # Find the last 'end' in the class (class closing)
-    second_last_end_index = find_second_last_end_index(ruby_code)
-
-    if second_last_end_index.nil? || second_last_end_index < 0
+    unless second_last_end
       STDERR.puts "Warning: Could not find insertion point for conditional methods in class #{class_name}"
-      return ruby_code
-    end
-
-    # Generate all methods
-    methods_code = generate_all_methods(conditionals, class_name)
-
-    # Find the end of the line containing the second-to-last 'end'
-    # We want to inject AFTER this line, not before the keyword
-    newline_after = ruby_code.index("\n", second_last_end_index)
-    insertion_point = newline_after ? newline_after + 1 : second_last_end_index + 3
-
-    modified_code = ruby_code[0...insertion_point] + methods_code + ruby_code[insertion_point..-1]
-
-    modified_code
-  end
-
-  # Helper to find second-to-last 'end' keyword
-  private def self.find_second_last_end_index(text : String) : Int32?
-    last_idx = text.rindex("end")
-
-    unless last_idx && last_idx > 0
       return nil
     end
 
-    # Find second-to-last 'end'
-    second_last_idx = text.rindex("end", last_idx - 1)
-    return second_last_idx
+    calculate_insertion_point(ruby_code, second_last_end)
+  end
+
+  private def self.find_second_last_end(text : String) : Int32?
+    last_end = text.rindex(END_KEYWORD)
+    return nil unless last_end && last_end > 0
+
+    text.rindex(END_KEYWORD, last_end - 1)
+  end
+
+  # calculate exact insertion point (after the line containing the end keyword)
+  private def self.calculate_insertion_point(code : String, end_position : Int32) : Int32
+    newline_after = code.index("\n", end_position)
+    newline_after ? newline_after + 1 : end_position + FALLBACK_OFFSET
+  end
+
+  private def self.insert_code(original : String, position : Int32, code_to_insert : String) : String
+    original[0...position] + code_to_insert + original[position..-1]
   end
 end

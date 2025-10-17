@@ -23,7 +23,7 @@ class ConditionalBlock
   end
 end
 
-# internal struct for parsing state (not exposed publicly)
+# Note: should NOT be exposed publicly)
 private struct StackFrame
   property condition : String
   property start_pos : Int32
@@ -85,12 +85,10 @@ class ConditionalProcessor
     }
   end
 
-  # try to match {end} token at position
   private def self.try_match_end_token(html : String, pos : Int32) : Bool
     html[pos..].starts_with?(END_TOKEN)
   end
 
-  # build ConditionalBlock from StackFrame
   private def self.build_block_from_frame(frame : StackFrame, html : String, end_pos : Int32) : ConditionalBlock
     ConditionalBlock.new(
       condition: frame.condition,
@@ -117,7 +115,6 @@ class ConditionalProcessor
     result
   end
 
-  # replace a range in string with replacement
   private def self.replace_range(str : String, start_pos : Int32, end_pos : Int32, replacement : String) : String
     str[0...start_pos] + replacement + str[end_pos..-1]
   end
