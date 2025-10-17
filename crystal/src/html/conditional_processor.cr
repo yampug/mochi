@@ -11,8 +11,10 @@ class ConditionalBlock
   property content : String
   property start_pos : Int32
   property end_pos : Int32
+  property content_start_pos : Int32
+  property id : Int32
 
-  def initialize(@condition : String, @content : String, @start_pos : Int32, @end_pos : Int32)
+  def initialize(@condition : String, @content : String, @start_pos : Int32, @end_pos : Int32, @content_start_pos : Int32, @id : Int32 = 0)
   end
 end
 
@@ -30,7 +32,7 @@ class ConditionalProcessor
     blocks.sort_by! { |b| -b.start_pos }
 
     blocks.each do |block|
-      replacement = generate_mochi_if_element(block)
+      replacement = generate_mochi_if_element(block, blocks)
       processed_html = processed_html[0...block.start_pos] + replacement + processed_html[block.end_pos..-1]
     end
 
@@ -41,6 +43,7 @@ class ConditionalProcessor
     blocks = [] of ConditionalBlock
     stack = [] of Hash(String, Int32 | String)
     i = 0
+    cond_id_counter = 0  # ID counter for conditionals
 
     while i < html.size
       if html[i..].starts_with?("{if ")
@@ -53,9 +56,11 @@ class ConditionalProcessor
           stack << {
             "condition" => condition,
             "start_pos" => i,
-            "content_start" => close_brace + 1
+            "content_start" => close_brace + 1,
+            "cond_id" => cond_id_counter
           } of String => (Int32 | String)
 
+          cond_id_counter += 1  # Increment ID for next conditional
           i = close_brace + 1
           next
         end
@@ -68,16 +73,19 @@ class ConditionalProcessor
           condition = block_info["condition"].as(String)
           start_pos = block_info["start_pos"].as(Int32)
           content_start = block_info["content_start"].as(Int32)
+          cond_id = block_info["cond_id"].as(Int32)
 
           # extract content between {if} and {end}
-          content = html[content_start...i].strip
+          content = html[content_start...i]
           end_pos = i + 5 # include "{end}"
 
           blocks << ConditionalBlock.new(
             condition: condition,
             content: content,
             start_pos: start_pos,
-            end_pos: end_pos
+            end_pos: end_pos,
+            content_start_pos: content_start,
+            id: cond_id
           )
         end
 
@@ -91,26 +99,30 @@ class ConditionalProcessor
     blocks
   end
 
-  private def self.generate_mochi_if_element(block : ConditionalBlock) : String
-    # escape the condition for HTML attribute
-    escaped_condition = block.condition
-      .gsub("&", "&amp;")
-      .gsub("\"", "&quot;")
-      .gsub("<", "&lt;")
-      .gsub(">", "&gt;")
-
+  private def self.generate_mochi_if_element(block : ConditionalBlock, all_blocks : Array(ConditionalBlock)) : String
     processed_content = block.content
-    nested_blocks = extract_conditionals(processed_content)
+
+    # Find nested blocks within this block's content
+    nested_blocks = all_blocks.select do |b|
+      b.start_pos > block.start_pos && b.end_pos < block.end_pos
+    end
 
     if nested_blocks.size > 0
+      # Sort by start position in reverse order to process from end to start
       nested_blocks.sort_by! { |b| -b.start_pos }
 
       nested_blocks.each do |nested_block|
-        replacement = generate_mochi_if_element(nested_block)
-        processed_content = processed_content[0...nested_block.start_pos] + replacement + processed_content[nested_block.end_pos..-1]
+        # Calculate position relative to block content
+        # The content starts at content_start_pos, so we need to offset
+        relative_start = nested_block.start_pos - block.content_start_pos
+        relative_end = nested_block.end_pos - block.content_start_pos
+
+        replacement = generate_mochi_if_element(nested_block, all_blocks)
+        processed_content = processed_content[0...relative_start] + replacement + processed_content[relative_end..-1]
       end
     end
 
-    %Q{<mochi-if data-condition="#{escaped_condition}">#{processed_content}</mochi-if>}
+    # Use data-cond-id instead of data-condition
+    %Q{<mochi-if data-cond-id="#{block.id}">#{processed_content}</mochi-if>}
   end
 end

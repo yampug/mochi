@@ -14,11 +14,12 @@ describe ConditionalProcessor do
 
       result = ConditionalProcessor.process(html)
 
-      result.html.should contain("<mochi-if data-condition=\"@show\">")
+      result.html.should contain("<mochi-if data-cond-id=\"0\">")
       result.html.should contain("<p>Visible!</p>")
       result.html.should contain("</mochi-if>")
       result.conditionals.size.should eq(1)
       result.conditionals[0].condition.should eq("@show")
+      result.conditionals[0].id.should eq(0)
     end
 
     it "processes multiple if conditions" do
@@ -36,8 +37,12 @@ describe ConditionalProcessor do
       result = ConditionalProcessor.process(html)
 
       result.conditionals.size.should eq(2)
-      result.html.should contain("data-condition=\"@show\"")
-      result.html.should contain("data-condition=\"@display\"")
+      result.html.should contain("data-cond-id=\"0\"")
+      result.html.should contain("data-cond-id=\"1\"")
+      # Blocks are sorted by reverse start position, so order may differ
+      # Just verify both IDs exist
+      ids = result.conditionals.map(&.id).sort
+      ids.should eq([0, 1])
     end
 
     it "processes nested if conditions" do
@@ -56,9 +61,12 @@ describe ConditionalProcessor do
       result = ConditionalProcessor.process(html)
 
       result.conditionals.size.should eq(2)
-      # Should have both conditions transformed
-      result.html.should contain("data-condition=\"@show\"")
-      result.html.should contain("data-condition=\"@nested\"")
+      # Should have both conditions transformed with IDs
+      result.html.should contain("data-cond-id=\"0\"")
+      result.html.should contain("data-cond-id=\"1\"")
+      # Blocks are sorted by reverse start position, so verify both IDs exist
+      ids = result.conditionals.map(&.id).sort
+      ids.should eq([0, 1])
     end
 
     it "processes condition with comparison operators" do
@@ -74,8 +82,9 @@ describe ConditionalProcessor do
 
       result.conditionals.size.should eq(1)
       result.conditionals[0].condition.should eq("@count > 5")
-      # > should be escaped in HTML attribute
-      result.html.should contain("data-condition=\"@count &gt; 5\"")
+      result.conditionals[0].id.should eq(0)
+      # No need to escape in data-cond-id, just use ID
+      result.html.should contain("data-cond-id=\"0\"")
     end
 
     it "processes condition with method calls" do
