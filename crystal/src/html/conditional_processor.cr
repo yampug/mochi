@@ -18,111 +18,103 @@ class ConditionalBlock
   end
 end
 
+# Internal struct for parsing state (not exposed publicly)
+private struct StackFrame
+  property condition : String
+  property start_pos : Int32
+  property content_start : Int32
+  property id : Int32
+
+  def initialize(@condition, @start_pos, @content_start, @id)
+  end
+end
+
 class ConditionalProcessor
-
-  # Main entry point - processes HTML with {if}...{end} blocks
+  # main entry point - processes HTML with {if}...{end} blocks
   def self.process(html : String) : ConditionalResult
-    conditionals = [] of ConditionalBlock
-    processed_html = html.dup
-
-    # Process conditionals from end to start to maintain position indices
     blocks = extract_conditionals(html)
-
-    # Sort by start position in reverse order
-    blocks.sort_by! { |b| -b.start_pos }
-
-    blocks.each do |block|
-      replacement = generate_mochi_if_element(block, blocks)
-      processed_html = processed_html[0...block.start_pos] + replacement + processed_html[block.end_pos..-1]
-    end
-
+    processed_html = replace_blocks_with_elements(html, blocks)
     ConditionalResult.new(processed_html, blocks)
   end
 
+  # extract all conditional blocks from HTML using stack-based parsing
   def self.extract_conditionals(html : String) : Array(ConditionalBlock)
     blocks = [] of ConditionalBlock
-    stack = [] of Hash(String, Int32 | String)
-    i = 0
-    cond_id_counter = 0  # ID counter for conditionals
+    stack = [] of StackFrame
+    next_id = 0
+    pos = 0
 
-    while i < html.size
-      if html[i..].starts_with?("{if ")
-        close_brace = html.index("}", i)
-        if close_brace
-          condition_start = i + 4 # skip "{if "
-          condition = html[condition_start...close_brace].strip
-
-          # push to stack
-          stack << {
-            "condition" => condition,
-            "start_pos" => i,
-            "content_start" => close_brace + 1,
-            "cond_id" => cond_id_counter
-          } of String => (Int32 | String)
-
-          cond_id_counter += 1  # Increment ID for next conditional
-          i = close_brace + 1
+    while pos < html.size
+      # check for {if ...}
+      if html[pos..].starts_with?("{if ")
+        if close_brace = html.index("}", pos)
+          condition = html[(pos + 4)...close_brace].strip
+          stack << StackFrame.new(condition, pos, close_brace + 1, next_id)
+          next_id += 1
+          pos = close_brace + 1
           next
         end
       end
 
-      # look for {end}
-      if html[i..].starts_with?("{end}")
-        if stack.size > 0
-          block_info = stack.pop
-          condition = block_info["condition"].as(String)
-          start_pos = block_info["start_pos"].as(Int32)
-          content_start = block_info["content_start"].as(Int32)
-          cond_id = block_info["cond_id"].as(Int32)
-
-          # extract content between {if} and {end}
-          content = html[content_start...i]
-          end_pos = i + 5 # include "{end}"
-
+      # check for {end}
+      if html[pos..].starts_with?("{end}")
+        unless stack.empty?
+          frame = stack.pop
           blocks << ConditionalBlock.new(
-            condition: condition,
-            content: content,
-            start_pos: start_pos,
-            end_pos: end_pos,
-            content_start_pos: content_start,
-            id: cond_id
+            condition: frame.condition,
+            content: html[frame.content_start...pos],
+            start_pos: frame.start_pos,
+            end_pos: pos + 5,
+            content_start_pos: frame.content_start,
+            id: frame.id
           )
         end
-
-        i += 5 # skip "{end}"
+        pos += 5
         next
       end
 
-      i += 1
+      pos += 1
     end
 
     blocks
   end
 
-  private def self.generate_mochi_if_element(block : ConditionalBlock, all_blocks : Array(ConditionalBlock)) : String
-    processed_content = block.content
+  # replace all blocks with <mochi-if> elements, processing from end to start
+  private def self.replace_blocks_with_elements(html : String, blocks : Array(ConditionalBlock)) : String
+    result = html.dup
 
-    # Find nested blocks within this block's content
-    nested_blocks = all_blocks.select do |b|
-      b.start_pos > block.start_pos && b.end_pos < block.end_pos
+    # sort blocks by position (reverse order to preserve indices)
+    blocks.sort_by! { |b| -b.start_pos }
+
+    blocks.each do |block|
+      # generate replacement element
+      element = generate_element(block, blocks)
+      result = result[0...block.start_pos] + element + result[block.end_pos..-1]
     end
 
-    if nested_blocks.size > 0
-      # Sort by start position in reverse order to process from end to start
-      nested_blocks.sort_by! { |b| -b.start_pos }
+    result
+  end
 
-      nested_blocks.each do |nested_block|
-        # Calculate position relative to block content
-        # The content starts at content_start_pos, so we need to offset
-        relative_start = nested_block.start_pos - block.content_start_pos
-        relative_end = nested_block.end_pos - block.content_start_pos
+  # generate <mochi-if> element for a block, handling nested blocks
+  private def self.generate_element(block : ConditionalBlock, all_blocks : Array(ConditionalBlock)) : String
+    content = block.content
 
-        replacement = generate_mochi_if_element(nested_block, all_blocks)
-        processed_content = processed_content[0...relative_start] + replacement + processed_content[relative_end..-1]
+    # find and process nested blocks
+    nested = all_blocks.select { |b| b.start_pos > block.start_pos && b.end_pos < block.end_pos }
+
+    unless nested.empty?
+      nested.sort_by! { |b| -b.start_pos }
+
+      nested.each do |nested_block|
+        # calculate relative positions within this block's content
+        rel_start = nested_block.start_pos - block.content_start_pos
+        rel_end = nested_block.end_pos - block.content_start_pos
+
+        nested_element = generate_element(nested_block, all_blocks)
+        content = content[0...rel_start] + nested_element + content[rel_end..-1]
       end
     end
 
-    # Use data-cond-id instead of data-condition
-    %Q{<mochi-if data-cond-id="#{block.id}">#{processed_content}</mochi-if>}
+    %Q{<mochi-if data-cond-id="#{block.id}">#{content}</mochi-if>}
   end
 end
