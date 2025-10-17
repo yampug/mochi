@@ -9,6 +9,7 @@ require "./ruby/ruby_endable_statement"
 require "./ruby/ruby_def"
 require "./bind_extractor"
 require "./html/conditional_processor"
+require "./ruby/conditional_method_generator"
 require "./ruby/ruby_understander"
 require "./ruby/ruby_rewriter"
 require "./webcomponents/web_component_generator"
@@ -146,6 +147,13 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
 
     # Process conditionals before binding extraction
     conditional_result = ConditionalProcessor.process(html)
+
+    # Inject conditional methods into Ruby code
+    amped_ruby_code = ConditionalMethodGenerator.inject_methods_into_class(
+      amped_ruby_code,
+      cls_name,
+      conditional_result.conditionals
+    )
 
     bindings = BindExtractor.extract(conditional_result.html)
     tag_name = RubyUnderstander.get_cmp_name(rb_file, cls_name)
