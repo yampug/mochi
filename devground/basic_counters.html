@@ -22,12 +22,47 @@
         <router-demo>
 
         </router-demo>
-        <route match="/">
-            <plus-five pfcount="10"></plus-five>
-        </route>
-        <route match="/abc">
-            <plus-five pfcount="20"></plus-five>
-        </route>
+
+        <!-- Router Test -->
+        <h2>Mochi Router Demo:</h2>
+        <nav style="margin: 20px 0; padding: 10px; background: #f0f0f0;">
+            <a href="/" style="margin-right: 10px;">Home</a>
+            <a href="/about" style="margin-right: 10px;">About</a>
+            <a href="/contact" style="margin-right: 10px;">Contact</a>
+            <a href="https://example.com" data-external style="margin-right: 10px;">External Link</a>
+        </nav>
+
+        <mochi-route match="/">
+            <div style="padding: 20px; background: lightgreen; margin: 10px 0;">
+                <h3>Home Page</h3>
+                <p>Welcome to the home page!</p>
+                <plus-five pfcount="10"></plus-five>
+            </div>
+        </mochi-route>
+
+        <mochi-route match="/about">
+            <div style="padding: 20px; background: lightblue; margin: 10px 0;">
+                <h3>About Page</h3>
+                <p>This is the about page.</p>
+                <my-counter count="5"></my-counter>
+            </div>
+        </mochi-route>
+
+        <mochi-route match="/contact">
+            <div style="padding: 20px; background: lightyellow; margin: 10px 0;">
+                <h3>Contact Page</h3>
+                <p>Get in touch with us!</p>
+                <plus-five pfcount="20"></plus-five>
+            </div>
+        </mochi-route>
+
+        <!-- Slot Test -->
+        <h2 style="margin-top: 40px;">Slot Test Demo:</h2>
+        <slot-test>
+            <p>This content should appear inside the slot!</p>
+            <my-counter count="99"></my-counter>
+            <p style="color: blue; font-weight: bold;">Multiple nested elements work too!</p>
+        </slot-test>
 
     </body>
 </html>

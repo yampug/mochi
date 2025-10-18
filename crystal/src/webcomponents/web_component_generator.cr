@@ -62,6 +62,7 @@ class WebComponentGenerator
             super();
             this.rubyComp = Opal.#{mochi_cmp_name}.$new();
             this.paintCount = 0;
+            this.element = this;
           }
           
           connectedCallback() {

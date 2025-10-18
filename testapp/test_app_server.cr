@@ -31,7 +31,7 @@ server = HTTP::Server.new do |context|
   puts "#{method} '#{uri}'"
 
   replied = false
-  if get("/", context)
+  if get("/", context) || get("/about", context) || get("/contact", context)
     reply_with_html_file(context, "./devground/basic_counters.html")
     replied = true
   end

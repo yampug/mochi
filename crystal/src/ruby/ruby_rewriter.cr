@@ -93,6 +93,209 @@ class RubyRewriter
 
     RUBY
   end
+
+  def gen_builtin_mochi_router() : String
+    <<-'RUBY'
+      # typed: true
+
+      class MochiRouter
+        @tag_name = "mochi-router-internal"
+        @@current_path = ""
+        @@observers = []
+        @@initialized = false
+
+        def initialize
+        end
+
+        # Dummy methods to satisfy the transpiler (not actually rendered)
+        def reactables
+          []
+        end
+
+        def html
+          %Q{
+            <div style="display: none;"></div>
+          }
+        end
+
+        def css
+          %Q{
+            :host {
+              display: none;
+            }
+          }
+        end
+
+        def mounted(shadow_root, comp)
+        end
+
+        def unmounted
+        end
+
+        # Subscribe a route component to path changes
+        def self.subscribe(observer)
+          @@observers << observer
+        end
+
+        # Unsubscribe a route component (called on unmount)
+        def self.unsubscribe(observer)
+          @@observers.delete(observer)
+        end
+
+        # Navigate to a new path
+        def self.navigate(path)
+          @@current_path = path
+
+          # Notify all route components
+          @@observers.each { |obs| obs.on_route_change(path) }
+        end
+
+        # Get current path
+        def self.current_path
+          @@current_path
+        end
+
+        # Initialize browser listeners (called by first route to mount)
+        def self.init_browser_listeners_once
+          return if @@initialized
+          @@initialized = true
+
+          puts "MochiRouter: Initializing browser listeners"
+
+          # Listen to browser back/forward
+          `
+            window.addEventListener('popstate', () => {
+              let path = window.location.pathname;
+              console.log('MochiRouter: popstate event, path:', path);
+              Opal.MochiRouter.$navigate(path);
+            });
+
+            // Handle link clicks
+            document.addEventListener('click', (e) => {
+              // Find the closest <a> tag (in case user clicked on child element)
+              let target = e.target.closest('a');
+
+              if (target && target.tagName === 'A') {
+                // Check if it's an internal link (relative or same origin)
+                let href = target.getAttribute('href');
+
+                if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('//')) {
+                  e.preventDefault();
+                  console.log('MochiRouter: navigating to', href);
+                  window.history.pushState({}, '', href);
+                  Opal.MochiRouter.$navigate(href);
+                }
+              }
+            });
+          `
+
+          # Set initial path from browser
+          current = `window.location.pathname`
+          @@current_path = current
+          puts "MochiRouter: Initial path set to '#{current}'"
+        end
+      end
+
+    RUBY
+  end
+
+  def gen_builtin_route_component() : String
+    <<-'RUBY'
+      # typed: true
+
+      class Route
+        @tag_name = "mochi-route"
+        @match
+        @active
+        @component_ref
+
+        def initialize
+          @match = ""
+          @active = false
+          @component_ref = nil
+        end
+
+        def reactables
+          ["active"]
+        end
+
+        def html
+          %Q{
+            <div class="route-content">
+              <slot></slot>
+            </div>
+          }
+        end
+
+        def css
+          %Q{
+            :host {
+              display: block;
+            }
+
+            .route-content {
+              width: 100%;
+              height: 100%;
+            }
+
+            .route-content.hidden {
+              display: none;
+            }
+          }
+        end
+
+        def mounted(shadow_root, comp)
+          @component_ref = comp
+
+          match_attr = Mochi.get_attr(comp, "match")
+          @match = match_attr || "/"
+
+          ::MochiRouter.init_browser_listeners_once
+
+          ::MochiRouter.subscribe(self)
+
+          check_match(::MochiRouter.current_path)
+        end
+
+        def unmounted
+          ::MochiRouter.unsubscribe(self)
+        end
+
+        def on_route_change(path)
+          check_match(path)
+        end
+
+        private
+
+        def check_match(path)
+          was_active = @active
+
+          if matches_path?(path)
+            @active = true
+          else
+            @active = false
+          end
+
+          # Update DOM directly
+          if @component_ref
+            content_div = `#{@component_ref}.shadow.querySelector('.route-content')`
+            if @active
+              `#{content_div}.classList.remove('hidden')`
+            else
+              `#{content_div}.classList.add('hidden')`
+            end
+          end
+        end
+
+        def matches_path?(path)
+          # Exact match for now
+          # TODO: Expand with dynamic segments like :id
+          @match == path || @match == "*"
+        end
+      end
+
+    RUBY
+  end
   
   def comment_out_sorbet_signatures(ruby_code : String) : String
     ruby_code.each_line.map do |line|

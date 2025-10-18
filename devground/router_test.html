@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <title>Router Test</title>
+        <link rel="icon" type="image/png" href="mochi.png?v1" />
+        <script
+          src="./opal-runtime.js"
+          onload='Opal.require("native"); Opal.require("promise"); Opal.require("browser/setup/full");'></script>
+        <script src="./bundle.js"></script>
+    </head>
+    <body>
+        <h1>Mochi Router Test</h1>
+
+        <nav style="margin: 20px 0; padding: 10px; background: #f0f0f0;">
+            <a href="/">Home</a> |
+            <a href="/about">About</a> |
+            <a href="/contact">Contact</a>
+        </nav>
+
+        <div id="status" style="padding: 10px; background: yellow; margin: 10px 0;">
+            Waiting for routes to mount...
+        </div>
+
+        <mochi-route match="/">
+            <div style="padding: 20px; background: lightgreen;">
+                <h2>Home Page</h2>
+                <p>This is the home route (match="/")</p>
+            </div>
+        </mochi-route>
+
+        <mochi-route match="/about">
+            <div style="padding: 20px; background: lightblue;">
+                <h2>About Page</h2>
+                <p>This is the about route (match="/about")</p>
+            </div>
+        </mochi-route>
+
+        <mochi-route match="/contact">
+            <div style="padding: 20px; background: lightyellow;">
+                <h2>Contact Page</h2>
+                <p>This is the contact route (match="/contact")</p>
+            </div>
+        </mochi-route>
+
+        <script>
+            // Debug logging
+            console.log('=== Router Test Page Loaded ===');
+            console.log('Current path:', window.location.pathname);
+
+            setTimeout(() => {
+                console.log('After 1 second:');
+                console.log('MochiRouter exists?', typeof Opal !== 'undefined' && typeof Opal.MochiRouter !== 'undefined');
+                console.log('Route elements:', document.querySelectorAll('mochi-route').length);
+
+                document.getElementById('status').innerHTML =
+                    'Path: ' + window.location.pathname + '<br>' +
+                    'Route elements: ' + document.querySelectorAll('mochi-route').length;
+            }, 1000);
+        </script>
+    </body>
+</html>

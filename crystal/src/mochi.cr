@@ -206,6 +206,10 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
   print_cmp_end_seperator(cls_name, i)
 end
 
+def self.get_attr(component, name) : String
+  return `#{component}.element.getAttribute(#{name})`
+end
+
 def find_second_last_index(text : String, substring_to_find : String) : Int32?
   last_idx = text.rindex(substring_to_find)
 
@@ -317,9 +321,15 @@ else
   puts "Ruby code copied to #{builder_man.pre_tp_dir}"
   # built-in components (need to be compiled)
   rb_rewriter = RubyRewriter.new
-  
+
   builtin_feather_icon_comp = rb_rewriter.gen_builtin_component_feather_icon
   File.write("#{builder_man.pre_tp_dir}/lib/mochi_builtin_feathericon_comp.rb", builtin_feather_icon_comp)
+
+  builtin_mochi_router = rb_rewriter.gen_builtin_mochi_router
+  File.write("#{builder_man.pre_tp_dir}/lib/mochi_router.rb", builtin_mochi_router)
+
+  builtin_route_comp = rb_rewriter.gen_builtin_route_component
+  File.write("#{builder_man.pre_tp_dir}/lib/mochi_builtin_route_comp.rb", builtin_route_comp)
 
   print_separator
   puts "3. Copying pre_tp to src for transpilation"
