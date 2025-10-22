@@ -13,11 +13,16 @@ end
 
 dir_charts = "./fragments/batteries/charts"
 # target dirs
+td_root = "/"
 td_charts = "/charts"
 
 # REGISTRY
 items = []
-items.push(Item.new("Mochi", "./fragments/batteries/mochi.rb", "/", "mochi_rb.cr"))
+items.push(Item.new("Mochi", "./fragments/batteries/mochi.rb", td_root, "mochi_rb.cr"))
+items.push(Item.new("AppRouter", "./fragments/batteries/app_router.rb", td_root, "app_router_rb.cr"))
+items.push(Item.new("BrowserId", "./fragments/batteries/browser_id.rb", td_root, "browser_id_rb.cr"))
+items.push(Item.new("Logger", "./fragments/batteries/logger.rb", td_root, "logger_rb.cr"))
+
 # -- charts
 items.push(Item.new("Charts", "#{dir_charts}/charts.rb", td_charts, "charts_rb.cr"))
 items.push(Item.new("ChartSeries", "#{dir_charts}/chart_series.rb", td_charts, "chart_series_rb.cr"))
