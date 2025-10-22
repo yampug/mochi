@@ -2,6 +2,7 @@ require "file_utils"
 require "../generated/mochi_rb"
 require "../generated/charts/charts_rb"
 require "../generated/charts/chart_series_rb"
+require "../generated/charts/chart_config_builder_rb"
 
 class CoreBattery
 
@@ -230,46 +231,7 @@ class CoreBattery
 
       end
 
-      class ChartConfigBuilder
-        attr_reader :title, :legend, :x_axis, :y_axis, :series
 
-        def initialize
-          @title = ""
-          @legend = []
-          @x_axis = []
-          @y_axis = []
-          @series = []
-        end
-
-        def set_title(title)
-          @title = title
-          return self
-        end
-
-        def set_legend(legend)
-          @legend = legend
-          return self
-        end
-
-        def set_x_axis(x_axis)
-          @x_axis = x_axis
-          return self
-        end
-
-        def set_y_axis(y_axis)
-          @y_axis = y_axis
-          return self
-        end
-
-        def set_series(series)
-          @series = series
-          return self
-        end
-
-        def build
-          return ChartConfig.new(title, legend, x_axis, y_axis, series)
-        end
-      end
 
       class Log
 
@@ -489,8 +451,14 @@ class CoreBattery
         end
       end
     RUBY
-    result = "#{result}\n#{MochiRbFragment.get_ruby_code}\n#{ChartsRbFragment.get_ruby_code}\n#{ChartSeriesRbFragment.get_ruby_code}"
 
-    return result
+    fragments = [
+      MochiRbFragment,
+      ChartsRbFragment,
+      ChartSeriesRbFragment,
+      ChartConfigBuilderRbFragment
+    ].map { |fragment_class| fragment_class.get_ruby_code }.join("\n")
+
+    return "#{result}\n#{fragments}"
   end
 end

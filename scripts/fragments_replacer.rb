@@ -11,12 +11,17 @@ class Item
   end
 end
 
+dir_charts = "./fragments/batteries/charts"
+# target dirs
+td_charts = "/charts"
 
 # REGISTRY
 items = []
-items.push(Item.new("MochiRbFragment", "./fragments/batteries/mochi.rb", "/", "mochi_rb.cr"))
-items.push(Item.new("ChartsRbFragment", "./fragments/batteries/charts/charts.rb", "/charts", "charts_rb.cr"))
-items.push(Item.new("ChartSeriesRbFragment", "./fragments/batteries/charts/chart_series.rb", "/charts", "chart_series_rb.cr"))
+items.push(Item.new("Mochi", "./fragments/batteries/mochi.rb", "/", "mochi_rb.cr"))
+# -- charts
+items.push(Item.new("Charts", "#{dir_charts}/charts.rb", td_charts, "charts_rb.cr"))
+items.push(Item.new("ChartSeries", "#{dir_charts}/chart_series.rb", td_charts, "chart_series_rb.cr"))
+items.push(Item.new("ChartConfigBuilder", "#{dir_charts}/chart_config_builder.rb", td_charts, "chart_config_builder_rb.cr"))
 
 
 
@@ -30,7 +35,7 @@ items.each { |item|
     full_target_path_w_file = "#{full_target_path}/#{item.target_file_name}"
     FileUtils.mkdir_p(full_target_path)
 
-    content = "class #{item.cls_name}\ndef self.get_ruby_code : String\n<<-'RUBY'\n#{source_content}\nRUBY\nend\nend"
+    content = "class #{item.cls_name}RbFragment\ndef self.get_ruby_code : String\n<<-'RUBY'\n#{source_content}\nRUBY\nend\nend"
 
     FileUtils.mkdir_p(File.dirname(full_target_path_w_file))
     File.write(full_target_path_w_file, content)
