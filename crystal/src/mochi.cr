@@ -42,14 +42,14 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
           puts "Processing #{path}"
           content = File.read(path)
           absolute_path = Path[path].expand.to_s
-  
+
           rb_file = File.read(absolute_path)
           component = transpile_component(rb_file, i, absolute_path)
-  
+
           i += 1
           if component
             components << component
-  
+
             # replace ruby code with amplified version
             src_dir = builder_man.ruby_src_dir
             lib_path = rb_rewriter.extract_lib_path(absolute_path)
@@ -65,7 +65,7 @@ def transpile_directory(input_dir : String, output_dir : String, builder_man : B
     end
 
   end
-  
+
   nr_files.times do |i|
     done_channel.receive
   end
@@ -126,7 +126,7 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
     return
   end
 
-  methods = RubyUnderstander.extract_method_bodies(rb_file, cls_name)
+  methods : Hash(String, RubyDef) = RubyUnderstander.extract_method_bodies(rb_file, cls_name)
   #puts methods
 
   amped_ruby_code = rb_file
@@ -256,7 +256,7 @@ with_tc = false
 parser = OptionParser.new
 OptionParser.parse do |p|
   p.banner = "Usage: mochi [options]"
-  
+
   p.on("-init PROJ_NAME", "--initialize=PROJ_NAME", "Initialize a new mochi project") do |k|
     project_name = k
   end
@@ -299,7 +299,7 @@ OptionParser.parse do |p|
   parser = p
 end
 
-if !project_name.empty?  
+if !project_name.empty?
   Initializer.new(project_name)
 else
   # 1. Prepare Input / Output directories
@@ -307,7 +307,7 @@ else
     puts parser
     exit 1
   end
-  
+
   print_separator
   puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
   builder_man = BuilderMan.new(input_dir)
@@ -359,12 +359,12 @@ else
   puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
 
   step_nr = 7
-  
+
   if with_tc
     print_separator
     puts "#{step_nr}. Running typechecks"
     step_nr += 1
-    tc_time = Time.measure do  
+    tc_time = Time.measure do
       `cd #{builder_man.ruby_src_dir} && bundle install`
       `cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init`
       puts ""
@@ -373,14 +373,14 @@ else
     end
     puts "> Sorbet Typecheck took #{tc_time.total_milliseconds.to_i}ms"
   end
-  
-  
+
+
   print_separator
   puts "#{step_nr}. Bundling"
   step_nr += 1
   bundle_file_path = ""
   bundling_time_taken = Time.measure do
-  
+
     `cp "#{build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
     `cp "#{build_dir}/components.js" "#{output_dir}/bundle.js"`
 
@@ -390,26 +390,26 @@ else
     File.write("#{output_dir}/bundle.js", "#{bundle_js}\n#{JsLoggerGenerator.generate()}")
   end
   puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
-  
-  
+
+
   # check swc is installed
   print_separator
   puts "#{step_nr}. Minify the output: #{with_mini}"
   step_nr += 1
   mini_time_taken = Time.measure do
-  
+
     if with_mini
       unless Process.find_executable("swc")
         STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
         exit 1
       end
-  
+
       `npx swc "#{output_dir}/opal-runtime.js" -o "#{output_dir}/opal-runtime.js"`
     end
   end
   puts "> Minification took #{mini_time_taken.total_milliseconds.to_i}ms"
-  
-  
+
+
   print_separator
   puts "Done."
 
