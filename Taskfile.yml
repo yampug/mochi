@@ -34,3 +34,7 @@ tasks:
   dev-server:
     cmds:
       - crystal run testapp/test_app_server.cr
+  generate-batteries:
+    cmds:
+      - ruby scripts/fragments_replacer.rb
+      - crystal tool format ./crystal/src/generated
