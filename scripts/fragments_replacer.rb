@@ -12,9 +12,12 @@ class Item
 end
 
 dir_charts = "./fragments/batteries/charts"
+dir_fetcher = "./fragments/batteries/fetcher"
+
 # target dirs
 td_root = "/"
 td_charts = "/charts"
+td_fetcher = "/fetcher"
 
 # REGISTRY
 items = []
@@ -27,7 +30,14 @@ items.push(Item.new("Logger", "./fragments/batteries/logger.rb", td_root, "logge
 items.push(Item.new("Charts", "#{dir_charts}/charts.rb", td_charts, "charts_rb.cr"))
 items.push(Item.new("ChartSeries", "#{dir_charts}/chart_series.rb", td_charts, "chart_series_rb.cr"))
 items.push(Item.new("ChartConfigBuilder", "#{dir_charts}/chart_config_builder.rb", td_charts, "chart_config_builder_rb.cr"))
+items.push(Item.new("ChartConfig", "#{dir_charts}/chart_config.rb", td_charts, "chart_config_rb.cr"))
+items.push(Item.new("ChartSeriesBuilder", "#{dir_charts}/chart_series_builder.rb", td_charts, "chart_series_builder_rb.cr"))
 
+# -- fetcher
+items.push(Item.new("HttpResponse", "#{dir_fetcher}/http_response.rb", td_fetcher, "http_response_rb.cr"))
+items.push(Item.new("FetchConfigBuilder", "#{dir_fetcher}/fetch_config_builder.rb", td_fetcher, "fetch_config_builder_rb.cr"))
+items.push(Item.new("FetchConfig", "#{dir_fetcher}/fetch_config.rb", td_fetcher, "fetch_config_rb.cr"))
+items.push(Item.new("Fetcher", "#{dir_fetcher}/fetcher.rb", td_fetcher, "fetcher_rb.cr"))
 
 
 gen_target_path = "./crystal/src/generated"
