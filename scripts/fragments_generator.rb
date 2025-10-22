@@ -50,6 +50,8 @@ items.push(Item.new("FeatherIconBI", "#{dir_builtins}/feather_icon.rb", td_built
 items.push(Item.new("RouteBI", "#{dir_router}/route.rb", td_router, "route_rb.cr"))
 items.push(Item.new("MochiRouterBI", "#{dir_router}/mochi_router.rb", td_router, "mochi_router_rb.cr"))
 
+items.push(Item.new("MyCounter", "#{dir_builtins}/my_counter.rb", td_builtins, "my_counter_rb.cr"))
+
 gen_target_path = "./crystal/src/generated"
 FileUtils.rm_rf(gen_target_path)
 
