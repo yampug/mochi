@@ -11,7 +11,7 @@
 ## What is Mochi?
 
 Mochi brings modern web development to [Ruby](https://www.ruby-lang.org/) by leveraging the excellent work from [Opal](https://opalrb.com/) and tighly coupling it with the open [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) standard.
-Mochi provides also native [Sorbet](https://sorbet.org) support for all that type-checking goodness, as this can be a bit daunting to get going yourself, since Sorbet doesn't play nice will Opal out of the box. 
+Mochi provides also native [Sorbet](https://sorbet.org) support for all that type-checking goodness. This can normally be a bit daunting to get going yourself, since Sorbet doesn't play nice with Opal out of the box, so Mochi got your back.
 
 So all in all Mochi brings type-safe Ruby to the modern web.
 The project is still very early on its journey, so proceed at your own risk for now.
@@ -78,7 +78,7 @@ end
 Prerequestities:
 * <img alt="Crystallang Icon" style="height: 16px; background: white; border-radius: 50%; padding: 1px;" src="https://github.com/yampug/mochi/blob/main/github/assets/crystal_icon.png?raw=true"> [Crystal](https://crystal-lang.org)
 * <img alt="Opal Ruby Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/opal_icon.ico?raw=true"> [Opal](https://opalrb.com)
-* <img alt="Task Go Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/task_icon.ico?raw=true"> [Task](https://taskfile.dev) 
+* <img alt="Task Go Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/task_icon.ico?raw=true"> [Task](https://taskfile.dev)
 
 ```
 git clone http://github.com/yampug/mochi
@@ -100,9 +100,9 @@ mochi -i "/path/to/my/beautiful/ruby_code" -o "/path/where/I/want/to/output" -m 
 
 * -i: input directory
 * -o: output directory
-* -m: Minimise the generated js code (Optional) 
-* -tc: Run Sorbet Typechecks (Optional) 
-* --initialize: Creates a new preconfigured project directory 
+* -m: Minimise the generated js code (Optional)
+* -tc: Run Sorbet Typechecks (Optional)
+* --initialize: Creates a new preconfigured project directory
 
 
 
