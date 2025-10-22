@@ -11,34 +11,44 @@ class Item
   end
 end
 
-dir_charts = "./fragments/batteries/charts"
-dir_fetcher = "./fragments/batteries/fetcher"
+dir_batteries = "./fragments/batteries"
+dir_builtins = "./fragments/builtins"
+dir_charts = "#{dir_batteries}/charts"
+dir_fetcher = "#{dir_batteries}/fetcher"
+dir_router = "#{dir_builtins}/router"
 
 # target dirs
 td_root = "/"
 td_charts = "/charts"
 td_fetcher = "/fetcher"
+td_builtins = "/builtins"
+td_router = "/builtins/router"
 
 # REGISTRY
+# -- BATTERIES
 items = []
-items.push(Item.new("Mochi", "./fragments/batteries/mochi.rb", td_root, "mochi_rb.cr"))
-items.push(Item.new("AppRouter", "./fragments/batteries/app_router.rb", td_root, "app_router_rb.cr"))
-items.push(Item.new("BrowserId", "./fragments/batteries/browser_id.rb", td_root, "browser_id_rb.cr"))
-items.push(Item.new("Logger", "./fragments/batteries/logger.rb", td_root, "logger_rb.cr"))
+items.push(Item.new("Mochi", "#{dir_batteries}/mochi.rb", td_root, "mochi_rb.cr"))
+items.push(Item.new("AppRouter", "#{dir_batteries}/app_router.rb", td_root, "app_router_rb.cr"))
+items.push(Item.new("BrowserId", "#{dir_batteries}/browser_id.rb", td_root, "browser_id_rb.cr"))
+items.push(Item.new("Logger", "#{dir_batteries}/logger.rb", td_root, "logger_rb.cr"))
 
-# -- charts
+# ----- charts
 items.push(Item.new("Charts", "#{dir_charts}/charts.rb", td_charts, "charts_rb.cr"))
 items.push(Item.new("ChartSeries", "#{dir_charts}/chart_series.rb", td_charts, "chart_series_rb.cr"))
 items.push(Item.new("ChartConfigBuilder", "#{dir_charts}/chart_config_builder.rb", td_charts, "chart_config_builder_rb.cr"))
 items.push(Item.new("ChartConfig", "#{dir_charts}/chart_config.rb", td_charts, "chart_config_rb.cr"))
 items.push(Item.new("ChartSeriesBuilder", "#{dir_charts}/chart_series_builder.rb", td_charts, "chart_series_builder_rb.cr"))
 
-# -- fetcher
+# ----- fetcher
 items.push(Item.new("HttpResponse", "#{dir_fetcher}/http_response.rb", td_fetcher, "http_response_rb.cr"))
 items.push(Item.new("FetchConfigBuilder", "#{dir_fetcher}/fetch_config_builder.rb", td_fetcher, "fetch_config_builder_rb.cr"))
 items.push(Item.new("FetchConfig", "#{dir_fetcher}/fetch_config.rb", td_fetcher, "fetch_config_rb.cr"))
 items.push(Item.new("Fetcher", "#{dir_fetcher}/fetcher.rb", td_fetcher, "fetcher_rb.cr"))
 
+# -- BUILT_IN (BI) Components
+items.push(Item.new("FeatherIconBI", "#{dir_builtins}/feather_icon.rb", td_builtins, "feather_icon_rb.cr"))
+items.push(Item.new("RouteBI", "#{dir_router}/route.rb", td_router, "route_rb.cr"))
+items.push(Item.new("MochiRouterBI", "#{dir_router}/mochi_router.rb", td_router, "mochi_router_rb.cr"))
 
 gen_target_path = "./crystal/src/generated"
 FileUtils.rm_rf(gen_target_path)
