@@ -1,11 +1,7 @@
 require "file_utils"
 require "../generated/mochi_rb"
 require "../generated/charts/charts_rb"
-
-macro read_file_content(filename)
-  contents = File.read({{filename}})
-  return contents
-end
+require "../generated/charts/chart_series_rb"
 
 class CoreBattery
 
@@ -161,13 +157,7 @@ class CoreBattery
 
 
 
-      class ChartSeries
-        def initialize(name, type, data)
-          @name = name
-          @type = type
-          @data = data
-        end
-      end
+
 
       class ChartSeriesBuilder
         attr_reader :name, :type, :data
@@ -499,7 +489,7 @@ class CoreBattery
         end
       end
     RUBY
-    result = "#{result}\n#{MochiRbFragment.get_ruby_code}\n#{ChartsRbFragment.get_ruby_code}"
+    result = "#{result}\n#{MochiRbFragment.get_ruby_code}\n#{ChartsRbFragment.get_ruby_code}\n#{ChartSeriesRbFragment.get_ruby_code}"
 
     return result
   end

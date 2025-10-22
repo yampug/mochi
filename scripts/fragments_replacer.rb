@@ -11,12 +11,16 @@ class Item
   end
 end
 
+
+# REGISTRY
 items = []
 items.push(Item.new("MochiRbFragment", "./fragments/batteries/mochi.rb", "/", "mochi_rb.cr"))
 items.push(Item.new("ChartsRbFragment", "./fragments/batteries/charts/charts.rb", "/charts", "charts_rb.cr"))
+items.push(Item.new("ChartSeriesRbFragment", "./fragments/batteries/charts/chart_series.rb", "/charts", "chart_series_rb.cr"))
+
+
 
 gen_target_path = "./crystal/src/generated"
-
 FileUtils.rm_rf(gen_target_path)
 
 items.each { |item|
