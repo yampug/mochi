@@ -36,5 +36,5 @@ tasks:
       - crystal run testapp/test_app_server.cr
   generate-batteries:
     cmds:
-      - ruby scripts/fragments_replacer.rb
+      - ruby scripts/fragments_generator.rb
       - crystal tool format ./crystal/src/generated
