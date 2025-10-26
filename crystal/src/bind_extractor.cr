@@ -4,8 +4,12 @@ require "lexbor"
 class BindResult
     property html : String?
     property bindings : Hash(String, String)
-    
+
     def initialize(@html, @bindings)
+    end
+
+    def to_s(io : IO)
+      io << "BindResult(html: #{html}, bindings: #{@bindings})"
     end
  end
 
@@ -19,9 +23,9 @@ class BindExtractor
         bindings = {} of String => String
 
         time = Time.measure do
-            
+
           doc = Lexbor.new(html)
-  
+
           tags = doc.css("*")
           #puts tags
           tags.each do |tag|
@@ -49,14 +53,14 @@ class BindExtractor
                   tag.attribute_add(new_key, new_value)
               end
           end
-  
+
           cleaned_html_full = doc.to_html
-  
+
           body_open_tag = "<body>"
           body_close_tag = "</body>"
           body_open_index = cleaned_html_full.index(body_open_tag)
           body_end_index = cleaned_html_full.index(body_close_tag)
-  
+
           cleaned_html_no_skeleton = if body_open_index && body_end_index && body_open_index < body_end_index
               cleaned_html_full[(body_open_index + body_open_tag.size)...body_end_index].strip
           else
