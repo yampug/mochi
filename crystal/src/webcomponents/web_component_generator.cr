@@ -3,8 +3,35 @@ require "../html/conditional_processor"
 
 class WebComponentGenerator
 
-
   def initialize
+  end
+
+  def self.generate_bindings_code(bindings : Hash(String, String)) : String
+    result = ""
+    bindings.each do |key, value|
+      #puts "key:#{key}, val:#{value}"
+      result += "let bindElements = this.shadow.querySelectorAll('[#{value}]');\n"
+      result += "if (bindElements) {\n"
+      result += "  for (let i = 0; i < bindElements.length; i++) {\n"
+      result += "    const observer = new MutationObserver((mutationsList, observer) => {\n"
+      result += "      for (const mutation of mutationsList) {\n"
+      result += "        if (mutation.type === 'attributes') {\n"
+      result += "          let newValue = mutation.target.getAttribute(mutation.attributeName);\n"
+      result += "          this.attributeChangedCallback('#{key}', null, newValue);\n"
+      result += "        }\n"
+      result += "      }\n"
+      result += "    });\n"
+      result += "    observer.observe(bindElements[i], {\n"
+      result += "      attributes: true,\n"
+      result += "      childList: false,\n"
+      result += "      subtree: false,\n"
+      result += "      characterData: false,\n"
+      result += "      attributeOldValue: false\n"
+      result += "    });\n"
+      result += "  }\n"
+      result += "}\n"
+    end
+    return result
   end
 
   # tag_name = elName
@@ -27,32 +54,7 @@ class WebComponentGenerator
       on_click_placeholder = "__on_click_placeholder__"
       on_change_placeholder = "__on_change_placeholder__"
 
-      bindings_code = ""
-      bindings.each do |key, value|
-        puts "key:#{key}, val:#{value}"
-
-        bindings_code += "let bindElements = this.shadow.querySelectorAll('[#{value}]');\n"
-        bindings_code += "if (bindElements) {\n"
-        bindings_code += "  for (let i = 0; i < bindElements.length; i++) {\n"
-        bindings_code += "    const observer = new MutationObserver((mutationsList, observer) => {\n"
-        bindings_code += "      for (const mutation of mutationsList) {\n"
-        bindings_code += "        if (mutation.type === 'attributes') {\n"
-        bindings_code += "          let newValue = mutation.target.getAttribute(mutation.attributeName);\n"
-        bindings_code += "          this.attributeChangedCallback('#{key}', null, newValue);\n"
-        bindings_code += "        }\n"
-        bindings_code += "      }\n"
-        bindings_code += "    });\n"
-        bindings_code += "    observer.observe(bindElements[i], {\n"
-        bindings_code += "      attributes: true,\n"
-        bindings_code += "      childList: false,\n"
-        bindings_code += "      subtree: false,\n"
-        bindings_code += "      characterData: false,\n"
-        bindings_code += "      attributeOldValue: false\n"
-        bindings_code += "    });\n"
-        bindings_code += "  }\n"
-        bindings_code += "}\n"
-
-      end
+      bindings_code = WebComponentGenerator.generate_bindings_code(bindings)
 
       js_code = <<-TEXT
         let #{reactables_arr_anme} = #{reactables};
