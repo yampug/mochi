@@ -11,3 +11,5 @@ targets:
 dependencies:
   lexbor:
     github: kostya/lexbor
+  diff:
+    github: watzon/diff

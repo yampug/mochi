@@ -34,6 +34,34 @@ class WebComponentGenerator
     return result
   end
 
+  def self.generate_attribute_changed_callback() : String
+    result = <<-TEXT
+      attributeChangedCallback(name, oldValue, newValue) {
+          il.info("Attribute " + name + " has changed from " + oldValue + " to " + newValue + "");
+          // TODO
+          // TODO react to attributes changing
+          if (oldValue === newValue) {
+              return;
+          }
+          try {
+              let currentValue = this.rubyComp["$get_" + name]();
+              if (typeof currentValue === "number") {
+                  // assign as number
+                  this.rubyComp["$set_" + name](Number(newValue));
+              } else {
+                  // assign as string
+                  this.rubyComp["$set_" + name](newValue);
+              }
+              this.render();
+          } catch (e) {
+              il.error("Component render failed", e);
+          }
+        }
+
+    TEXT
+    return result
+  end
+
   # tag_name = elName
   def generate(
     mochi_cmp_name : String,
@@ -174,27 +202,7 @@ class WebComponentGenerator
               return #{reactables};
           }
 
-          attributeChangedCallback(name, oldValue, newValue) {
-            il.info("Attribute " + name + " has changed from " + oldValue + " to " + newValue + "");
-            // TODO
-            // TODO react to attributes changing
-            if (oldValue === newValue) {
-                return;
-            }
-            try {
-                let currentValue = this.rubyComp["$get_" + name]();
-                if (typeof currentValue === "number") {
-                    // assign as number
-                    this.rubyComp["$set_" + name](Number(newValue));
-                } else {
-                    // assign as string
-                    this.rubyComp["$set_" + name](newValue);
-                }
-                this.render();
-            } catch (e) {
-                il.error("Component render failed", e);
-            }
-          }
+          #{WebComponentGenerator.generate_attribute_changed_callback}
         }
         customElements.define("#{tag_name}", #{mochi_cmp_name});
       TEXT
