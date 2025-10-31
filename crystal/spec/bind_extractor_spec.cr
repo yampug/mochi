@@ -9,22 +9,24 @@ describe BindExtractor do
   end
 
   it "get_bind_key" do
-    key_no_prefix = BindExtractor.get_bind_key("bind:href")
-    key_no_prefix.should eq("href")
+    key_no_prefix = BindExtractor.get_bind_key("count")
+    key_no_prefix.should eq("count")
+    key_no_prefix_2 = BindExtractor.get_bind_key("{count}")
+    key_no_prefix_2.should eq("count")
   end
 
   it "bind extractions: simple" do
-    result = BindExtractor.extract("<a bind:href='abc'></a>")
+    result = BindExtractor.extract("<a bind:href=\"abc\"></a>")
     puts result
     result.html.should eq("<a href=\"abc\"></a>")
-    result.bindings.should eq({"b" => "href"})
+    result.bindings.should eq({"abc" => "href"})
   end
 
   it "bind extractions: nested" do
     result = BindExtractor.extract("<a bind:href='abc'><div bind:airplane=''></div></a>")
     puts result
-    result.html.should eq("<a href=\"abc\"></a>")
-    result.bindings.should eq({"b" => "href"})
+    result.html.should eq("<a href=\"abc\"><div airplane=\"\"></div></a>")
+    result.bindings.should eq({"abc" => "href"})
   end
 
   it "bind extractions: big" do

@@ -20,12 +20,15 @@ class BindExtractor
   end
 
   def self.get_bind_key(val : String) : String
-    puts "val:#{val}"
-    return val[1..-2]
+    if val.size > 0 && val[0] == '{' && val[-1] == '}'
+      # value is sth like {count}
+      return val[1..-2]
+    else
+      return val
+    end
   end
 
   def self.extract(html : String) : BindResult
-
     cleaned_html_no_skeleton = ""
     bindings = {} of String => String
 
@@ -44,11 +47,14 @@ class BindExtractor
           # remember for later
             attrs_to_remove << key
             key_no_prefix = get_key_no_prefix(key)
-            puts "key_no_prefix:#{key_no_prefix}"
+            #puts "key_no_prefix:#{key_no_prefix}"
             # remove bind: prefix
             attrs_to_add[key_no_prefix] = val
-            puts "bind_key:#{get_bind_key(val)}"
-            bindings[get_bind_key(val)] = key_no_prefix
+            #puts "bind_key:#{get_bind_key(val)}"
+            bind_key = get_bind_key(val)
+            if bind_key.size > 0
+              bindings[get_bind_key(val)] = key_no_prefix
+            end
           end
         end
         # remove all attributes with bind:
