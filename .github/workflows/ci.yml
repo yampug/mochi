@@ -8,7 +8,8 @@ on:
 
 permissions:
   contents: read
-  checks: write  # Required for test reporting
+  checks: write       # Required for test reporting
+  pull-requests: write  # Required for PR comments
 
 jobs:
   test:
@@ -30,11 +31,19 @@ jobs:
         run: cd crystal && crystal spec -- --junit_output test-results
         continue-on-error: true  # Allow test report step to run even if tests fail
 
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: crystal/test-results/*.xml
+
       - name: Publish Test Report
-        uses: dorny/test-reporter@v1
+        uses: mikepenz/action-junit-report@v4
         if: always()  # Run even if tests fail
         with:
-          name: Crystal Test Results
-          path: 'crystal/test-results/**/*.xml'
-          reporter: java-junit
-          fail-on-error: true
+          report_paths: 'crystal/test-results/*.xml'
+          check_name: Crystal Test Results
+          detailed_summary: true
+          include_passed: true
+          fail_on_failure: true
