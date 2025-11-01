@@ -10,26 +10,30 @@ class WebComponentGenerator
     result = ""
     bindings.each do |key, value|
       #puts "key:#{key}, val:#{value}"
-      result += "let bindElements = this.shadow.querySelectorAll('[#{value}]');\n"
-      result += "if (bindElements) {\n"
-      result += "  for (let i = 0; i < bindElements.length; i++) {\n"
-      result += "    const observer = new MutationObserver((mutationsList, observer) => {\n"
-      result += "      for (const mutation of mutationsList) {\n"
-      result += "        if (mutation.type === 'attributes') {\n"
-      result += "          let newValue = mutation.target.getAttribute(mutation.attributeName);\n"
-      result += "          this.attributeChangedCallback('#{key}', null, newValue);\n"
-      result += "        }\n"
-      result += "      }\n"
-      result += "    });\n"
-      result += "    observer.observe(bindElements[i], {\n"
-      result += "      attributes: true,\n"
-      result += "      childList: false,\n"
-      result += "      subtree: false,\n"
-      result += "      characterData: false,\n"
-      result += "      attributeOldValue: false\n"
-      result += "    });\n"
-      result += "  }\n"
-      result += "}\n"
+
+      tmp = <<-TEXT
+        let bindElements = this.shadow.querySelectorAll('[#{value}]');
+        if (bindElements) {
+          for (let i = 0; i < bindElements.length; i++) {
+            const observer = new MutationObserver((mutationsList, observer) => {
+              for (const mutation of mutationsList) {
+                if (mutation.type === 'attributes') {
+                  let newValue = mutation.target.getAttribute(mutation.attributeName);
+                  this.attributeChangedCallback('#{key}', null, newValue);
+                }
+              }
+            });
+            observer.observe(bindElements[i], {
+              attributes: true,
+              childList: false,
+              subtree: false,
+              characterData: false,
+              attributeOldValue: false
+            });
+          }
+        }
+      TEXT
+      result += tmp + "\n"
     end
     return result
   end
@@ -57,7 +61,6 @@ class WebComponentGenerator
               il.error("Component render failed", e);
           }
         }
-
     TEXT
     return result
   end
