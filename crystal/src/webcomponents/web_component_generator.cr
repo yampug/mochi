@@ -75,6 +75,8 @@ class WebComponentGenerator
     bindings : Hash(String, String),
     conditionals : Array(ConditionalBlock) = [] of ConditionalBlock) : WebComponent
 
+    puts conditionals
+
     web_cmp_name = ""
     js_code = ""
 
@@ -142,7 +144,7 @@ class WebComponentGenerator
                 this.shadow.innerHTML = html;
 
                 // Evaluate conditional blocks
-                #{generate_conditional_evaluation_code(conditionals)}
+                #{WebComponentGenerator.generate_conditional_evaluation_code(conditionals)}
 
                 const style = document.createElement("style");
                 style.textContent = `
@@ -221,18 +223,18 @@ class WebComponentGenerator
     return WebComponent.new(name = web_cmp_name, js_code)
   end
 
-  # Generate JavaScript code to evaluate conditional blocks at runtime
-  private def generate_conditional_evaluation_code(conditionals : Array(ConditionalBlock)) : String
+  def self.generate_conditional_evaluation_code(conditionals : Array(ConditionalBlock)) : String
     return "" if conditionals.empty?
 
-    code = ""
-    code += "let conditionalElements = this.shadow.querySelectorAll('mochi-if');\n"
-    code += "                for (let condEl of conditionalElements) {\n"
-    code += "                  let condId = parseInt(condEl.getAttribute('data-cond-id'));\n"
-    code += "                  let result = this.evaluateCondition(condId);\n"
-    code += "                  condEl.style.display = result ? '' : 'none';\n"
-    code += "                }\n"
+    result = <<-TEXT
+      let conditionalElements = this.shadow.querySelectorAll('mochi-if');
+      for (let condEl of conditionalElements) {
+        let condId = parseInt(condEl.getAttribute('data-cond-id'));
+        let result = this.evaluateCondition(condId);
+        condEl.style.display = result ? '' : 'none';
+      }
+    TEXT
 
-    code
+    result
   end
 end

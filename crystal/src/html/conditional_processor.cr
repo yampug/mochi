@@ -21,6 +21,10 @@ class ConditionalBlock
   def contains?(other : ConditionalBlock) : Bool
     other.start_pos > start_pos && other.end_pos < end_pos
   end
+
+  def to_s (io : IO)
+    io << "ConditionalBlock(condition: #{condition}, content: #{@content}, start_pos: #{start_pos}, end_pos: #{end_pos}, content_start_pos: #{content_start_pos}, id: #{id})"
+  end
 end
 
 # Note: should NOT be exposed publicly)

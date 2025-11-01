@@ -1,7 +1,7 @@
 require "spec"
-require "../../src/webcomponents/web_component_generator"
 require "lexbor"
 require "diff"
+require "../../src/webcomponents/web_component_generator"
 require "../spec_data_loader"
 require "../code_test_utils"
 
@@ -38,6 +38,33 @@ describe WebComponentGenerator do
     )
     diff = Diff.new(code, exp_code.chomp, Diff::MyersLinear)
     code.should eq(exp_code)
+  end
+
+  it "generate_cond_eval_code: with conditions" do
+    exp_code = CodeTestUtils.trim_lines(
+      SpecDataLoader.load("bindings/cond_eval_code_simple.js")
+    )
+    block = ConditionalBlock.new(
+      "@route == \"root\"",
+      "\n      <p style=\"background: green; padding: 10px; border-radius: 8px;\">ROOT ROUTE</p>\n      <plus-five></plus-five>\n     ",
+      45,
+      193,
+      66,
+      0
+    )
+    conditionals = [block] of ConditionalBlock
+    code = CodeTestUtils.trim_lines(
+      WebComponentGenerator.generate_conditional_evaluation_code(conditionals)
+    )
+    code.should eq(exp_code)
+  end
+
+  it "generate_cond_eval_code: no conditions" do
+    conditionals = [] of ConditionalBlock
+    code = CodeTestUtils.trim_lines(
+      WebComponentGenerator.generate_conditional_evaluation_code(conditionals)
+    )
+    code.should eq("")
   end
 
 end
