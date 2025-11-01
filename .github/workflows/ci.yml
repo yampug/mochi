@@ -39,6 +39,11 @@ jobs:
       - name: Install Crystal dependencies
         run: cd crystal && shards install
 
+      - name: Generate batteries (required files)
+        run: |
+          ruby scripts/fragments_generator.rb
+          crystal tool format ./crystal/src/generated
+
       - name: Run Crystal tests with JUnit output
         run: cd crystal && crystal spec -- --junit_output test-results
         continue-on-error: true  # Allow test report step to run even if tests fail
