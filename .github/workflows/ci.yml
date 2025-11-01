@@ -69,7 +69,7 @@ jobs:
           report_paths: |
             crystal/test-results/*.xml
             e2e/test-results/*.xml
-          check_name: Test Results (Crystal + Playwright)
+          check_name: Test Results
           detailed_summary: true
           include_passed: true
           fail_on_failure: true
