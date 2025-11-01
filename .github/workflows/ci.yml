@@ -29,7 +29,14 @@ jobs:
         with:
           crystal: latest
 
-      - name: Install dependencies
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: ruby
+
+      - name: Install Crystal dependencies
         run: cd crystal && shards install
 
       - name: Run Crystal tests with JUnit output
@@ -41,6 +48,12 @@ jobs:
 
       - name: Install Playwright browsers
         run: cd e2e && npx playwright install --with-deps chromium
+
+      - name: Compile Mochi for E2E tests
+        run: cd crystal && crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
+        env:
+          MO_INT_LOGS: false
+          MO_INT_LOGS_LEVEL: INFO
 
       - name: Run Playwright tests
         run: cd e2e && npx playwright test
@@ -69,7 +82,7 @@ jobs:
           report_paths: |
             crystal/test-results/*.xml
             e2e/test-results/*.xml
-          check_name: Test Results
+          check_name: Test Results (Crystal + Playwright)
           detailed_summary: true
           include_passed: true
           fail_on_failure: true

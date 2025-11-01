@@ -12,10 +12,10 @@ tasks:
       - export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO && cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
   run-no-int-logs:
     cmds:
-      - export MO_INT_LOGS=false && cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
+      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
   run-tc:
     cmds:
-      - cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
+      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
   build:
     cmds:
       - cd crystal && time crystal build src/mochi.cr
@@ -24,7 +24,7 @@ tasks:
       - run-tc
     cmds:
       - echo "-----------------------------------------------------------------------------------------------------"
-      - cd e2e && npx playwright test
+      - export MO_INT_LOGS=true && cd e2e && npx playwright test
   ruby:
     cmds:
       - cd ruby && ruby ./lib/Root.rb
