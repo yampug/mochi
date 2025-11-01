@@ -1,4 +1,5 @@
 require "./web_component"
+require "./web_component_placeholder"
 require "../html/conditional_processor"
 
 class WebComponentGenerator
@@ -84,9 +85,6 @@ class WebComponentGenerator
       web_cmp_name = "#{mochi_cmp_name}WebComp"
       reactables_arr_anme = "reactablesArr#{web_cmp_name}"
 
-      on_click_placeholder = "__on_click_placeholder__"
-      on_change_placeholder = "__on_change_placeholder__"
-
       bindings_code = WebComponentGenerator.generate_bindings_code(bindings)
 
       js_code = <<-TEXT
@@ -130,73 +128,13 @@ class WebComponentGenerator
           }
 
           render() {
-            // TODO check if vars actually changed (optimization)
-            let html = `
-              #{html}
-            `;
-
-            for (let i = 0; i < #{reactables_arr_anme}.length; i++) {
-                il.info(#{reactables_arr_anme}[i]);
-                html = html.replaceAll("{" + #{reactables_arr_anme}[i] + "}", this.rubyComp["$get_" + #{reactables_arr_anme}[i]]());
-            }
-
-            if (this.shadow) {
-                this.shadow.innerHTML = html;
-
-                // Evaluate conditional blocks
-                #{WebComponentGenerator.generate_conditional_evaluation_code(conditionals)}
-
-                const style = document.createElement("style");
-                style.textContent = `
-                    #{css}
-                `;
-                this.shadow.appendChild(style);
-                if (this.paintCount === 0) {
-                    // listen to click events
-                    this.shadow.addEventListener('click', (event) => {
-                      const clickedElement = event.target;
-                      const actionTarget = clickedElement.closest('#{on_click_placeholder}');
-                      if (actionTarget) {
-                        let actionValue = actionTarget.getAttribute('on:click');
-                        // remove curly braces
-                        let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
-
-                        // basically call the method Opal.compInstance.new.method()
-                        this.rubyComp["$"+trimmedActionVal]()
-                        this.syncAttributes();
-                        this.render();
-                      }
-                    });
-
-                    // listen to change events
-                    let matches = this.shadow.querySelectorAll("#{on_change_placeholder}")
-                    if (matches) {
-                        for (let i = 0; i < matches.length; i++) {
-                            matches[i].addEventListener("change", (event) => {
-
-                                  let actionValue = event.target.getAttribute('on:change');
-                                // remove curly braces
-                                let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
-                                let value = event.target.value;
-                                // auto-convert value to number if numeric
-                                  const primValue = Number(value);
-                                  if (Number.isFinite(primValue)) {
-                                    this.rubyComp["$"+trimmedActionVal](event, primValue);
-                                  } else {
-                                    this.rubyComp["$"+trimmedActionVal](event, value);
-                                  }
-
-
-                                this.syncAttributes();
-                                this.render();
-                            });
-                        }
-                    }
-                }
-
-                #{bindings_code}
-                this.paintCount = this.paintCount + 1;
-            }
+            #{WebComponentGenerator.generate_render_code(
+                reactables_arr_anme,
+                conditionals,
+                html,
+                css,
+                bindings_code
+            )}
           }
 
           disconnectedCallback() {
@@ -214,13 +152,91 @@ class WebComponentGenerator
 
       # heredocs syntax removes backslashes, so need to be added like this
       js_code = js_code
-        .gsub(on_click_placeholder, "[on\\\\:click]")
-        .gsub(on_change_placeholder, "input[on\\\\:change]")
+        .gsub(WebComponentPlaceholder::OnClick.string_value, "[on\\\\:click]")
+        .gsub(WebComponentPlaceholder::OnChange.string_value, "input[on\\\\:change]")
 
       #puts js_code
     end
     puts "> WebComponent '#{web_cmp_name}' generation took #{time.total_milliseconds.to_i}ms"
     return WebComponent.new(name = web_cmp_name, js_code)
+  end
+
+  def self.generate_render_code(
+    reactables_arr_anme : String,
+    conditionals : Array(ConditionalBlock),
+    html : String,
+    css : String,
+    bindings_code : String) : String
+
+
+    result = <<-TEXT
+    // TODO check if vars actually changed (optimization)
+    let html = `
+      #{html}
+    `;
+
+    for (let i = 0; i < #{reactables_arr_anme}.length; i++) {
+        il.info(#{reactables_arr_anme}[i]);
+        html = html.replaceAll("{" + #{reactables_arr_anme}[i] + "}", this.rubyComp["$get_" + #{reactables_arr_anme}[i]]());
+    }
+
+    if (this.shadow) {
+        this.shadow.innerHTML = html;
+
+        // Evaluate conditional blocks
+        #{WebComponentGenerator.generate_conditional_evaluation_code(conditionals)}
+
+        const style = document.createElement("style");
+        style.textContent = `
+            #{css}
+        `;
+        this.shadow.appendChild(style);
+        if (this.paintCount === 0) {
+            // listen to click events
+            this.shadow.addEventListener('click', (event) => {
+              const clickedElement = event.target;
+              const actionTarget = clickedElement.closest('#{WebComponentPlaceholder::OnClick.string_value}');
+              if (actionTarget) {
+                let actionValue = actionTarget.getAttribute('on:click');
+                // remove curly braces
+                let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
+
+                // basically call the method Opal.compInstance.new.method()
+                this.rubyComp["$"+trimmedActionVal]()
+                this.syncAttributes();
+                this.render();
+              }
+            });
+
+            // listen to change events
+            let matches = this.shadow.querySelectorAll("#{WebComponentPlaceholder::OnChange.string_value}")
+            if (matches) {
+                for (let i = 0; i < matches.length; i++) {
+                    matches[i].addEventListener("change", (event) => {
+                        let actionValue = event.target.getAttribute('on:change');
+                        // remove curly braces
+                        let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
+                        let value = event.target.value;
+                        // auto-convert value to number if numeric
+                        const primValue = Number(value);
+                        if (Number.isFinite(primValue)) {
+                          this.rubyComp["$"+trimmedActionVal](event, primValue);
+                        } else {
+                          this.rubyComp["$"+trimmedActionVal](event, value);
+                        }
+
+                        this.syncAttributes();
+                        this.render();
+                    });
+                }
+            }
+        }
+
+        #{bindings_code}
+        this.paintCount = this.paintCount + 1;
+    }
+    TEXT
+    return result
   end
 
   def self.generate_conditional_evaluation_code(conditionals : Array(ConditionalBlock)) : String
