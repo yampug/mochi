@@ -1,6 +1,6 @@
-let bindElements = this.shadow.querySelectorAll('[123]');
-if (bindElements) {
-  for (let i = 0; i < bindElements.length; i++) {
+let bindElements0 = this.shadow.querySelectorAll('[123]');
+if (bindElements0) {
+  for (let i = 0; i < bindElements0.length; i++) {
     const observer = new MutationObserver((mutationsList, observer) => {
       for (const mutation of mutationsList) {
         if (mutation.type === 'attributes') {
@@ -9,7 +9,7 @@ if (bindElements) {
         }
       }
     });
-    observer.observe(bindElements[i], {
+    observer.observe(bindElements0[i], {
       attributes: true,
       childList: false,
       subtree: false,
@@ -18,9 +18,9 @@ if (bindElements) {
     });
   }
 }
-let bindElements = this.shadow.querySelectorAll('[5678]');
-if (bindElements) {
-  for (let i = 0; i < bindElements.length; i++) {
+let bindElements1 = this.shadow.querySelectorAll('[5678]');
+if (bindElements1) {
+  for (let i = 0; i < bindElements1.length; i++) {
     const observer = new MutationObserver((mutationsList, observer) => {
       for (const mutation of mutationsList) {
         if (mutation.type === 'attributes') {
@@ -29,7 +29,7 @@ if (bindElements) {
         }
       }
     });
-    observer.observe(bindElements[i], {
+    observer.observe(bindElements1[i], {
       attributes: true,
       childList: false,
       subtree: false,

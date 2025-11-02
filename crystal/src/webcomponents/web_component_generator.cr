@@ -9,13 +9,15 @@ class WebComponentGenerator
 
   def self.generate_bindings_code(bindings : Hash(String, String)) : String
     result = ""
+    i = 0
     bindings.each do |key, value|
       #puts "key:#{key}, val:#{value}"
 
+      bind_el_obj = "bindElements#{i}"
       tmp = <<-TEXT
-        let bindElements = this.shadow.querySelectorAll('[#{value}]');
-        if (bindElements) {
-          for (let i = 0; i < bindElements.length; i++) {
+        let #{bind_el_obj} = this.shadow.querySelectorAll('[#{value}]');
+        if (#{bind_el_obj}) {
+          for (let i = 0; i < #{bind_el_obj}.length; i++) {
             const observer = new MutationObserver((mutationsList, observer) => {
               for (const mutation of mutationsList) {
                 if (mutation.type === 'attributes') {
@@ -24,7 +26,7 @@ class WebComponentGenerator
                 }
               }
             });
-            observer.observe(bindElements[i], {
+            observer.observe(#{bind_el_obj}[i], {
               attributes: true,
               childList: false,
               subtree: false,
@@ -35,6 +37,7 @@ class WebComponentGenerator
         }
       TEXT
       result += tmp + "\n"
+      i += 1
     end
     return result
   end
