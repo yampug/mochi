@@ -29,6 +29,13 @@ describe BindExtractor do
     result.bindings.should eq({"abc" => "href"})
   end
 
+  it "bind extractions: multiple binds" do
+    result = BindExtractor.extract("<a bind:href='abc' bind:text='def'></a>")
+    puts result
+    result.html.should eq("<a href=\"abc\" text=\"def\"></a>")
+    result.bindings.should eq({"abc" => "href", "def" => "text"})
+  end
+
   it "bind extractions: big" do
     result = BindExtractor.extract("<div class=\"wrapper\">
         <h1>Count123: {count}</h1>
