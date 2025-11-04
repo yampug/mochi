@@ -156,4 +156,16 @@ describe ConditionalProcessor do
       blocks.size.should eq(2)
     end
   end
+
+  it "try_match_if_token: one element" do
+    html = "{if @abc}<span>Thomas</span>{end}"
+    result = ConditionalProcessor.try_match_if_token(html, 0).not_nil!
+    puts "result:'#{result}'"
+    result.condition.should eq("@abc")
+    result.content_start.should eq(9)
+
+    result2 = ConditionalProcessor.try_match_if_token(html, 1)
+    puts "result2:'#{result2}'"
+    result2.should eq(nil)
+  end
 end

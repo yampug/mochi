@@ -45,8 +45,9 @@ class WebComponentGenerator
   def self.generate_attribute_changed_callback() : String
     result = <<-TEXT
       attributeChangedCallback(name, oldValue, newValue) {
-          il.info("Attribute " + name + " has changed from " + oldValue + " to " + newValue + "");
-          // TODO
+          il.info(`Attribute ${name} has changed from '${oldValue}' to '${newValue}' (${typeof newValue})`);
+
+          // TODO tests
           // TODO react to attributes changing
           if (oldValue === newValue) {
               return;
@@ -56,6 +57,9 @@ class WebComponentGenerator
               if (typeof currentValue === "number") {
                   // assign as number
                   this.rubyComp["$set_" + name](Number(newValue));
+              } else if (newValue === "true" || newValue === "false") {
+                  // assing as boolean
+                  this.rubyComp["$set_" + name](Boolean(newValue));
               } else {
                   // assign as string
                   this.rubyComp["$set_" + name](newValue);

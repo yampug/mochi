@@ -6,6 +6,14 @@ class ConditionalResult
   end
 end
 
+class ConditionalMatch
+  property condition : String
+  property content_start : Int32
+
+  def initialize(@condition : String, @content_start : Int32)
+  end
+end
+
 class ConditionalBlock
   property condition : String
   property content : String
@@ -27,7 +35,6 @@ class ConditionalBlock
   end
 end
 
-# Note: should NOT be exposed publicly)
 private struct StackFrame
   property condition : String
   property start_pos : Int32
@@ -60,9 +67,9 @@ class ConditionalProcessor
 
     while pos < html.size
       if match = try_match_if_token(html, pos)
-        stack << StackFrame.new(match[:condition], pos, match[:content_start], next_id)
+        stack << StackFrame.new(match.condition, pos, match.content_start, next_id)
         next_id += 1
-        pos = match[:content_start]
+        pos = match.content_start
       elsif try_match_end_token(html, pos)
         unless stack.empty?
           blocks << build_block_from_frame(stack.pop, html, pos)
@@ -77,16 +84,16 @@ class ConditionalProcessor
   end
 
   # try to match {if ...} token at position
-  private def self.try_match_if_token(html : String, pos : Int32) : NamedTuple(condition: String, content_start: Int32)?
+  def self.try_match_if_token(html : String, pos : Int32) : ConditionalMatch?
     return nil unless html[pos..].starts_with?(IF_TOKEN)
 
     close_brace = html.index("}", pos)
     return nil unless close_brace
 
-    {
-      condition:      html[(pos + IF_TOKEN_LEN)...close_brace].strip,
-      content_start:  close_brace + 1,
-    }
+    return ConditionalMatch.new(
+      html[(pos + IF_TOKEN_LEN)...close_brace].strip,
+      close_brace + 1,
+    )
   end
 
   private def self.try_match_end_token(html : String, pos : Int32) : Bool

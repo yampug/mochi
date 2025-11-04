@@ -1,9 +1,9 @@
 class JsLoggerGenerator
 
-  
+
   def initialize
   end
-  
+
   def self.generate : String
     int_logs_enabled = ENV["MO_INT_LOGS"] == "true"
     int_logs_level = ENV["MO_INT_LOGS_LEVEL"]
@@ -16,14 +16,14 @@ class JsLoggerGenerator
     is_error_or_above = is_warn_or_above || int_logs_level == "ERROR"
 
 
-    color_a = "color: #bbb; padding: 2px 6px; border-radius: 3px;"
+    color_a = "color: yellow; padding: 2px 6px; border-radius: 3px;"
     color_b = "color: inherit; background-color: inherit;"
 
     js_code = <<-TEXT
-  
+
         class il {
             static formatLog(msg, suffix) {
-                return "%c" + msg + "__nl__%c internal_log:" + suffix
+                return "%c" + msg + " %c internal_log:" + suffix
             }
 
             static debug(msg) {
@@ -43,7 +43,7 @@ class JsLoggerGenerator
                     console.warn(il.formatLog(msg, "warn"), "#{color_b}", "#{color_a}");
                 }
             }
-            
+
             static error(msg) {
                 if (#{int_logs_enabled} && #{is_error_or_above}) {
                     console.error(il.formatLog(msg, "error"), "#{color_b}", "#{color_a}");
