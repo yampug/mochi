@@ -7,6 +7,33 @@ class EachMatch
 end
 
 class EachBlock
+  property loop_def : EachLoopDef
+  property content : String
+  property start_pos : Int32
+  property end_pos : Int32
+  property content_start_pos : Int32
+  property id : Int32
+
+  def initialize(@loop_def : EachLoopDef, @content : String, @start_pos : Int32, @end_pos : Int32, @content_start_pos : Int32, @id : Int32 = 0)
+    end
+
+  def contains?(other : EachBlock) : Bool
+    other.start_pos > start_pos && other.end_pos < end_pos
+  end
+
+  def to_s (io : IO)
+    io << "EachBlock(loop_def: #{loop_def}, content: #{@content}, start_pos: #{start_pos}, end_pos: #{end_pos}, content_start_pos: #{content_start_pos}, id: #{id})"
+  end
+end
+
+private struct EachStackFrame
+  property loop_def : EachLoopDef
+  property start_pos : Int32
+  property content_start : Int32
+  property id : Int32
+
+  def initialize(@loop_def, @start_pos, @content_start, @id)
+  end
 end
 
 class EachLoopDef
@@ -33,17 +60,33 @@ class EachProcessor
 
   def self.extract_each_blocks(html : String) : Array(EachBlock)
     result = [] of EachBlock
+    stack = [] of EachStackFrame
+    next_id = 0
     pos = 0
 
     while pos < html.size
-      if try_match_each_token(html, pos)
-      # TODO
+      if match = try_match_each_token(html, pos)
+          stack << EachStackFrame.new(match.loop_def, pos, match.content_start, next_id)
+          next_id += 1
+          pos = match.content_start
         elsif try_match_end_token(html, pos)
-      # TODO
+          unless stack.empty?
+            frame = stack.pop
+            result << EachBlock.new(
+              loop_def: frame.loop_def,
+              content: html[frame.content_start...pos],
+              start_pos: frame.start_pos,
+              end_pos: pos + END_TOKEN_LEN,
+              content_start_pos: frame.content_start,
+              id: frame.id
+            )
+          end
+          pos += END_TOKEN_LEN
         else
         pos += 1
       end
     end
+    return result
   end
 
   def self.try_match_each_token(html : String, pos : Int32) : EachMatch?
@@ -73,7 +116,7 @@ class EachProcessor
     return nil
   end
 
-  def self.try_match_end_token(html : String, pos : Int32) : Boolean
+  def self.try_match_end_token(html : String, pos : Int32) : Bool
     return html[pos..].starts_with?(END_TOKEN)
   end
 end
