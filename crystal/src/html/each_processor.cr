@@ -52,10 +52,50 @@ class EachProcessor
   END_TOKEN_LEN = 5
 
   def self.process(html : String) : String
-    blocks = extract_each_blocks(html)
+    all_blocks = extract_each_blocks(html)
     # TODO
 
     return "abc"
+  end
+
+  def self.replace_blocks_with_elements(html : String, all_blocks : Array(EachBlock)) : String
+    return html if all_blocks.empty?
+
+    result = html.dup
+    all_blocks.sort_by! { |b| -b.start_pos }
+
+    all_blocks.each do |block|
+      element = generate_element(block, all_blocks)
+      result = replace_range(result, block.start_pos, block.end_pos, element)
+    end
+
+    return result
+  end
+
+  def self.replace_range(str : String, start_pos : Int32, end_pos : Int32, replacement : String) : String
+    return str[0...start_pos] + replacement + str[end_pos..-1]
+  end
+
+  def self.generate_element(block : EachBlock, all_blocks : Array(EachBlock)) : String
+    content = process_nested_blocks(block, all_blocks)
+    return %Q{<mochi-each data-loop-id="#{block.id}">#{content}</mochi-each>}
+  end
+
+  private def self.process_nested_blocks(block : EachBlock, all_blocks : Array(EachBlock)) : String
+    nested = all_blocks.select { |b| block.contains?(b) }
+    return block.content if nested.empty?
+
+    content = block.content
+    nested.sort_by! { |b| -b.start_pos }
+
+    nested.each do |nested_block|
+      rel_start = nested_block.start_pos - block.content_start_pos
+      rel_end = nested_block.end_pos - block.content_start_pos
+      nested_element = generate_element(nested_block, all_blocks)
+      content = replace_range(content, rel_start, rel_end, nested_element)
+    end
+
+    return content
   end
 
   def self.extract_each_blocks(html : String) : Array(EachBlock)

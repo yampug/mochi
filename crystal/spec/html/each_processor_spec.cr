@@ -72,4 +72,11 @@ describe EachProcessor do
     second.id.should eq(0)
   end
 
+  it "replace_range" do
+    result = EachProcessor.replace_range(">>>abc<<<", 3, 6, "def")
+    result.should eq(">>>def<<<")
+    result2 = EachProcessor.replace_range(">>>abc<<<", 6, 3, "123")
+    result2.should eq(">>>abc123abc<<<")
+  end
+
 end
