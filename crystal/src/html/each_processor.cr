@@ -1,3 +1,15 @@
+class EachResult
+  property html : String
+  property each_blocks : Array(EachBlock)
+
+  def initialize(@html : String, @each_blocks : Array(EachBlock))
+  end
+
+  def to_s(io : IO)
+    io << "EachResult(html: #{html}, each_blocks: #{each_blocks})"
+  end
+end
+
 class EachMatch
   property loop_def : EachLoopDef
   property content_start : Int32
@@ -51,11 +63,12 @@ class EachProcessor
   EACH_TOKEN_LEN  = 6
   END_TOKEN_LEN = 5
 
-  def self.process(html : String) : String
+  def self.process(html : String) : EachResult
     all_blocks = extract_each_blocks(html)
-    # TODO
+    processed_html = replace_blocks_with_elements(html, all_blocks)
 
-    return "abc"
+    # TODO testing
+    return EachResult.new(processed_html, all_blocks)
   end
 
   def self.replace_blocks_with_elements(html : String, all_blocks : Array(EachBlock)) : String
