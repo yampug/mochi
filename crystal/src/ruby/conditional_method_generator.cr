@@ -22,7 +22,7 @@ class ConditionalMethodGenerator
   end
 
   def self.generate_method(block : ConditionalBlock, class_name : String) : String
-    method_name = method_name_for(block)
+    method_name = "#{METHOD_PREFIX}#{block.id}"
     condition = block.condition.strip
 
     <<-RUBY
@@ -32,10 +32,6 @@ class ConditionalMethodGenerator
     #{condition}
   end
 RUBY
-  end
-
-  private def self.method_name_for(block : ConditionalBlock) : String
-    "#{METHOD_PREFIX}#{block.id}"
   end
 
   private def self.find_insertion_point(ruby_code : String, class_name : String) : Int32?
