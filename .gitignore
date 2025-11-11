@@ -3,7 +3,7 @@
 .claude
 .idea
 build
-ruby/Gemfile.lock
+components/Gemfile.lock
 mo_build
 mo_build_cr
 bundle.js

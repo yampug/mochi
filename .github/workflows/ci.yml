@@ -34,7 +34,7 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-          working-directory: ruby
+          working-directory: components
 
       - name: Install Crystal dependencies
         run: cd compiler && shards install
@@ -58,7 +58,7 @@ jobs:
         run: npm install -g @swc/cli @swc/core
 
       - name: Compile Mochi for E2E tests
-        run: cd compiler && crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
+        run: cd compiler && crystal run src/mochi.cr -- -i "../components" -o "../devground" -m -tc
         env:
           MO_INT_LOGS: false
           MO_INT_LOGS_LEVEL: INFO

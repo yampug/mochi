@@ -836,12 +836,12 @@ Given Mochi's current architecture:
 - `compiler/src/webcomponents/web_component_generator.cr` - Creates JavaScript Web Components
 
 ### Runtime Library (Ruby)
-- `ruby/lib/mochi.rb` - Mochi utilities (router, logger, fetch, etc.)
+- `components/lib/mochi.rb` - Mochi utilities (router, logger, fetch, etc.)
 
 ### Component Examples
-- `ruby/lib/a/counter.rb` - Basic reactive component with events
-- `ruby/lib/a/plus_five.rb` - Child component with binding
-- `ruby/lib/a/router_demo.rb` - Router usage example
+- `components/lib/a/counter.rb` - Basic reactive component with events
+- `components/lib/a/plus_five.rb` - Child component with binding
+- `components/lib/a/router_demo.rb` - Router usage example
 
 ### Specifications & Plans
 - `steps.md` - Implementation plan for Option C (pre-compiled conditionals)
