@@ -163,7 +163,7 @@ end
 
 #### BindExtractor Process
 ```crystal
-# File: crystal/src/bind_extractor.cr
+# File: compiler/src/bind_extractor.cr
 # 1. Parses HTML with lexbor
 # 2. Finds all bind: attributes
 # 3. Extracts the property name from {bracketed} values
@@ -180,7 +180,7 @@ end
 ```
 Ruby Component File
         ↓
-[Crystal Transpiler - crystal/src/mochi.cr]
+[Crystal Transpiler - compiler/src/mochi.cr]
         ↓
 1. Extract class name, methods, imports
 2. Parse HTML template
@@ -366,7 +366,7 @@ All Ruby components + generated methods are transpiled to JavaScript.
 
 ### Router Class
 
-Located in: `/Users/bob/repos/mochi/crystal/build/src/lib/mochi.rb`
+Located in: `/Users/bob/repos/mochi/compiler/build/src/lib/mochi.rb`
 
 ```ruby
 class AppRouter
@@ -828,12 +828,12 @@ Given Mochi's current architecture:
 ## 7. Key Framework Files Reference
 
 ### Core Compilation (Crystal)
-- `crystal/src/mochi.cr` - Main transpiler entry point
-- `crystal/src/ruby/ruby_understander.cr` - Parses Ruby component structure
-- `crystal/src/html/conditional_processor.cr` - Handles {if}...{end} blocks
-- `crystal/src/ruby/conditional_method_generator.cr` - Generates conditional methods
-- `crystal/src/bind_extractor.cr` - Extracts bind: directives
-- `crystal/src/webcomponents/web_component_generator.cr` - Creates JavaScript Web Components
+- `compiler/src/mochi.cr` - Main transpiler entry point
+- `compiler/src/ruby/ruby_understander.cr` - Parses Ruby component structure
+- `compiler/src/html/conditional_processor.cr` - Handles {if}...{end} blocks
+- `compiler/src/ruby/conditional_method_generator.cr` - Generates conditional methods
+- `compiler/src/bind_extractor.cr` - Extracts bind: directives
+- `compiler/src/webcomponents/web_component_generator.cr` - Creates JavaScript Web Components
 
 ### Runtime Library (Ruby)
 - `ruby/lib/mochi.rb` - Mochi utilities (router, logger, fetch, etc.)
