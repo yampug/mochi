@@ -52,7 +52,7 @@ items.push(Item.new("MochiRouterBI", "#{dir_router}/mochi_router.rb", td_router,
 
 items.push(Item.new("MyCounter", "#{dir_builtins}/my_counter.rb", td_builtins, "my_counter_rb.cr"))
 
-gen_target_path = "./crystal/src/generated"
+gen_target_path = "./compiler/src/generated"
 FileUtils.rm_rf(gen_target_path)
 
 items.each { |item|

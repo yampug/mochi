@@ -7,10 +7,10 @@ ruby/Gemfile.lock
 mo_build
 mo_build_cr
 bundle.js
-crystal/lib
-crystal/mochi
-crystal/mochi.dwarf
-crystal/motestproj
+compiler/lib
+compiler/mochi
+compiler/mochi.dwarf
+compiler/motestproj
 devground/a
 devground/bundle.js
 devground/bundle.min.js
@@ -21,7 +21,7 @@ e2e/node_modules
 e2e/test-results
 e2e/playwright-report
 taz_icon.png
-crystal/build
-crystal/src/generated
+compiler/build
+compiler/src/generated
 testapp/package-lock.json
 testapp/node_modules

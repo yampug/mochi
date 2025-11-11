@@ -3,22 +3,22 @@ version: '3'
 tasks:
   test:
     cmds:
-      - cd crystal && crystal spec
+      - cd compiler && crystal spec
   intest:
     cmds:
-      - cd crystal && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"
+      - cd compiler && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"
   run:
     cmds:
-      - export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO && cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
+      - export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
   run-no-int-logs:
     cmds:
-      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
+      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m
   run-tc:
     cmds:
-      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd crystal && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
+      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
   build:
     cmds:
-      - cd crystal && time crystal build src/mochi.cr
+      - cd compiler && time crystal build src/mochi.cr
   e2e:
     deps:
       - run-tc
@@ -37,4 +37,4 @@ tasks:
   generate-batteries:
     cmds:
       - ruby scripts/fragments_generator.rb
-      - crystal tool format ./crystal/src/generated
+      - crystal tool format ./compiler/src/generated

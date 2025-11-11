@@ -37,15 +37,15 @@ jobs:
           working-directory: ruby
 
       - name: Install Crystal dependencies
-        run: cd crystal && shards install
+        run: cd compiler && shards install
 
       - name: Generate batteries (required files)
         run: |
           ruby scripts/fragments_generator.rb
-          crystal tool format ./crystal/src/generated
+          crystal tool format ./compiler/src/generated
 
       - name: Run Crystal tests with JUnit output
-        run: cd crystal && crystal spec -- --junit_output test-results
+        run: cd compiler && crystal spec -- --junit_output test-results
         continue-on-error: true  # Allow test report step to run even if tests fail
 
       - name: Install Playwright dependencies
@@ -58,7 +58,7 @@ jobs:
         run: npm install -g @swc/cli @swc/core
 
       - name: Compile Mochi for E2E tests
-        run: cd crystal && crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
+        run: cd compiler && crystal run src/mochi.cr -- -i "../ruby" -o "../devground" -m -tc
         env:
           MO_INT_LOGS: false
           MO_INT_LOGS_LEVEL: INFO
@@ -73,7 +73,7 @@ jobs:
         with:
           name: test-results
           path: |
-            crystal/test-results/*.xml
+            compiler/test-results/*.xml
             e2e/test-results/*.xml
 
       - name: Upload Playwright HTML report
@@ -88,7 +88,7 @@ jobs:
         if: always()  # Run even if tests fail
         with:
           report_paths: |
-            crystal/test-results/*.xml
+            compiler/test-results/*.xml
             e2e/test-results/*.xml
           check_name: Test Results (Crystal + Playwright)
           detailed_summary: true
