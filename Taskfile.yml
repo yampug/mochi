@@ -9,13 +9,13 @@ tasks:
       - cd compiler && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"
   run:
     cmds:
-      - export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../components" -o "../devground" -m
+      - export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" -m
   run-no-int-logs:
     cmds:
-      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../components" -o "../devground" -m
+      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" -m
   run-tc:
     cmds:
-      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../components" -o "../devground" -m -tc
+      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" -m -tc
   build:
     cmds:
       - cd compiler && time crystal build src/mochi.cr
@@ -27,10 +27,10 @@ tasks:
       - export MO_INT_LOGS=true && cd e2e && npx playwright test
   ruby:
     cmds:
-      - cd components && ruby ./lib/Root.rb
+      - cd devground/components && ruby ./lib/Root.rb
   sorbet:
     cmds:
-      - cd components && srb tc
+      - cd devground/components && srb tc
   dev-server:
     cmds:
       - crystal run testapp/test_app_server.cr

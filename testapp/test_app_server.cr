@@ -32,22 +32,22 @@ server = HTTP::Server.new do |context|
 
   replied = false
   if get("/", context) || get("/about", context) || get("/contact", context)
-    reply_with_html_file(context, "./devground/basic_counters.html")
+    reply_with_html_file(context, "./devground/public/basic_counters.html")
     replied = true
   end
 
   if get("/opal-runtime.js", context)
-    reply_with_js_file(context, "./devground/opal-runtime.js")
+    reply_with_js_file(context, "./devground/public/opal-runtime.js")
     replied = true
   end
 
   if get("/bundle.js", context)
-    reply_with_js_file(context, "./devground/bundle.js")
+    reply_with_js_file(context, "./devground/public/bundle.js")
     replied = true
   end
 
   if get("/mochi.png", context)
-    reply_with_png_file(context, "./devground/mochi.png")
+    reply_with_png_file(context, "./devground/public/mochi.png")
     replied = true
   end
 
