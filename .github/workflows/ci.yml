@@ -34,7 +34,7 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-          working-directory: components
+          working-directory: devground/components
 
       - name: Install Crystal dependencies
         run: cd compiler && shards install
