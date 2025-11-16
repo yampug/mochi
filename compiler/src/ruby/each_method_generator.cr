@@ -5,13 +5,19 @@ class EachMethodGenerator
   END_KEYWORD   = "end"
 
   def self.generate_method(block : EachBlock, class_name : String) : String
-    method_name = "#{METHOD_PREFIX}#{block.id}"
+    method_name_items = "#{METHOD_PREFIX}#{block.id}_items"
+    method_name_key = "#{METHOD_PREFIX}#{block.id}_key"
 
     return <<-RUBY
       # auto-generated each method
-      def #{method_name}
-        # TODO
+      def #{method_name_items}
+        return @items
       end
+
+      def #{method_name_key}(item, index)
+        return item.id
+      end
+
     RUBY
   end
 end
