@@ -14,12 +14,14 @@ class ConditionalMethodGenerator
     return ruby_code unless insertion_point
 
     methods_code = generate_all_methods(conditionals, class_name)
-    InjectUtils.insert_code(ruby_code, insertion_point, methods_code)
+    return InjectUtils.insert_code(ruby_code, insertion_point, methods_code)
   end
 
   # generate all conditional methods as a single string
   def self.generate_all_methods(conditionals : Array(ConditionalBlock), class_name : String) : String
-    conditionals.map { |block| generate_method(block, class_name) }.join("\n")
+    conditionals.map { |block|
+      generate_method(block, class_name)
+    }.join("\n")
   end
 
   def self.generate_method(block : ConditionalBlock, class_name : String) : String

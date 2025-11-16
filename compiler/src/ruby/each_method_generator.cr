@@ -1,4 +1,5 @@
 require "../html/each_processor"
+require "./inject_utils"
 
 class EachMethodGenerator
   METHOD_PREFIX = "__mochi_each_"
@@ -11,21 +12,31 @@ class EachMethodGenerator
     insertion_point = InjectUtils.find_insertion_point(ruby_code, class_name, END_KEYWORD, FALLBACK_OFFSET)
     return ruby_code unless insertion_point
 
-    return ""
+    methods_code = generate_all_methods(each_blocks, class_name)
+    return InjectUtils.insert_code(ruby_code, insertion_point, methods_code)
+  end
+
+  def self.generate_all_methods(each_blocks : Array(EachBlock), class_name : String) : String
+    each_blocks.map { |block|
+      generate_method(block, class_name)
+    }.join("\n")
   end
 
   def self.generate_method(block : EachBlock, class_name : String) : String
     method_name_items = "#{METHOD_PREFIX}#{block.id}_items"
     method_name_key = "#{METHOD_PREFIX}#{block.id}_key"
+    array_name = block.loop_def.array_name
+    item_name = block.loop_def.item_name
+    index_name = block.loop_def.index_name || "index"
 
     return <<-RUBY
       # auto-generated each method
       def #{method_name_items}
-        return @items
+        return #{array_name}
       end
 
-      def #{method_name_key}(item, index)
-        return item.id
+      def #{method_name_key}(#{item_name}, #{index_name})
+        return #{item_name}.id
       end
 
     RUBY
