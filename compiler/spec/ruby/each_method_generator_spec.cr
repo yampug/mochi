@@ -32,4 +32,10 @@ describe EachMethodGenerator do
     ruby_code = EachMethodGenerator.generate_method(block, "abc")
     ruby_code.should eq(exp_code)
   end
+
+  it "inject: no each blocks" do
+    each_blocks = [] of EachBlock
+    result = EachMethodGenerator.inject_methods_into_class("", "", each_blocks)
+    result.should eq("")
+  end
 end
