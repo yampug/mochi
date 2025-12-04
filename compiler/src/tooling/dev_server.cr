@@ -27,22 +27,34 @@ class DevServer
       "text/css"
     when ".json"
       "application/json"
+    # image formats
     when ".png"
       "image/png"
     when ".jpg", ".jpeg"
       "image/jpeg"
     when ".gif"
       "image/gif"
+    when ".webp"
+      "image/webp"
+    when ".avif"
+      "image/avif"
     when ".svg"
       "image/svg+xml"
     when ".ico"
       "image/x-icon"
+    # video formats
+    when ".mp4", ".mp4v", ".mpg4"
+      "video/mp4"
+    when ".webm"
+      "video/webm"
+    # font formats
     when ".woff"
       "font/woff"
     when ".woff2"
       "font/woff2"
     when ".ttf"
       "font/ttf"
+    # other
     when ".xml"
       "application/xml"
     when ".txt"
@@ -66,7 +78,6 @@ class DevServer
   end
 
   def start(root_dir : String)
-
     server = HTTP::Server.new do |context|
 
       method = context.request.method
