@@ -5,21 +5,21 @@ def get(wanted_uri : String, context : HTTP::Server::Context) : Bool
 end
 
 def reply_with_file(context : HTTP::Server::Context, path : String, content_type : String)
-    content = File.read(path)
-    context.response.content_type = content_type
-    context.response.print content
+  content = File.read(path)
+  context.response.content_type = content_type
+  context.response.print content
 end
 
 def reply_with_html_file(context : HTTP::Server::Context, path : String)
-    reply_with_file(context, path, "text/html")
+  reply_with_file(context, path, "text/html")
 end
 
 def reply_with_js_file(context : HTTP::Server::Context, path : String)
-    reply_with_file(context, path, "application/javascript")
+  reply_with_file(context, path, "application/javascript")
 end
 
 def reply_with_png_file(context : HTTP::Server::Context, path : String)
-    reply_with_file(context, path, "image/png")
+  reply_with_file(context, path, "image/png")
 end
 
 

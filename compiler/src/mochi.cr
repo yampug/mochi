@@ -22,6 +22,7 @@ require "./initializer"
 require "./batteries/sorbet_types_battery"
 require "./batteries/core_battery"
 require "./js/js_logger"
+require "./tooling/dev_server"
 
 def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan)
   build_dir = builder_man.build_dir
@@ -245,13 +246,14 @@ def print_separator
   puts "------------------------------------------------------------------------------------"
 end
 
-puts "Mochi v0.1cd"
 
 project_name = ""
 input_dir = ""
 output_dir = ""
 with_mini = false
 with_tc = false
+is_dev_server = false
+dev_server_root = ""
 
 parser = OptionParser.new
 OptionParser.parse do |p|
@@ -282,6 +284,14 @@ OptionParser.parse do |p|
     exit
   end
 
+  p.on("--dev", "Launch dev server") do
+    is_dev_server = true
+  end
+
+  p.on("--root=ROOT_DIR", "Root directory for the dev server") do |root_dir|
+    dev_server_root = root_dir
+  end
+
   # Handle cases where a required argument for an option is missing
   p.missing_option do |flag|
     STDERR.puts "ERROR: Missing argument for #{flag}"
@@ -299,119 +309,127 @@ OptionParser.parse do |p|
   parser = p
 end
 
-if !project_name.empty?
-  Initializer.new(project_name)
+if is_dev_server
+  dev_server = DevServer.new
+  dev_server.start(dev_server_root)
 else
-  # 1. Prepare Input / Output directories
-  if input_dir.empty? || output_dir.empty?
-    puts parser
-    exit 1
-  end
+  puts "Mochi v0.1e"
+  if !project_name.empty?
+    Initializer.new(project_name)
+  else
+    # 1. Prepare Input / Output directories
+    if input_dir.empty? || output_dir.empty?
+      puts parser
+      exit 1
+    end
 
-  print_separator
-  puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
-  builder_man = BuilderMan.new(input_dir)
-  puts "BuildID: #{builder_man.build_id}"
-  puts "Working Dir: #{Dir.current}"
-  build_dir = builder_man.build_dir
-
-  print_separator
-  puts "2. Copying Ruby code to pre_tp"
-  builder_man.copy_ruby_code_to_pre_tp
-  puts "Ruby code copied to #{builder_man.pre_tp_dir}"
-  # built-in components (need to be compiled)
-  rb_rewriter = RubyRewriter.new
-
-  builtin_feather_icon_comp = rb_rewriter.gen_builtin_component_feather_icon
-  File.write("#{builder_man.pre_tp_dir}/lib/mochi_builtin_feathericon_comp.rb", builtin_feather_icon_comp)
-
-  builtin_mochi_router = rb_rewriter.gen_builtin_mochi_router
-  File.write("#{builder_man.pre_tp_dir}/lib/mochi_router.rb", builtin_mochi_router)
-
-  builtin_route_comp = rb_rewriter.gen_builtin_route_component
-  File.write("#{builder_man.pre_tp_dir}/lib/mochi_builtin_route_comp.rb", builtin_route_comp)
-
-  print_separator
-  puts "3. Copying pre_tp to src for transpilation"
-  builder_man.copy_ruby_code_base
-
-  print_separator
-  puts "4. Packing in Batteries"
-  batt_time = Time.measure do
-    SorbetTypesBat.generate(builder_man.ruby_src_dir)
-    CoreBattery.generate(builder_man.ruby_src_dir)
-  end
-  puts "> Batteries took #{batt_time.total_milliseconds.to_i}ms"
-
-  print_separator
-  puts "5. Transpiling Mochi Components"
-  mochi_comp_time = Time.measure do
-    transpile_directory("#{builder_man.pre_tp_dir}/lib", output_dir, builder_man)
-  end
-  puts "> Compilation took #{mochi_comp_time.total_milliseconds.to_i}ms"
-
-  print_separator
-  puts "6. Generating Opal Runtime"
-  opal_rt_time = Time.measure do
-    opal_rt_gen = OpalRuntimeGenerator.new()
-    opal_rt_gen.generate(build_dir)
-  end
-  puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
-
-  step_nr = 7
-
-  if with_tc
     print_separator
-    puts "#{step_nr}. Running typechecks"
-    step_nr += 1
-    tc_time = Time.measure do
-      `cd #{builder_man.ruby_src_dir} && bundle install`
-      `cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init`
-      puts ""
-      puts "Typecheck Results:"
-      `cd #{builder_man.ruby_src_dir} && srb tc`
+    puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
+    builder_man = BuilderMan.new(input_dir)
+    puts "BuildID: #{builder_man.build_id}"
+    puts "Working Dir: #{Dir.current}"
+    build_dir = builder_man.build_dir
+
+    print_separator
+    puts "2. Copying Ruby code to pre_tp"
+    builder_man.copy_ruby_code_to_pre_tp
+    puts "Ruby code copied to #{builder_man.pre_tp_dir}"
+    # built-in components (need to be compiled)
+    rb_rewriter = RubyRewriter.new
+
+    builtin_feather_icon_comp = rb_rewriter.gen_builtin_component_feather_icon
+    File.write("#{builder_man.pre_tp_dir}/lib/mochi_builtin_feathericon_comp.rb", builtin_feather_icon_comp)
+
+    builtin_mochi_router = rb_rewriter.gen_builtin_mochi_router
+    File.write("#{builder_man.pre_tp_dir}/lib/mochi_router.rb", builtin_mochi_router)
+
+    builtin_route_comp = rb_rewriter.gen_builtin_route_component
+    File.write("#{builder_man.pre_tp_dir}/lib/mochi_builtin_route_comp.rb", builtin_route_comp)
+
+    print_separator
+    puts "3. Copying pre_tp to src for transpilation"
+    builder_man.copy_ruby_code_base
+
+    print_separator
+    puts "4. Packing in Batteries"
+    batt_time = Time.measure do
+      SorbetTypesBat.generate(builder_man.ruby_src_dir)
+      CoreBattery.generate(builder_man.ruby_src_dir)
     end
-    puts "> Sorbet Typecheck took #{tc_time.total_milliseconds.to_i}ms"
-  end
+    puts "> Batteries took #{batt_time.total_milliseconds.to_i}ms"
 
+    print_separator
+    puts "5. Transpiling Mochi Components"
+    mochi_comp_time = Time.measure do
+      transpile_directory("#{builder_man.pre_tp_dir}/lib", output_dir, builder_man)
+    end
+    puts "> Compilation took #{mochi_comp_time.total_milliseconds.to_i}ms"
 
-  print_separator
-  puts "#{step_nr}. Bundling"
-  step_nr += 1
-  bundle_file_path = ""
-  bundling_time_taken = Time.measure do
+    print_separator
+    puts "6. Generating Opal Runtime"
+    opal_rt_time = Time.measure do
+      opal_rt_gen = OpalRuntimeGenerator.new()
+      opal_rt_gen.generate(build_dir)
+    end
+    puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
 
-    `cp "#{build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
-    `cp "#{build_dir}/components.js" "#{output_dir}/bundle.js"`
+    step_nr = 7
 
-    bundle_js = File.read("#{output_dir}/bundle.js")
-
-    # bundle in js batteries
-    File.write("#{output_dir}/bundle.js", "#{bundle_js}\n#{JsLoggerGenerator.generate()}")
-  end
-  puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
-
-
-  # check swc is installed
-  print_separator
-  puts "#{step_nr}. Minify the output: #{with_mini}"
-  step_nr += 1
-  mini_time_taken = Time.measure do
-
-    if with_mini
-      unless Process.find_executable("swc")
-        STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
-        exit 1
+    if with_tc
+      print_separator
+      puts "#{step_nr}. Running typechecks"
+      step_nr += 1
+      tc_time = Time.measure do
+        `cd #{builder_man.ruby_src_dir} && bundle install`
+        `cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init`
+        puts ""
+        puts "Typecheck Results:"
+        `cd #{builder_man.ruby_src_dir} && srb tc`
       end
-
-      `npx swc "#{output_dir}/opal-runtime.js" -o "#{output_dir}/opal-runtime.js"`
+      puts "> Sorbet Typecheck took #{tc_time.total_milliseconds.to_i}ms"
     end
+
+
+    print_separator
+    puts "#{step_nr}. Bundling"
+    step_nr += 1
+    bundle_file_path = ""
+    bundling_time_taken = Time.measure do
+
+      `cp "#{build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
+      `cp "#{build_dir}/components.js" "#{output_dir}/bundle.js"`
+
+      bundle_js = File.read("#{output_dir}/bundle.js")
+
+      # bundle in js batteries
+      File.write("#{output_dir}/bundle.js", "#{bundle_js}\n#{JsLoggerGenerator.generate()}")
+    end
+    puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
+
+
+    # check swc is installed
+    print_separator
+    puts "#{step_nr}. Minify the output: #{with_mini}"
+    step_nr += 1
+    mini_time_taken = Time.measure do
+
+      if with_mini
+        unless Process.find_executable("swc")
+          STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
+          exit 1
+        end
+
+        `npx swc "#{output_dir}/opal-runtime.js" -o "#{output_dir}/opal-runtime.js"`
+      end
+    end
+    puts "> Minification took #{mini_time_taken.total_milliseconds.to_i}ms"
+
+
+    print_separator
+    puts "Done."
+
   end
-  puts "> Minification took #{mini_time_taken.total_milliseconds.to_i}ms"
-
-
-  print_separator
-  puts "Done."
-
 end
+
+
 

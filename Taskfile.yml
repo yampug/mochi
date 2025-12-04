@@ -19,6 +19,9 @@ tasks:
   build:
     cmds:
       - cd compiler && time crystal build src/mochi.cr
+  dev:
+    cmds:
+      - cd compiler && crystal run src/mochi.cr -- --dev --root="../devground/public"
   e2e:
     deps:
       - run-tc
