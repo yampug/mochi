@@ -85,6 +85,8 @@ class DevServer
 
       puts "#{method} '#{uri}'"
 
+      context.response.headers["Server"] = "mochi-dev-server"
+
       replied = false
 
       # Handle root and special routes

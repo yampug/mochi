@@ -34,9 +34,6 @@ tasks:
   sorbet:
     cmds:
       - cd devground/components && srb tc
-  dev-server:
-    cmds:
-      - crystal run testapp/test_app_server.cr
   generate-batteries:
     cmds:
       - ruby scripts/fragments_generator.rb
