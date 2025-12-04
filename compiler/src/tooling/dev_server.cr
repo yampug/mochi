@@ -89,8 +89,8 @@ class DevServer
 
       replied = false
 
-      # Handle root and special routes
-      if get("/", context) || get("/about", context) || get("/contact", context)
+      # Handle root special
+      if get("/", context)
         index_html_file = "#{root_dir}/index.html"
 
         if File.exists?(index_html_file)
