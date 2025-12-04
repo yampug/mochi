@@ -1,6 +1,37 @@
 require "http/server"
+require "json"
 
 class DevServer
+  property route_mappings : Hash(String, String)
+
+  def initialize
+    @route_mappings = {} of String => String
+  end
+
+  def load_config(config_path : String)
+    if File.exists?(config_path)
+      begin
+        config_content = File.read(config_path)
+        json = JSON.parse(config_content)
+
+        if routes = json["routes"]?
+          routes.as_h.each do |path, file|
+            @route_mappings[path] = file.as_s
+          end
+        end
+
+        puts "Loaded #{@route_mappings.size} route mapping(s) from config:"
+        @route_mappings.each do |path, file|
+          puts "  #{path} -> #{file}"
+        end
+      rescue ex
+        puts "Warning: Could not parse config file: #{ex.message}"
+      end
+    else
+      puts "No config file found at #{config_path}, using defaults"
+    end
+  end
+
   def get(wanted_uri : String, context : HTTP::Server::Context) : Bool
     return context.request.method == "GET" && context.request.uri.path == wanted_uri
   end
@@ -77,7 +108,9 @@ class DevServer
     false
   end
 
-  def start(root_dir : String)
+  def start(root_dir : String, config_path : String = "../config/dev_server_config.json")
+    load_config(config_path)
+
     server = HTTP::Server.new do |context|
 
       method = context.request.method
@@ -89,8 +122,20 @@ class DevServer
 
       replied = false
 
+      # Check custom route mappings from config
+      if method == "GET" && @route_mappings.has_key?(uri.path.to_s)
+        file_name = @route_mappings[uri.path.to_s]
+        file_path = File.join(root_dir, file_name)
+
+        if File.exists?(file_path)
+          content_type = get_content_type(file_path)
+          reply_with_file(context, file_path, content_type)
+          replied = true
+        end
+      end
+
       # Handle root special
-      if get("/", context)
+      if !replied && get("/", context)
         index_html_file = "#{root_dir}/index.html"
 
         if File.exists?(index_html_file)

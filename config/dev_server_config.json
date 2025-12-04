@@ -1,0 +1,7 @@
+{
+  "routes": {
+    "/home": "basic_counters.html",
+    "/about": "basic_counters.html",
+    "/contact": "basic_counters.html"
+  }
+}
