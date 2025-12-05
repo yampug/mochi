@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Charts - Mochi Test Page</title>
+        <title>Slot Test - Mochi Test Page</title>
         <link rel="icon" type="image/png" href="../mochi.png?v1" />
         <link rel="stylesheet" href="../test-page-styles.css" />
         <script
@@ -11,8 +11,11 @@
     </head>
     <body>
         <dev-root-back-button></dev-root-back-button>
-        <h2>Charts</h2>
-        <span>Note: The chart takes a moment to load, no worries.</span>
-        <chart-demo></chart-demo>
+        <h2>Slot Test</h2>
+        <slot-test>
+            <p>This content should appear inside the slot!</p>
+            <my-counter count="99"></my-counter>
+            <p style="color: blue; font-weight: bold;">Multiple nested elements work too!</p>
+        </slot-test>
     </body>
 </html>

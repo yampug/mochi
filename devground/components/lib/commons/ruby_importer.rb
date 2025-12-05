@@ -1,4 +1,4 @@
-require "a/hello_sayer"
+require "commons/hello_sayer"
 # typed: true
 
 class RubyImportComp
@@ -22,7 +22,7 @@ class RubyImportComp
 
   def css
     %Q{
-      
+
     }
   end
 

@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>Mochi Router - Mochi Test Page</title>
+        <link rel="icon" type="image/png" href="../mochi.png?v1" />
+        <link rel="stylesheet" href="../test-page-styles.css" />
+        <script
+                src="../opal-runtime.js"
+                onload='Opal.require("native"); Opal.require("promise"); Opal.require("browser/setup/full");'></script>
+        <script src="../bundle.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.2/dist/feather.min.js"></script>
+    </head>
+    <body>
+        <dev-root-back-button></dev-root-back-button>
+        <h2>Mochi Router</h2>
+        <router-demo>
+
+        </router-demo>
+
+        <nav style="margin: 20px 0; padding: 10px; background: #f0f0f0;">
+            <a href="/home" style="margin-right: 10px;">Home</a>
+            <a href="/about" style="margin-right: 10px;">About</a>
+            <a href="/contact" style="margin-right: 10px;">Contact</a>
+            <a href="https://example.com" data-external style="margin-right: 10px;">External Link</a>
+        </nav>
+
+        <mochi-route match="/">
+            <div style="padding: 20px; background: lightgreen; margin: 10px 0;">
+                <h3>Home Page</h3>
+                <p>Welcome to the home page!</p>
+                <plus-five pfcount="10"></plus-five>
+            </div>
+        </mochi-route>
+
+        <mochi-route match="/about">
+            <div style="padding: 20px; background: lightblue; margin: 10px 0;">
+                <h3>About Page</h3>
+                <p>This is the about page.</p>
+                <my-counter count="5"></my-counter>
+            </div>
+        </mochi-route>
+
+        <mochi-route match="/contact">
+            <div style="padding: 20px; background: lightyellow; margin: 10px 0;">
+                <h3>Contact Page</h3>
+                <p>Get in touch with us!</p>
+                <plus-five pfcount="20"></plus-five>
+            </div>
+        </mochi-route>
+    </body>
+</html>

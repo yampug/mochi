@@ -2,6 +2,11 @@
   "routes": {
     "/basic-counters": "test-pages/basic_counters.html",
     "/charts": "test-pages/charts.html",
+    "/feather-icons": "test-pages/feather_icons.html",
+    "/ruby-importer": "test-pages/ruby_importer.html",
+    "/browser-utils": "test-pages/browser_utils.html",
+    "/mochi-router": "test-pages/mochi_router.html",
+    "/slot-test": "test-pages/slot_test.html",
 
     "/home": "test-pages/basic_counters.html",
     "/about": "test-pages/basic_counters.html",
