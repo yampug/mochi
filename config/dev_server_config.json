@@ -1,7 +1,10 @@
 {
   "routes": {
-    "/home": "basic_counters.html",
-    "/about": "basic_counters.html",
-    "/contact": "basic_counters.html"
+    "/basic-counters": "test-pages/basic_counters.html",
+    "/charts": "test-pages/charts.html",
+
+    "/home": "test-pages/basic_counters.html",
+    "/about": "test-pages/basic_counters.html",
+    "/contact": "test-pages/basic_counters.html"
   }
 }

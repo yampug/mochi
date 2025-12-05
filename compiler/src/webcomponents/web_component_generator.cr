@@ -1,6 +1,7 @@
 require "./web_component"
 require "./web_component_placeholder"
 require "../html/conditional_processor"
+require "../html/each_processor"
 
 class WebComponentGenerator
 
@@ -81,7 +82,8 @@ class WebComponentGenerator
     html : String,
     reactables : String,
     bindings : Hash(String, String),
-    conditionals : Array(ConditionalBlock) = [] of ConditionalBlock) : WebComponent
+    conditionals : Array(ConditionalBlock) = [] of ConditionalBlock,
+    each_blocks : Array(EachBlock) = [] of EachBlock) : WebComponent
 
     puts conditionals
 
@@ -134,10 +136,41 @@ class WebComponentGenerator
             }
           }
 
+          evaluateEachLoop(loopId) {
+            // Call the pre-compiled Ruby method to get items array
+            try {
+              let itemsMethodName = `$__mochi_each_${loopId}_items`;
+              let items = this.rubyComp[itemsMethodName]();
+
+              // Convert Opal array to JavaScript array if needed
+              if (items && items.$to_a) {
+                items = items.$to_a();
+              }
+
+              return items || [];
+            } catch (e) {
+              il.error('Error evaluating each loop method ' + loopId, e);
+              return [];
+            }
+          }
+
+          getEachLoopKey(loopId, item, index) {
+            // Call the pre-compiled Ruby method to get the key for an item
+            try {
+              let keyMethodName = `$__mochi_each_${loopId}_key`;
+              let key = this.rubyComp[keyMethodName](item, index);
+              return key;
+            } catch (e) {
+              il.error('Error getting key for loop ' + loopId, e);
+              return index;
+            }
+          }
+
           render() {
             #{WebComponentGenerator.generate_render_code(
                 reactables_arr_anme,
                 conditionals,
+                each_blocks,
                 html,
                 css,
                 bindings_code
@@ -171,6 +204,7 @@ class WebComponentGenerator
   def self.generate_render_code(
     reactables_arr_anme : String,
     conditionals : Array(ConditionalBlock),
+    each_blocks : Array(EachBlock),
     html : String,
     css : String,
     bindings_code : String) : String
@@ -192,6 +226,9 @@ class WebComponentGenerator
 
         // Evaluate conditional blocks
         #{WebComponentGenerator.generate_conditional_evaluation_code(conditionals)}
+
+        // Evaluate each loop blocks
+        #{WebComponentGenerator.generate_each_evaluation_code(each_blocks)}
 
         const style = document.createElement("style");
         style.textContent = `
@@ -255,6 +292,73 @@ class WebComponentGenerator
         let condId = parseInt(condEl.getAttribute('data-cond-id'));
         let result = this.evaluateCondition(condId);
         condEl.style.display = result ? '' : 'none';
+      }
+    TEXT
+
+    result
+  end
+
+  def self.generate_each_evaluation_code(each_blocks : Array(EachBlock)) : String
+    return "" if each_blocks.empty?
+
+    return ""
+    result = <<-TEXT
+      // Initialize template storage on first render
+      if (!this.eachTemplates) {
+        this.eachTemplates = {};
+      }
+
+      let eachElements = this.shadow.querySelectorAll('mochi-each');
+      for (let eachEl of eachElements) {
+        let loopId = parseInt(eachEl.getAttribute('data-loop-id'));
+
+        // Store template on first access
+        if (!this.eachTemplates[loopId]) {
+          this.eachTemplates[loopId] = eachEl.innerHTML;
+        }
+
+        let template = this.eachTemplates[loopId];
+        let items = this.evaluateEachLoop(loopId);
+
+        // Clear current content
+        eachEl.innerHTML = '';
+
+        // Render each item
+        for (let i = 0; i < items.length; i++) {
+          let item = items[i];
+          let key = this.getEachLoopKey(loopId, item, i);
+
+          // Clone template for this item
+          let itemHtml = template;
+
+          // Replace item property references like {item.name}, {item.id}, etc.
+          // We call Ruby methods on the item to get property values
+          let propertyPattern = /\\{item\\.(\\w+)\\}/g;
+          itemHtml = itemHtml.replace(propertyPattern, (match, propName) => {
+            try {
+              // Call Ruby getter method on the item
+              let methodName = '$' + propName;
+              if (item[methodName]) {
+                return item[methodName]();
+              }
+              return match; // Keep original if method not found
+            } catch (e) {
+              il.error('Error accessing property ' + propName + ' on item', e);
+              return match;
+            }
+          });
+
+          // Replace {index} references
+          itemHtml = itemHtml.replace(/\\{index\\}/g, i);
+
+          // Create wrapper for this item
+          let itemWrapper = document.createElement('div');
+          itemWrapper.setAttribute('data-each-item', '');
+          itemWrapper.setAttribute('data-key', key);
+          itemWrapper.innerHTML = itemHtml;
+
+          eachEl.appendChild(itemWrapper);
+        }
       }
     TEXT
 

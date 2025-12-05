@@ -10,6 +10,8 @@ require "./ruby/ruby_def"
 require "./bind_extractor"
 require "./html/conditional_processor"
 require "./ruby/conditional_method_generator"
+require "./html/each_processor"
+require "./ruby/each_method_generator"
 require "./ruby/ruby_understander"
 require "./ruby/ruby_rewriter"
 require "./webcomponents/web_component_generator"
@@ -156,7 +158,17 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
       conditional_result.conditionals
     )
 
-    bindings = BindExtractor.extract(conditional_result.html)
+    # Process each blocks
+    each_result = EachProcessor.process(conditional_result.html)
+
+    # Inject each methods into Ruby code
+    amped_ruby_code = EachMethodGenerator.inject_methods_into_class(
+      amped_ruby_code,
+      cls_name,
+      each_result.each_blocks
+    )
+
+    bindings = BindExtractor.extract(each_result.html)
     tag_name = RubyUnderstander.get_cmp_name(rb_file, cls_name)
 
 
@@ -186,7 +198,8 @@ def transpile_component(rb_file : String, i : Int32, absolute_path : String)
         html = bindings.html.not_nil!,
         reactables,
         bindings.bindings,
-        conditional_result.conditionals
+        conditional_result.conditionals,
+        each_result.each_blocks
       )
 
       print_cmp_end_seperator(cls_name, i)

@@ -34,6 +34,7 @@ class ConditionalMethodGenerator
   def #{method_name}
     #{condition}
   end
+
 RUBY
   end
 

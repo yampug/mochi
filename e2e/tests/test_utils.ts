@@ -1,9 +1,9 @@
 const path = require('path');
 
 export function getTestFilePath(name: string): string {
-    return path.join(__dirname, '..', '..', 'devground', 'public', name);
+    return path.join(__dirname, '..', '..', 'devground', 'public', 'test-pages', name);
 }
 
-export function getTestFile(name: string): string {
+export function getTestPage(name: string): string {
     return `file://${getTestFilePath(name)}`
 }

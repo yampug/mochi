@@ -1,10 +1,10 @@
-import {getTestFile} from "./test_utils";
+import {getTestPage} from "./test_utils";
 
 const { test, expect } = require('@playwright/test');
 
 test('displays basic counters info correctly', async ({ page }) => {
-    await page.goto(getTestFile("basic_counters.html"));
-    await expect(page).toHaveTitle('Mochi Test');
+    await page.goto(getTestPage("basic_counters.html"));
+    await expect(page).toHaveTitle('Basic Counters - Mochi Test Page');
 
     // first counter
     await checkCounter(page, 0, "3", "0");
@@ -19,7 +19,7 @@ test('displays basic counters info correctly', async ({ page }) => {
 });
 
 test('first counter interaction - inc inc dec dec dec', async ({ page }) => {
-    await page.goto(getTestFile("basic_counters.html"));
+    await page.goto(getTestPage("basic_counters.html"));
     // 1 - interact with the first counter and the second one should be untouched
     {
         let counter = page.locator('.wrapper').nth(0);
@@ -76,6 +76,7 @@ test('first counter interaction - inc inc dec dec dec', async ({ page }) => {
 
 async function checkCounter(page, counterIndex: number, countValue: string, modifications: string) {
     let counter = page.locator('.wrapper').nth(counterIndex);
+
     const firstH1 = counter.locator("h1");
     await expect(firstH1).toHaveText(`Count123: ${countValue}`);
 

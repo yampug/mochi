@@ -4,7 +4,7 @@ tasks:
   test:
     cmds:
       - cd compiler && crystal spec
-  intest:
+  init-test:
     cmds:
       - cd compiler && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"
   run:
@@ -28,9 +28,6 @@ tasks:
     cmds:
       - echo "-----------------------------------------------------------------------------------------------------"
       - export MO_INT_LOGS=true && cd e2e && npx playwright test
-  ruby:
-    cmds:
-      - cd devground/components && ruby ./lib/Root.rb
   sorbet:
     cmds:
       - cd devground/components && srb tc
