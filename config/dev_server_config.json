@@ -7,6 +7,7 @@
     "/browser-utils": "test-pages/browser_utils.html",
     "/mochi-router": "test-pages/mochi_router.html",
     "/slot-test": "test-pages/slot_test.html",
+    "/item-list": "test-pages/item_list.html",
 
     "/home": "test-pages/basic_counters.html",
     "/about": "test-pages/basic_counters.html",

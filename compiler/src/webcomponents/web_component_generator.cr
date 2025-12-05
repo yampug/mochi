@@ -156,12 +156,13 @@ class WebComponentGenerator
 
           getEachLoopKey(loopId, item, index) {
             // Call the pre-compiled Ruby method to get the key for an item
+            let keyMethodName = "";
             try {
-              let keyMethodName = `$__mochi_each_${loopId}_key`;
+              keyMethodName = `$__mochi_each_${loopId}_key`;
               let key = this.rubyComp[keyMethodName](item, index);
               return key;
             } catch (e) {
-              il.error('Error getting key for loop ' + loopId, e);
+              il.error('Error getting key "' + keyMethodName + '" for loop ' + loopId, e);
               return index;
             }
           }
@@ -301,7 +302,6 @@ class WebComponentGenerator
   def self.generate_each_evaluation_code(each_blocks : Array(EachBlock)) : String
     return "" if each_blocks.empty?
 
-    return ""
     result = <<-TEXT
       // Initialize template storage on first render
       if (!this.eachTemplates) {

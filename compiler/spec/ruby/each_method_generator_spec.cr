@@ -58,7 +58,9 @@ describe EachMethodGenerator do
       ruby_code = EachMethodGenerator.generate_method(block, "UserList")
 
       ruby_code.should contain("return @users")
-      ruby_code.should contain("return user.id")
+      ruby_code.should contain("user")
+      ruby_code.should contain(".id")
+      ruby_code.should contain("typeof")  # Should use JavaScript for safety
     end
 
     it "includes auto-generated comment" do

@@ -36,7 +36,24 @@ class EachMethodGenerator
       end
 
       def #{method_name_key}(#{item_name}, #{index_name})
-        return #{item_name}.id
+        # Use pure JavaScript to safely access id from both Ruby and JS objects
+        `
+          if (typeof #\{#{item_name}} === 'object' && #\{#{item_name}} !== null) {
+            // Check for plain JS object with id property
+            if (#\{#{item_name}}.id !== undefined && typeof #\{#{item_name}}.$id !== 'function') {
+              return #\{#{item_name}}.id;
+            }
+            // Check for Ruby object with $id method
+            if (typeof #\{#{item_name}}.$id === 'function') {
+              try {
+                return #\{#{item_name}}.$id();
+              } catch(e) {
+                // Fall through to index
+              }
+            }
+          }
+          return #\{#{index_name}};
+        `
       end
 
     RUBY
