@@ -76,7 +76,11 @@ end
 
 ### Compiling
 Prerequestities:
-* <img alt="Crystallang Icon" style="height: 16px; background: white; border-radius: 50%; padding: 1px;" src="https://github.com/yampug/mochi/blob/main/github/assets/crystal_icon.png?raw=true"> [Crystal](https://crystal-lang.org)
+* <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/yampug/mochi/blob/main/github/assets/crystal_dark.png?raw=true">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/yampug/mochi/blob/main/github/assets/crystal_light.png?raw=true">
+    <img alt="Crystallang Icon" style="height: 16px; background: white; border-radius: 50%; padding: 1px;" src="https://github.com/yampug/mochi/blob/main/github/assets/crystal_light.png?raw=true">
+  </picture> [Crystal](https://crystal-lang.org)
 * <img alt="Opal Ruby Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/opal_icon.ico?raw=true"> [Opal](https://opalrb.com)
 * <img alt="Task Go Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/task_icon.ico?raw=true"> [Task](https://taskfile.dev)
 
