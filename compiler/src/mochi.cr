@@ -284,7 +284,7 @@ OptionParser.parse do |p|
     output_dir = o
   end
 
-  p.on("-m", "--mini", "Minimize output") do |o|
+  p.on("--minimize", "Minimize output") do |o|
     with_mini = true
   end
 

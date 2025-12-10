@@ -105,12 +105,12 @@ mochi --initialize="my_fancy_project"
 
 #### Compiling your code
 ```
-mochi -i "/path/to/my/beautiful/ruby_code" -o "/path/where/I/want/to/output" -m --typecheck
+mochi -i "/path/to/my/beautiful/ruby_code" -o "/path/where/I/want/to/output" --minimize --typecheck
 ```
 
 * -i: input directory
 * -o: output directory
-* -m: Minimise the generated js code (Optional)
+* --minimize: Minimise the generated js code (Optional)
 * --typecheck: Run Sorbet Typechecks (Optional)
 * --initialize: Creates a new preconfigured project directory
 
