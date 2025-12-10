@@ -16,6 +16,10 @@ Mochi provides also native [Sorbet](https://sorbet.org) support for all that typ
 So all in all Mochi brings type-safe Ruby to the modern web.
 The project is still very early on its journey, so proceed at your own risk for now.
 
+> **⚠️ Under Heavy Construction**
+> Mochi is currently under heavy development and is not yet ready for production use. APIs may change without notice, and features may be incomplete or unstable. Use at your own risk.
+
+
 ## Getting Started
 
 If you want to get your hands dirty and try out Mochi for yourself, I prepared over at [yampug/mochi-starter-template](https://github.com/yampug/mochi-starter-template) a preconfigured starter template, which should make the first steps as easy as possible.
