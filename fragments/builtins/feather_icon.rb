@@ -16,17 +16,17 @@ class FeatherIcon
 
   def html
     %Q{
-            <div class="feather-icon">
-              {rendered_svg}
-            </div>
-          }
+      <div class="feather-icon">
+        {rendered_svg}
+      </div>
+    }
   end
 
   def css
     %Q{
-            .feather-icon {
-            }
-          }
+      .feather-icon {
+      }
+    }
   end
 
   def mounted(shadow_root, comp)

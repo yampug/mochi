@@ -16,7 +16,7 @@ Mochi provides also native [Sorbet](https://sorbet.org) support for all that typ
 So all in all Mochi brings type-safe Ruby to the modern web.
 The project is still very early on its journey, so proceed at your own risk for now.
 
-> **⚠️ Under Heavy Construction**
+> **⚠️ Under Heavy Construction:**
 > Mochi is currently under heavy development and is not yet ready for production use. APIs may change without notice, and features may be incomplete or unstable. Use at your own risk.
 
 
@@ -87,7 +87,7 @@ Prerequestities:
   </picture> https://crystal-lang.org
 * <img alt="Opal Ruby Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/opal_icon.ico?raw=true"> [Opal](https://opalrb.com)
 * <img alt="Task Go Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/task_icon.ico?raw=true"> [Task](https://taskfile.dev)
-
+* <img alt="Ruby Icon" style="height: 16px;" src="https://www.ruby-lang.org/favicon.ico"/> [Ruby](https://www.ruby-lang.org/)
 ```
 git clone http://github.com/yampug/mochi
 cd mochi
