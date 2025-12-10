@@ -13,9 +13,9 @@ tasks:
   run-no-int-logs:
     cmds:
       - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" -m
-  run-tc:
+  run-with-typecheck:
     cmds:
-      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" -m -tc
+      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" -m --typecheck
   build:
     cmds:
       - cd compiler && time crystal build src/mochi.cr

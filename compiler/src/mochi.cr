@@ -288,7 +288,7 @@ OptionParser.parse do |p|
     with_mini = true
   end
 
-  p.on("-tc", "--typecheck", "Run typechecks with Sorbet") do |o|
+  p.on("--typecheck", "Run typechecks with Sorbet") do |o|
     with_tc = true
   end
 

@@ -88,6 +88,8 @@ Prerequisites:
 * <img alt="Opal Ruby Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/opal_icon.ico?raw=true"> [Opal](https://opalrb.com)
 * <img alt="Task Go Icon" style="height: 16px;" src="https://github.com/yampug/mochi/blob/main/github/assets/task_icon.ico?raw=true"> [Task](https://taskfile.dev)
 * <img alt="Ruby Icon" style="height: 16px;" src="https://www.ruby-lang.org/favicon.ico"/> [Ruby](https://www.ruby-lang.org/)
+* <img alt="Sorbet Icon" style="height: 16px;" src="https://sorbet.org/img/favicon.ico"/> [Sorbet](https://sorbet.org/)
+
 ```
 git clone http://github.com/yampug/mochi
 cd mochi
@@ -103,13 +105,13 @@ mochi --initialize="my_fancy_project"
 
 #### Compiling your code
 ```
-mochi -i "/path/to/my/beautiful/ruby_code" -o "/path/where/I/want/to/output" -m -tc
+mochi -i "/path/to/my/beautiful/ruby_code" -o "/path/where/I/want/to/output" -m --typecheck
 ```
 
 * -i: input directory
 * -o: output directory
 * -m: Minimise the generated js code (Optional)
-* -tc: Run Sorbet Typechecks (Optional)
+* --typecheck: Run Sorbet Typechecks (Optional)
 * --initialize: Creates a new preconfigured project directory
 
 
