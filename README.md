@@ -79,7 +79,7 @@ end
 ```
 
 ### Compiling
-Prerequestities:
+Prerequisites:
 * <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/yampug/mochi/blob/main/github/assets/crystal_dark.png?raw=true">
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/yampug/mochi/blob/main/github/assets/crystal_light.png?raw=true">
