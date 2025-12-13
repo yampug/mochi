@@ -1,4 +1,4 @@
-name: Generate Libsorbet Artifact
+name: Generate Linux Libsorbet Artifact
 
 on:
   workflow_dispatch:
@@ -20,6 +20,11 @@ jobs:
         uses: arduino/setup-task@v1
         with:
           version: 3.x
+
+      - name: Patch Sorbet Dockerfile
+        run: |
+          sed -i 's/wget \\/wget \\\n    curl \\\n    unzip \\/g' sorbet/lib/Dockerfile
+          cat sorbet/lib/Dockerfile
 
       - name: Build libsorbet
         run: ./scripts/sorbet_lib_build.bash --platform linux
