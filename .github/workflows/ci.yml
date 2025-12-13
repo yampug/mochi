@@ -45,7 +45,7 @@ jobs:
           crystal tool format ./compiler/src/generated
 
       - name: Run Crystal tests with JUnit output
-        run: cd compiler && crystal spec --link-flags="-L../fragments/libs" -- --junit_output test-results
+        run: cd compiler && crystal spec --link-flags="-L$GITHUB_WORKSPACE/fragments/libs" -- --junit_output test-results
         continue-on-error: true  # Allow test report step to run even if tests fail
 
       - name: Install Playwright dependencies
@@ -58,7 +58,7 @@ jobs:
         run: npm install -g @swc/cli @swc/core
 
       - name: Compile Mochi for E2E tests
-        run: cd compiler && crystal run src/mochi.cr --link-flags="-L../fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize --typecheck
+        run: cd compiler && crystal run src/mochi.cr --link-flags="-L$GITHUB_WORKSPACE/fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize --typecheck
         env:
           MO_INT_LOGS: false
           MO_INT_LOGS_LEVEL: INFO
