@@ -3,7 +3,8 @@ version: '3'
 tasks:
   test:
     cmds:
-      - cd compiler && crystal spec
+      - cd compiler && crystal spec --link-flags="-L{{.ROOT_DIR}}/fragments/libs"
+
   init-test:
     cmds:
       - cd compiler && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"
@@ -15,7 +16,7 @@ tasks:
       - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize
   run-with-typecheck:
     cmds:
-      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize --typecheck
+      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr --link-flags="-L{{.ROOT_DIR}}/fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize --typecheck
   build:
     cmds:
       - cd compiler && time crystal build src/mochi.cr

@@ -23,6 +23,7 @@ require "./initializer"
 
 require "./batteries/sorbet_types_battery"
 require "./batteries/core_battery"
+require "./sorbet/sorbet"
 require "./js/js_logger"
 require "./tooling/dev_server"
 
@@ -393,11 +394,34 @@ else
       puts "#{step_nr}. Running typechecks"
       step_nr += 1
       tc_time = Time.measure do
-        `cd #{builder_man.ruby_src_dir} && bundle install`
-        `cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init`
-        puts ""
-        puts "Typecheck Results:"
-        `cd #{builder_man.ruby_src_dir} && srb tc`
+        #`cd #{builder_man.ruby_src_dir} && bundle install`
+        # Using srb init might still be useful to generate RBIs, but it's slow.
+        # For now, we keep it to ensure compatibility.
+        #`cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init`
+
+        begin
+          session = Sorbet::Session.new(
+            root_dir: builder_man.ruby_src_dir,
+            multi_threaded: true
+          )
+
+          # Find all Ruby files in the source directory
+          files = Dir.glob(File.join(builder_man.ruby_src_dir, "**", "*.rb"))
+          result = session.typecheck_files(files)
+
+          if result.success?
+            puts "✓ No type errors found!"
+          else
+            puts "✗ Found #{result.errors.size} errors:"
+            result.errors.each do |error|
+              puts "  #{error}"
+            end
+          end
+
+          session.close
+        rescue ex
+          puts "Error running Sorbet session: #{ex.message}"
+        end
       end
       puts "> Sorbet Typecheck took #{tc_time.total_milliseconds.to_i}ms"
     end
