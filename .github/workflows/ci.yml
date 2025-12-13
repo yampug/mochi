@@ -48,7 +48,7 @@ jobs:
         run: |
           cd compiler
           mkdir -p test-results
-          crystal spec --link-flags="-L$GITHUB_WORKSPACE/fragments/libs" -- -v --fail-fast --junit_output test-results
+          crystal spec --link-flags="-L$GITHUB_WORKSPACE/fragments/libs" -v --fail-fast --junit_output test-results
         env:
           LD_LIBRARY_PATH: ${{ github.workspace }}/fragments/libs
         continue-on-error: true  # Allow test report step to run even if tests fail
