@@ -135,7 +135,7 @@ build_library() {
                     fi
 
                     cd "$SORBET_ROOT"
-                    bazel build //lib:libsorbet.so
+                    bazel build -c opt //lib:libsorbet.so
                     mkdir -p "$SORBET_DIST_DIR/linux"
                     cp -f bazel-bin/lib/libsorbet.so "$SORBET_DIST_DIR/linux/"
                 else
@@ -158,7 +158,7 @@ build_library() {
                       $BAZELRC_LOCAL_MOUNT \
                       -w /workspace \
                       sorbet-builder \
-                      bash -c "bazel build //lib:libsorbet.so && cp -f bazel-bin/lib/libsorbet.so dist/linux/"
+                      bash -c "bazel build -c opt //lib:libsorbet.so && cp -f bazel-bin/lib/libsorbet.so dist/linux/"
                 fi
             fi
             ;;
