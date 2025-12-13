@@ -22,7 +22,7 @@ jobs:
           version: 3.x
 
       - name: Install Bazelisk
-        run: npm install -g @bazel/bazelisk
+        run: sudo npm install -g @bazel/bazelisk
 
       - name: Build libsorbet
         run: ./scripts/sorbet_lib_build.bash --platform linux
