@@ -21,10 +21,8 @@ jobs:
         with:
           version: 3.x
 
-      - name: Patch Sorbet Dockerfile
-        run: |
-          sed -i 's/wget \\/wget \\\n    curl \\\n    unzip \\/g' sorbet/lib/Dockerfile
-          cat sorbet/lib/Dockerfile
+      - name: Install Bazelisk
+        run: npm install -g @bazel/bazelisk
 
       - name: Build libsorbet
         run: ./scripts/sorbet_lib_build.bash --platform linux

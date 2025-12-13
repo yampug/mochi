@@ -126,26 +126,40 @@ build_library() {
                 print_info "Library already exists at $SORBET_DIST_DIR/linux/libsorbet.so"
                 print_info "Use --rebuild to force rebuild"
             else
-                # Build Docker image (force amd64 for CI compatibility)
-                print_info "Building Docker image (forcing linux/amd64)..."
-                docker build --platform linux/amd64 -t sorbet-builder .
-                
-                # Check for .bazelrc.local and mount /dev/null over it if it exists to avoid macOS flags leaking
-                local BAZELRC_LOCAL_MOUNT=""
-                if [ -f "$SORBET_ROOT/.bazelrc.local" ]; then
-                    print_info "Detected .bazelrc.local, masking it in Docker to prevent macOS flags from breaking Linux build"
-                    BAZELRC_LOCAL_MOUNT="-v /dev/null:/workspace/.bazelrc.local"
-                fi
+                if [ "$(uname -s)" = "Linux" ]; then
+                    print_info "Running on Linux, building natively without Docker..."
+                    
+                    if ! command -v bazel &> /dev/null; then
+                        print_error "Bazel not found. Please install Bazel/Bazelisk."
+                        exit 1
+                    fi
 
-                # Run build in Docker (force amd64)
-                print_info "Running Bazel build in Docker..."
-                mkdir -p "$SORBET_DIST_DIR/linux"
-                docker run --platform linux/amd64 --rm \
-                  -v "$SORBET_ROOT":/workspace \
-                  $BAZELRC_LOCAL_MOUNT \
-                  -w /workspace \
-                  sorbet-builder \
-                  bash -c "bazel build //lib:libsorbet.so && cp -f bazel-bin/lib/libsorbet.so dist/linux/"
+                    cd "$SORBET_ROOT"
+                    bazel build //lib:libsorbet.so
+                    mkdir -p "$SORBET_DIST_DIR/linux"
+                    cp -f bazel-bin/lib/libsorbet.so "$SORBET_DIST_DIR/linux/"
+                else
+                    # Build Docker image (force amd64 for CI compatibility)
+                    print_info "Building Docker image (forcing linux/amd64)..."
+                    docker build --platform linux/amd64 -t sorbet-builder .
+                    
+                    # Check for .bazelrc.local and mount /dev/null over it if it exists to avoid macOS flags leaking
+                    local BAZELRC_LOCAL_MOUNT=""
+                    if [ -f "$SORBET_ROOT/.bazelrc.local" ]; then
+                        print_info "Detected .bazelrc.local, masking it in Docker to prevent macOS flags from breaking Linux build"
+                        BAZELRC_LOCAL_MOUNT="-v /dev/null:/workspace/.bazelrc.local"
+                    fi
+
+                    # Run build in Docker (force amd64)
+                    print_info "Running Bazel build in Docker..."
+                    mkdir -p "$SORBET_DIST_DIR/linux"
+                    docker run --platform linux/amd64 --rm \
+                      -v "$SORBET_ROOT":/workspace \
+                      $BAZELRC_LOCAL_MOUNT \
+                      -w /workspace \
+                      sorbet-builder \
+                      bash -c "bazel build //lib:libsorbet.so && cp -f bazel-bin/lib/libsorbet.so dist/linux/"
+                fi
             fi
             ;;
         *)
