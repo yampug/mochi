@@ -126,9 +126,9 @@ build_library() {
                 print_info "Library already exists at $SORBET_DIST_DIR/linux/libsorbet.so"
                 print_info "Use --rebuild to force rebuild"
             else
-                # Build Docker image
-                print_info "Building Docker image..."
-                docker build -t sorbet-builder .
+                # Build Docker image (force amd64 for CI compatibility)
+                print_info "Building Docker image (forcing linux/amd64)..."
+                docker build --platform linux/amd64 -t sorbet-builder .
                 
                 # Check for .bazelrc.local and mount /dev/null over it if it exists to avoid macOS flags leaking
                 local BAZELRC_LOCAL_MOUNT=""
@@ -137,10 +137,10 @@ build_library() {
                     BAZELRC_LOCAL_MOUNT="-v /dev/null:/workspace/.bazelrc.local"
                 fi
 
-                # Run build in Docker
+                # Run build in Docker (force amd64)
                 print_info "Running Bazel build in Docker..."
                 mkdir -p "$SORBET_DIST_DIR/linux"
-                docker run --rm \
+                docker run --platform linux/amd64 --rm \
                   -v "$SORBET_ROOT":/workspace \
                   $BAZELRC_LOCAL_MOUNT \
                   -w /workspace \

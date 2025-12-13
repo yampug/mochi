@@ -1,0 +1,33 @@
+name: Generate Libsorbet Artifact
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-lib:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Mochi
+        uses: actions/checkout@v4
+
+      - name: Checkout Sorbet
+        uses: actions/checkout@v4
+        with:
+          repository: yampug/sorbet
+          path: sorbet
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+
+      - name: Build libsorbet
+        run: ./scripts/sorbet_lib_build.bash --platform linux
+        env:
+          SORBET_ROOT: ${{ github.workspace }}/sorbet
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libsorbet-linux
+          path: fragments/libs/libsorbet.so
