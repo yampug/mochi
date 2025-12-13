@@ -45,7 +45,6 @@ jobs:
           crystal tool format ./compiler/src/generated
 
       - name: Run Crystal tests with JUnit output
-      - name: Run Crystal tests with JUnit output
         run: cd compiler && crystal spec --link-flags="-L../fragments/libs" -- --junit_output test-results
         continue-on-error: true  # Allow test report step to run even if tests fail
 
