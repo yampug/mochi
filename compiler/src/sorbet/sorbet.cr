@@ -135,11 +135,13 @@ module Sorbet
       args_json = args.to_json
 
       # Initialize the appropriate session type
-      @session = if multi_threaded
-                   LibSorbet.new_mt(args_json, num_threads)
-                 else
-                   LibSorbet.new(args_json)
-                 end
+      # Force single-threaded mode regardless of argument due to CI crashes with MT
+      # @session = if multi_threaded
+      #              LibSorbet.new_mt(args_json, num_threads)
+      #            else
+      #              LibSorbet.new(args_json)
+      #            end
+      @session = LibSorbet.new(args_json)
 
       raise "Failed to initialize Sorbet session" if @session.nil?
 
