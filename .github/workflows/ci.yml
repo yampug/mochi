@@ -44,6 +44,12 @@ jobs:
           ruby scripts/fragments_generator.rb
           crystal tool format ./compiler/src/generated
 
+      - name: Debug Libsorbet Dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libncurses5
+          ls -l fragments/libs/libsorbet.so
+          ldd fragments/libs/libsorbet.so
+
       - name: Run Crystal tests with JUnit output
         run: |
           cd compiler
