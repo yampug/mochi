@@ -14,17 +14,17 @@ describe Sorbet::Session do
       session.open?.should be_false
     end
 
-    # it "creates a multi-threaded session" do
-    #   session = Sorbet::Session.new(
-    #     root_dir: ".",
-    #     multi_threaded: true,
-    #     num_threads: 2
-    #   )
-    #
-    #   session.open?.should be_true
-    #   session.close
-    #   session.open?.should be_false
-    # end
+    it "creates a multi-threaded session" do
+      session = Sorbet::Session.new(
+        root_dir: ".",
+        multi_threaded: true,
+        num_threads: 2
+      )
+
+      session.open?.should be_true
+      session.close
+      session.open?.should be_false
+    end
 
     it "raises error when session fails to initialize" do
       # This would require invalid args to trigger the error
@@ -113,63 +113,63 @@ describe Sorbet::Session do
   end
 
   describe "batch typechecking" do
-    # it "typechecks multiple files at once with hash" do
-    #   session = Sorbet::Session.new(
-    #     root_dir: ".",
-    #     multi_threaded: true,
-    #     num_threads: 4
-    #   )
-    #
-    #   files = {
-    #     "user.rb" => <<-RUBY,
-    #       class User
-    #         attr_reader :name, :email
-    #
-    #         def initialize(name, email)
-    #           @name = name
-    #           @email = email
-    #         end
-    #
-    #         def greet
-    #           "Hello, " + @name
-    #         end
-    #       end
-    #     RUBY
-    #     "product.rb" => <<-RUBY,
-    #       class Product
-    #         attr_reader :name, :price
-    #
-    #         def initialize(name, price)
-    #           @name = name
-    #           @price = price
-    #         end
-    #
-    #         def discounted_price(discount)
-    #           @price - (@price * discount)
-    #         end
-    #       end
-    #     RUBY
-    #     "order.rb" => <<-RUBY,
-    #       class Order
-    #         def initialize(user, products)
-    #           @user = user
-    #           @products = products
-    #         end
-    #
-    #         def total
-    #           @products.sum(&:price)
-    #         end
-    #       end
-    #     RUBY
-    #   }
-    #
-    #   result = session.typecheck_files(files)
-    #
-    #   result.should be_a(Sorbet::TypecheckResult)
-    #   result.diagnostics.should be_a(Array(Sorbet::Diagnostic))
-    #
-    #   session.close
-    # end
+    it "typechecks multiple files at once with hash" do
+      session = Sorbet::Session.new(
+        root_dir: ".",
+        multi_threaded: true,
+        num_threads: 4
+      )
+
+      files = {
+        "user.rb" => <<-RUBY,
+          class User
+            attr_reader :name, :email
+
+            def initialize(name, email)
+              @name = name
+              @email = email
+            end
+
+            def greet
+              "Hello, " + @name
+            end
+          end
+        RUBY
+        "product.rb" => <<-RUBY,
+          class Product
+            attr_reader :name, :price
+
+            def initialize(name, price)
+              @name = name
+              @price = price
+            end
+
+            def discounted_price(discount)
+              @price - (@price * discount)
+            end
+          end
+        RUBY
+        "order.rb" => <<-RUBY,
+          class Order
+            def initialize(user, products)
+              @user = user
+              @products = products
+            end
+
+            def total
+              @products.sum(&:price)
+            end
+          end
+        RUBY
+      }
+
+      result = session.typecheck_files(files)
+
+      result.should be_a(Sorbet::TypecheckResult)
+      result.diagnostics.should be_a(Array(Sorbet::Diagnostic))
+
+      session.close
+    end
 
     it "handles empty file list" do
       session = Sorbet::Session.new

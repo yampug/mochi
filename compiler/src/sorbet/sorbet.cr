@@ -197,7 +197,7 @@ module Sorbet
       return if @closed
 
       if session = @session
-        # LibSorbet.free(session) # Debugging crash: Potential double-free or invalid access in C destructor
+        LibSorbet.free(session)
         @session = nil
         @closed = true
       end
