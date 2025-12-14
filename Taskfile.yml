@@ -1,37 +1,56 @@
 version: '3'
 
+vars:
+  LIB_ENV: 'export LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs:$LIBRARY_PATH" && export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs:$DYLD_LIBRARY_PATH"'
+  LOGS_ON: 'export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO'
+  LOGS_OFF: 'export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO'
+
 tasks:
   test:
     cmds:
-      - cd compiler && crystal spec --link-flags="-L{{.ROOT_DIR}}/fragments/libs"
+      - '{{.LIB_ENV}} && cd compiler && crystal spec'
 
   init-test:
     cmds:
       - cd compiler && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"
+
   run:
     cmds:
-      - export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize
+      - '{{.LOGS_ON}} && {{.LIB_ENV}} && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize'
+
   run-no-int-logs:
     cmds:
-      - export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize
+      - '{{.LOGS_OFF}} && {{.LIB_ENV}} && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize'
+
   run-with-typecheck:
     cmds:
-      - export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO && cd compiler && time crystal run src/mochi.cr --link-flags="-L{{.ROOT_DIR}}/fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize --typecheck
+      - 'export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && {{.LOGS_OFF}} && {{.LIB_ENV}} && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize --typecheck'
+
   build:
     cmds:
-      - cd compiler && time crystal build src/mochi.cr
+      - '{{.LIB_ENV}} && cd compiler && time crystal build src/mochi.cr'
+
+  build-run:
+    deps:
+      - build
+    cmds:
+      - '{{.LOGS_ON}} && {{.LIB_ENV}} && cd compiler && ./mochi -i "../devground/components" -o "../devground/public" --minimize --typecheck'
+
   dev:
     cmds:
-      - cd compiler && crystal run src/mochi.cr -- --dev --root="../devground/public"
+      - '{{.LIB_ENV}} && cd compiler && crystal run src/mochi.cr -- --dev --root="../devground/public"'
+
   e2e:
     deps:
       - run-tc
     cmds:
       - echo "-----------------------------------------------------------------------------------------------------"
-      - export MO_INT_LOGS=true && cd e2e && npx playwright test
+      - 'export MO_INT_LOGS=true && cd e2e && npx playwright test'
+
   sorbet:
     cmds:
       - cd devground/components && srb tc
+
   generate-batteries:
     cmds:
       - ruby scripts/fragments_generator.rb
