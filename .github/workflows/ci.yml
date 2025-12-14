@@ -46,24 +46,22 @@ jobs:
 
       - name: Debug Libsorbet Dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y libncurses6 libtinfo6 strace
-          # Create symlink for compatibility if libsorbet requires version 5
-          if [ ! -f /usr/lib/x86_64-linux-gnu/libtinfo.so.5 ]; then
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
-          fi
           ls -l fragments/libs/libsorbet.so
           ldd fragments/libs/libsorbet.so
+          echo "Checking crystal binary dependencies:"
+          ldd $(which crystal)
+          echo "Checking spec files:"
+          ls -R compiler/spec
 
       - name: Run Crystal tests with JUnit output
         run: |
           cd compiler
           mkdir -p test-results
-          # Run with strace to capture syscalls and see why it exits
-          strace -f -o strace_log.txt crystal spec --link-flags="-L$GITHUB_WORKSPACE/fragments/libs" -- --junit_output test-results || true
-          cat strace_log.txt
-        env:
-          LD_LIBRARY_PATH: ${{ github.workspace }}/fragments/libs
-        continue-on-error: true  # Allow test report step to run even if tests fail
+          # Use rpath to avoid setting LD_LIBRARY_PATH which might affect the compiler
+          # Capture strace tail to diagnose silent exit
+          strace -f -o strace_log.txt crystal spec --link-flags="-L$GITHUB_WORKSPACE/fragments/libs -Wl,-rpath,$GITHUB_WORKSPACE/fragments/libs" -- --junit_output test-results || true
+          echo "--- Strace Log Tail ---"
+          tail -n 200 strace_log.txt
 
       - name: Install Playwright dependencies
         run: cd e2e && npm ci
