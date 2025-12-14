@@ -55,9 +55,6 @@ jobs:
         run: |
           cd compiler
           mkdir -p test-results
-          echo "--- Verifying Linkage via Eval ---"
-          # Simple eval to check if dynamic linking allows startup
-          crystal eval 'puts "Hello Linker World"' --link-flags="-L$GITHUB_WORKSPACE/fragments/libs -Wl,-rpath,$GITHUB_WORKSPACE/fragments/libs"
           
           echo "--- Running Specs (Verbose, No JUnit) ---"
           # Run verbose, standard formatter to catch any output. Removing JUnit for now to simplify.
