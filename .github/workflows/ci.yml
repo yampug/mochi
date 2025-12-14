@@ -48,8 +48,6 @@ jobs:
         run: |
           ls -l fragments/libs/libsorbet.so
           ldd fragments/libs/libsorbet.so
-          echo "Checking crystal binary dependencies:"
-          ldd $(which crystal)
           echo "Checking spec files:"
           ls -R compiler/spec
 
