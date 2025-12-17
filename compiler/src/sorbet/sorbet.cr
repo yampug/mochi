@@ -123,7 +123,7 @@ module Sorbet
     # @param extra_args Additional Sorbet CLI arguments
     def initialize(
       root_dir : String = ".",
-      multi_threaded : Bool = false,
+      multi_threaded : Bool = true,
       num_threads : Int32 = 2,
       extra_args : Array(String) = [] of String
     )
@@ -135,13 +135,11 @@ module Sorbet
       args_json = args.to_json
 
       # Initialize the appropriate session type
-      # Force single-threaded mode regardless of argument due to CI crashes with MT
-      # @session = if multi_threaded
-      #              LibSorbet.new_mt(args_json, num_threads)
-      #            else
-      #              LibSorbet.new(args_json)
-      #            end
-      @session = LibSorbet.new(args_json)
+      @session = if multi_threaded
+                   LibSorbet.new_mt(args_json, num_threads)
+                 else
+                   LibSorbet.new(args_json)
+                 end
 
       raise "Failed to initialize Sorbet session" if @session.nil?
 
