@@ -1,44 +1,43 @@
 version: '3'
 
 vars:
-  LIB_ENV: 'export LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs:$LIBRARY_PATH" && export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs:$DYLD_LIBRARY_PATH"'
   LOGS_ON: 'export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO'
   LOGS_OFF: 'export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO'
 
 tasks:
   test:
     cmds:
-      - '{{.LIB_ENV}} && cd compiler && crystal spec'
+      - 'export LIBRARY_PATH="" && export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs" && export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && cd compiler && crystal spec --link-flags="-L{{.ROOT_DIR}}/fragments/libs"'
 
   init-test:
     cmds:
-      - cd compiler && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"
+      - 'export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && cd compiler && rm -rf ./motestproj &&  time crystal run src/mochi.cr -- --initialize="motestproj"'
 
   run:
     cmds:
-      - '{{.LOGS_ON}} && {{.LIB_ENV}} && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize'
+      - 'export LIBRARY_PATH="" && export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs" && export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && {{.LOGS_ON}} && cd compiler && time crystal run src/mochi.cr --link-flags="-L{{.ROOT_DIR}}/fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize'
 
-  run-no-int-logs:
+  run-no-internal-logs:
     cmds:
-      - '{{.LOGS_OFF}} && {{.LIB_ENV}} && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize'
+      - 'export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && {{.LOGS_OFF}} && cd compiler && time crystal run src/mochi.cr --link-flags="-L{{.ROOT_DIR}}/fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize'
 
   run-with-typecheck:
     cmds:
-      - 'export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && {{.LOGS_OFF}} && {{.LIB_ENV}} && cd compiler && time crystal run src/mochi.cr -- -i "../devground/components" -o "../devground/public" --minimize --typecheck'
+      - 'export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && {{.LOGS_OFF}} && cd compiler && time crystal run src/mochi.cr --link-flags="-L{{.ROOT_DIR}}/fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize --typecheck'
 
   build:
     cmds:
-      - '{{.LIB_ENV}} && cd compiler && time crystal build src/mochi.cr'
+      - 'export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && cd compiler && time crystal build src/mochi.cr --link-flags="-L{{.ROOT_DIR}}/fragments/libs"'
 
-  build-run:
+  build-and-execute:
     deps:
       - build
     cmds:
-      - '{{.LOGS_ON}} && {{.LIB_ENV}} && cd compiler && ./mochi -i "../devground/components" -o "../devground/public" --minimize --typecheck'
+      - 'export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs:$DYLD_LIBRARY_PATH" && {{.LOGS_ON}} && cd compiler && ./mochi -i "../devground/components" -o "../devground/public" --minimize --typecheck'
 
   dev:
     cmds:
-      - '{{.LIB_ENV}} && cd compiler && crystal run src/mochi.cr -- --dev --root="../devground/public"'
+      - 'export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && cd compiler && crystal run src/mochi.cr --link-flags="-L{{.ROOT_DIR}}/fragments/libs" -- --dev --root="../devground/public"'
 
   e2e:
     deps:

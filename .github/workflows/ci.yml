@@ -55,13 +55,9 @@ jobs:
         run: |
           cd compiler
           mkdir -p test-results
-          
-          echo "--- Running Specs (Verbose, No JUnit) ---"
-          # Run verbose, standard formatter to catch any output. Removing JUnit for now to simplify.
-          strace -f -o strace_log.txt crystal spec -v --link-flags="-L$GITHUB_WORKSPACE/fragments/libs -Wl,-rpath,$GITHUB_WORKSPACE/fragments/libs" || true
-          
-          echo "--- Strace Log Tail ---"
-          tail -n 200 strace_log.txt
+
+          echo "--- Running Specs (Verbose) ---"
+          crystal spec -v --link-flags="-L$GITHUB_WORKSPACE/fragments/libs -Wl,-rpath,$GITHUB_WORKSPACE/fragments/libs"
 
       - name: Install Playwright dependencies
         run: cd e2e && npm ci
