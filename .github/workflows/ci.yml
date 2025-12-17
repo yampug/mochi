@@ -57,7 +57,17 @@ jobs:
           mkdir -p test-results
 
           echo "--- Running Specs (Verbose) ---"
-          crystal spec -v --junit_output test-results --link-flags="-L$GITHUB_WORKSPACE/fragments/libs -Wl,-rpath,$GITHUB_WORKSPACE/fragments/libs"
+          crystal spec -v --junit_output test-results/output.xml --link-flags="-L$GITHUB_WORKSPACE/fragments/libs -Wl,-rpath,$GITHUB_WORKSPACE/fragments/libs"
+
+          echo "--- Checking for JUnit output ---"
+          ls -la test-results/ || echo "test-results directory not found"
+
+          if [ -f test-results/output.xml ]; then
+            echo "JUnit XML file created successfully"
+            head -20 test-results/output.xml
+          else
+            echo "WARNING: JUnit XML file was not created"
+          fi
 
       - name: Install Playwright dependencies
         run: cd e2e && npm ci
