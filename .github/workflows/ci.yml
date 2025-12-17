@@ -12,7 +12,7 @@ permissions:
   pull-requests: write  # Required for PR comments
 
 jobs:
-  test:
+  All:
     runs-on: ubuntu-latest
 
     steps:
@@ -57,7 +57,7 @@ jobs:
           mkdir -p test-results
 
           echo "--- Running Specs (Verbose) ---"
-          crystal spec -v --link-flags="-L$GITHUB_WORKSPACE/fragments/libs -Wl,-rpath,$GITHUB_WORKSPACE/fragments/libs" -- --junit_output test-results
+          crystal spec -v --junit_output test-results --link-flags="-L$GITHUB_WORKSPACE/fragments/libs -Wl,-rpath,$GITHUB_WORKSPACE/fragments/libs"
 
       - name: Install Playwright dependencies
         run: cd e2e && npm ci
