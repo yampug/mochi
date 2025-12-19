@@ -5,8 +5,8 @@ class JsLoggerGenerator
   end
 
   def self.generate : String
-    int_logs_enabled = ENV["MO_INT_LOGS"] == "true"
-    int_logs_level = ENV["MO_INT_LOGS_LEVEL"]
+    int_logs_enabled = false # TODO move to build config
+    int_logs_level = "INFO" # TODO move to build config
 
     puts "> Internal Logs enabled: #{int_logs_enabled}"
 

@@ -1,8 +1,6 @@
 version: '3'
 
 vars:
-  LOGS_ON: 'export MO_INT_LOGS=true && export MO_INT_LOGS_LEVEL=INFO'
-  LOGS_OFF: 'export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO'
   FRAG_CONFIG: 'export LIBRARY_PATH="" && export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs" && export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion)'
   LINK_FLAGS: '--link-flags="-L{{.ROOT_DIR}}/fragments/libs"'
   DEFAULT_RUN_PARAMS: '-i "../devground/components" -o "../devground/public" --minimize'
@@ -18,19 +16,19 @@ tasks:
 
   run:
     cmds:
-      - '{{.FRAG_CONFIG}} && {{.LOGS_ON}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
+      - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
 
   run-no-internal-logs:
     cmds:
-      - '{{.FRAG_CONFIG}} && {{.LOGS_OFF}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
+      - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
 
   run-with-typecheck:
     cmds:
-      - '{{.FRAG_CONFIG}} && {{.LOGS_OFF}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
+      - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
 
   typecheck:
     cmds:
-      - '{{.FRAG_CONFIG}} && {{.LOGS_ON}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- typecheck'
+      - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- typecheck'
 
   build:
     cmds:
@@ -51,7 +49,7 @@ tasks:
       - run
     cmds:
       - echo "-----------------------------------------------------------------------------------------------------"
-      - '{{.LOGS_ON}} && cd e2e && npx playwright test'
+      - 'cd e2e && npx playwright test'
 
   sorbet:
     cmds:
