@@ -106,6 +106,10 @@ module Sorbet
     def merge(other : TypecheckResult)
       @diagnostics.concat(other.diagnostics)
     end
+
+    def to_s(io : IO)
+      io << "TypecheckResult(diagnostics: #{diagnostics})"
+    end
   end
 
   # Main Sorbet session class
@@ -114,6 +118,7 @@ module Sorbet
     @session : LibSorbet::Session?
     @closed : Bool = false
     @multi_threaded : Bool
+    @root_dir : String
 
     # Initialize a new Sorbet session
     #
@@ -128,10 +133,11 @@ module Sorbet
       extra_args : Array(String) = [] of String
     )
       @multi_threaded = multi_threaded
+      @root_dir = File.expand_path(root_dir)
 
       # Build arguments array
       # Note: --lsp and --disable-watchman are required for LSP mode
-      args = ["--lsp", "--disable-watchman", "--silence-dev-message"] + extra_args + [root_dir]
+      args = ["--lsp", "--disable-watchman", "--silence-dev-message"] + extra_args + [@root_dir]
       args_json = args.to_json
 
       # Initialize the appropriate session type
@@ -179,15 +185,19 @@ module Sorbet
                      files
                    end
 
-      # Build all messages
-      messages = files_hash.map do |file_path, content|
+      # Collect all diagnostics
+      result = TypecheckResult.new
+
+      # Send each file individually to ensure we get diagnostics
+      files_hash.each do |file_path, content|
         file_uri = "file://#{File.expand_path(file_path)}"
-        build_did_open_message(file_uri, content)
+        message = build_did_open_message(file_uri, content)
+        response = send_message(message)
+        file_result = parse_diagnostics(response)
+        result.merge(file_result)
       end
 
-      # Send batch
-      response = send_batch(messages)
-      parse_diagnostics(response)
+      result
     end
 
     # Close the Sorbet session and free resources
@@ -217,7 +227,7 @@ module Sorbet
         id:      1,
         method:  "initialize",
         params:  {
-          rootUri:      "file://#{Dir.current}",
+          rootUri:      "file://#{@root_dir}",
           capabilities: {} of String => String,
         },
       }.to_json

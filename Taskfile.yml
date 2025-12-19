@@ -5,7 +5,7 @@ vars:
   LOGS_OFF: 'export MO_INT_LOGS=false && export MO_INT_LOGS_LEVEL=INFO'
 
 tasks:
-  test:
+  specs:
     cmds:
       - 'export LIBRARY_PATH="" && export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs" && export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion) && cd compiler && crystal spec --link-flags="-L{{.ROOT_DIR}}/fragments/libs"'
 
@@ -41,7 +41,7 @@ tasks:
 
   e2e:
     deps:
-      - run-tc
+      - run
     cmds:
       - echo "-----------------------------------------------------------------------------------------------------"
       - 'export MO_INT_LOGS=true && cd e2e && npx playwright test'

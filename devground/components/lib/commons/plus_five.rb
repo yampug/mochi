@@ -12,6 +12,7 @@ class PlusFive
     ["pfcount"]
   end
 
+  sig {().returns(Integer) }
   def html
     %Q{
       <div class="plus-five">
