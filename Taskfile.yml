@@ -28,7 +28,7 @@ tasks:
 
   typecheck:
     cmds:
-      - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- typecheck'
+      - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- typecheck ../devground/components/lib'
 
   build:
     cmds:

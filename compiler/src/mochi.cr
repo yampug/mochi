@@ -141,7 +141,13 @@ if is_dev_server
   dev_server.start(dev_server_root)
 else
   if is_standalone_typecheck
-    Typechecker.new().typecheck()
+    if ARGV.empty?
+      puts "No arguments provided, intended usage:".colorize(:red)
+      puts "  mochi typecheck <path_to_ruby_code>"
+      exit 1
+    else
+      Typechecker.new.typecheck ARGV[0]
+    end
     exit 0
   end
 

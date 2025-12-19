@@ -1,24 +1,29 @@
+require "colorize"
+
 class Typechecker
 
-  def typecheck()
-    puts "Standalone typecheck block"
+  def typecheck(path : String)
+    files = Dir.glob(File.join(path, "**", "*.rb"))
+    if files.size < 1
+      puts "Error: Cannot run typechecks, no ruby files found".colorize(:red)
+      exit 1
+    end
+
+    puts "Typchecking #{files.size} files..."
     session = Sorbet::Session.new(
-      root_dir: "./devground/components/lib",
+      root_dir: path,
       multi_threaded: false
     )
 
-    # Find all Ruby files in the source directory
-    files = Dir.glob(File.join("./devground/components/lib", "**", "*.rb"))
-    puts "found #{files.size} files: #{files}"
     result = session.typecheck_files(files)
-
-    puts result
     if result.success?
-      puts "✓ No type errors found!"
+      puts "✓ No type errors found!".colorize(:green)
     else
-      puts "✗ Found #{result.errors.size} errors:"
+      puts "✗ Found #{result.errors.size} errors:".colorize(:red)
+      i = 1
       result.errors.each do |error|
-        puts "  #{error}"
+        puts "  [Error ##{i}]  #{error.colorize(:red)}"
+        i += 1
       end
     end
 
