@@ -1,8 +1,9 @@
-import {getTestPage} from "./test_utils";
+import {getTestPage, setupConsoleLogging} from "./test_utils";
 
 const { test, expect } = require('@playwright/test');
 
 test('displays basic counters info correctly', async ({ page }) => {
+    setupConsoleLogging(page);
     await page.goto(getTestPage("basic_counters.html"));
     await expect(page).toHaveTitle('Basic Counters - Mochi Test Page');
 
@@ -19,6 +20,7 @@ test('displays basic counters info correctly', async ({ page }) => {
 });
 
 test('first counter interaction - inc inc dec dec dec', async ({ page }) => {
+    setupConsoleLogging(page);
     await page.goto(getTestPage("basic_counters.html"));
     // 1 - interact with the first counter and the second one should be untouched
     {

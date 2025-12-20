@@ -1,7 +1,13 @@
 version: '3'
 
 vars:
-  FRAG_CONFIG: 'export LIBRARY_PATH="" && export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs" && export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion)'
+  FRAG_CONFIG:
+    sh: |
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo 'export LIBRARY_PATH="" && export DYLD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs" && export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion)'
+      else
+        echo 'export LIBRARY_PATH="" && export LD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs"'
+      fi
   LINK_FLAGS: '--link-flags="-L{{.ROOT_DIR}}/fragments/libs"'
   DEFAULT_RUN_PARAMS: '-i "../devground/components" -o "../devground/public" --minimize'
 

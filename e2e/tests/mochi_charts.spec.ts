@@ -1,4 +1,4 @@
-import { getTestPage } from "./test_utils";
+import { getTestPage, setupConsoleLogging } from "./test_utils";
 
 const { test, expect } = require('@playwright/test');
 
@@ -8,6 +8,7 @@ function getChartsPage(): string {
 
 test.describe('Charts Page', () => {
     test('chart-demo component renders', async ({ page }) => {
+        setupConsoleLogging(page);
         await page.goto(getChartsPage());
 
         const chartDemo = page.locator('chart-demo');
@@ -15,6 +16,7 @@ test.describe('Charts Page', () => {
     });
 
     test('chart container div renders with correct dimensions', async ({ page }) => {
+        setupConsoleLogging(page);
         await page.goto(getChartsPage());
 
         const chartDemo = page.locator('chart-demo');
@@ -30,6 +32,7 @@ test.describe('Charts Page', () => {
     });
 
     test('chart renders after loading', async ({ page }) => {
+        setupConsoleLogging(page);
         await page.goto(getChartsPage());
 
         const chartDemo = page.locator('chart-demo');
@@ -45,6 +48,7 @@ test.describe('Charts Page', () => {
     });
 
     test('chart canvas has non-zero dimensions after loading', async ({ page }) => {
+        setupConsoleLogging(page);
         await page.goto(getChartsPage());
 
         await page.waitForTimeout(4000);
@@ -68,6 +72,7 @@ test.describe('Charts Page', () => {
     });
 
     test('chart is initialized within the shadow DOM', async ({ page }) => {
+        setupConsoleLogging(page);
         await page.goto(getChartsPage());
 
         await page.waitForTimeout(4000);
@@ -96,6 +101,8 @@ test.describe('Charts Page', () => {
     test('chart component logs to console', async ({ page }) => {
         const consoleLogs: string[] = [];
 
+        // Setup both our console logging AND collect logs for this test
+        setupConsoleLogging(page);
         page.on('console', msg => {
             consoleLogs.push(msg.text());
         });
@@ -109,6 +116,7 @@ test.describe('Charts Page', () => {
     });
 
     test('feather icons library is loaded', async ({ page }) => {
+        setupConsoleLogging(page);
         await page.goto(getChartsPage());
 
         const featherAvailable = await page.evaluate(() => {
