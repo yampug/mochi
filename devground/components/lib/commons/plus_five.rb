@@ -1,5 +1,7 @@
 # typed: true
+
 class PlusFive
+  extend T::Sig
 
   @tag_name = "plus-five"
   @pfcount
@@ -12,7 +14,7 @@ class PlusFive
     ["pfcount"]
   end
 
-  sig {().returns(Integer) }
+  sig { returns(Integer) }
   def html
     %Q{
       <div class="plus-five">

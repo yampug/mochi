@@ -185,19 +185,16 @@ module Sorbet
                      files
                    end
 
-      # Collect all diagnostics
-      result = TypecheckResult.new
-
-      # Send each file individually to ensure we get diagnostics
-      files_hash.each do |file_path, content|
+      # Build ALL didOpen messages first
+      messages = files_hash.map do |file_path, content|
         file_uri = "file://#{File.expand_path(file_path)}"
-        message = build_did_open_message(file_uri, content)
-        response = send_message(message)
-        file_result = parse_diagnostics(response)
-        result.merge(file_result)
+        build_did_open_message(file_uri, content)
       end
 
-      result
+      # Send ALL messages in one batch so Sorbet sees the entire project
+      # before it starts resolving constants. This way file order doesn't matter.
+      response = send_batch(messages)
+      parse_diagnostics(response)
     end
 
     # Close the Sorbet session and free resources

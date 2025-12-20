@@ -70,9 +70,9 @@ class Counter
   def increment
     @count = @count + 1
     @modifications = @modifications + 1
-    
+
     url = 'https://www.ign.com'
-    
+
     puts "Making a GET request to: #{url}"
   end
 
@@ -86,40 +86,40 @@ class Counter
     interval_id = Mochi.interval(proc do
       t = Time.now
       puts "time: #{t}"
-  
+
     end, 1000)
-    
+
     Mochi.timeout(proc do
       Mochi.clear_interval(interval_id)
     end, 5000)
-    
-    if false
+
+    #if true
     # fetcher stuff
-      fetcher = Fetcher.create
-      
-      http_resp = fetcher.fetch("/abc", FetchConfigBuilder.new().build()).__await__
+    #fetcher = Fetcher.create
+
+    # http_resp = fetcher.fetch("/abc", FetchConfigBuilder.new().build()).__await__
       #`console.log(resp)`
       #`console.log(new Map(resp.headers))`
       #http_resp = HttpResponse.new(resp)
-      puts http_resp
-      body = http_resp.body_as_text().__await__
-      puts body
-      puts http_resp
-      puts http_resp.headers()
-      
-      config = FetchConfigBuilder.new()
-        .set_method("GET")
-        .set_headers({
-          "Abc": "def"
-        })
-        .set_keep_alive(true)
-        .build()
-      `console.log(config)`
-      http_resp2 = fetcher.fetch("/dummy_json", config).__await__
-      puts http_resp2
-      hash =  http_resp2.body_as_hash().__await__
-      puts hash
-    end
+    # puts http_resp
+    # body = http_resp.body_as_text().__await__
+    # puts body
+    # puts http_resp
+    # puts http_resp.headers()
+
+    # config = FetchConfigBuilder.new()
+    #   .set_method("GET")
+    #   .set_headers({
+    #     "Abc": "def"
+    #   })
+    #   .set_keep_alive(true)
+    #   .build()
+    # `console.log(config)`
+    # http_resp2 = fetcher.fetch("/dummy_json", config).__await__
+    # puts http_resp2
+    # hash =  http_resp2.body_as_hash().__await__
+    # puts hash
+    #end
     browser = BrowserIdentifier.identify
     puts "Browser: #{browser}"
   end

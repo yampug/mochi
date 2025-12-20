@@ -1,4 +1,5 @@
 # typed: true
+
 class ChartDemo
 
   @tag_name = "chart-demo"
@@ -19,14 +20,14 @@ class ChartDemo
 
   def css
     %Q{
-      
+
     }
   end
 
   def mounted(shadow_root)
     puts "ChartDemo mounted"
     `console.log(shadow_root)`
-    
+
     Log.info(self, "this is an info log")
     Log.warn(self, "this is a warn log")
     Log.trace(self, "this is a trace log")
@@ -39,10 +40,10 @@ class ChartDemo
 
     interval_id = Mochi.interval(proc do
       Charts.setup_environment
-  
+
       Mochi.timeout(proc do
         Mochi.clear_interval(interval_id)
-        
+
         chart_el = Charts.init_on_element_by_query(shadow_root, "#main")
         config = ChartConfigBuilder.new()
           .set_title("My Own Chart Title")
@@ -59,13 +60,13 @@ class ChartDemo
             ]
           )
           .build()
-        
+
         Charts.load_config(chart_el, config)
-        
+
         puts "done"
       end, 2000)
     end, 1000)
-    
+
   end
 
   def unmounted

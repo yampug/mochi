@@ -1,28 +1,44 @@
 require "colorize"
+require "./building/build_main"
 
 class Typechecker
 
-  def typecheck(path : String)
-    files = Dir.glob(File.join(path, "**", "*.rb"))
+  def typecheck(input_dir : String)
+    builder_man = BuilderMan.new(input_dir)
+    # steps 2-4
+    BuildMain.new.setup(builder_man)
+
+    fixed_path = "#{builder_man.ruby_src_dir}/lib"
+    files = Dir.glob(File.join(fixed_path, "**", "*.rb"))
     if files.size < 1
       puts "Error: Cannot run typechecks, no ruby files found".colorize(:red)
       exit 1
     end
 
-    puts "Typchecking #{files.size} files..."
+    puts "Typechecking #{files.size} files..."
+
+    # Initialize Sorbet (generates config and RBI files)
+    `cd #{builder_man.ruby_src_dir} && bundle install > /dev/null 2>&1`
+    #`cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init > /dev/null 2>&1`
+
     session = Sorbet::Session.new(
-      root_dir: path,
+      root_dir: fixed_path,
       multi_threaded: false
     )
 
+    # Send all files in batch so Sorbet sees the entire project at once
+    # Like this Sorbet will resolve cross-file constants correctly because
+    # it has all definitions before resolving.
     result = session.typecheck_files(files)
     if result.success?
       puts "✓ No type errors found!".colorize(:green)
     else
-      puts "✗ Found #{result.errors.size} errors:".colorize(:red)
+      puts "✗ Found errors:".colorize(:red)
       i = 1
       result.errors.each do |error|
-        puts "  [Error ##{i}]  #{error.colorize(:red)}"
+        trimmed_file_path = error.file[builder_man.ruby_src_dir.size, error.file.size]
+        file_path_line_col = "#{trimmed_file_path}@#{error.line}:#{error.column}"
+        puts "  [Error ##{i}]  #{error.message.colorize(:red)} [#{file_path_line_col.colorize(:yellow)}]"
         i += 1
       end
     end

@@ -2,25 +2,7 @@ require "./builder_man"
 
 class BuildMain
 
-  def build(
-    input_dir : String,
-    output_dir : String,
-    parser : OptionParser,
-    with_tc : Bool,
-    with_mini : Bool)
-
-    transpiler = Compiler.new()
-    # 1. Prepare Input / Output directories
-    if input_dir.empty? || output_dir.empty?
-      puts parser
-      exit 1
-    end
-
-    print_separator
-    puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
-    builder_man = BuilderMan.new(input_dir)
-    puts "BuildID: #{builder_man.build_id}"
-    puts "Working Dir: #{Dir.current}"
+  def setup(builder_man : BuilderMan)
     build_dir = builder_man.build_dir
 
     print_separator
@@ -51,7 +33,32 @@ class BuildMain
     end
     puts "> Batteries took #{batt_time.total_milliseconds.to_i}ms"
 
+  end
+
+  def build(
+    input_dir : String,
+    output_dir : String,
+    parser : OptionParser,
+    with_tc : Bool,
+    with_mini : Bool)
+
+    # 1. Prepare Input / Output directories
+    if input_dir.empty? || output_dir.empty?
+      puts "Input & output directory need to be specified"
+      exit 1
+    end
+
     print_separator
+    puts "1. input_dir:#{input_dir}, output_dir:#{output_dir}"
+    builder_man = BuilderMan.new(input_dir)
+
+    # steps 2-4
+    puts "BuildID: #{builder_man.build_id}"
+    puts "Working Dir: #{Dir.current}"
+    setup(builder_man)
+
+    print_separator
+    transpiler = Compiler.new()
     puts "5. Transpiling Mochi Components"
     mochi_comp_time = Time.measure do
       transpiler.transpile_directory("#{builder_man.pre_tp_dir}/lib", output_dir, builder_man)
@@ -62,58 +69,19 @@ class BuildMain
     puts "6. Generating Opal Runtime"
     opal_rt_time = Time.measure do
       opal_rt_gen = OpalRuntimeGenerator.new()
-      opal_rt_gen.generate(build_dir)
+      opal_rt_gen.generate(builder_man.build_dir)
     end
     puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
 
     step_nr = 7
-
-    if with_tc
-      print_separator
-      puts "#{step_nr}. Running typechecks"
-      step_nr += 1
-      tc_time = Time.measure do
-        #`cd #{builder_man.ruby_src_dir} && bundle install`
-        # Using srb init might still be useful to generate RBIs, but it's slow.
-        # For now, we keep it to ensure compatibility.
-        #`cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init`
-
-        begin
-          session = Sorbet::Session.new(
-          root_dir: builder_man.ruby_src_dir,
-          multi_threaded: true
-          )
-
-          # Find all Ruby files in the source directory
-          files = Dir.glob(File.join(builder_man.ruby_src_dir, "**", "*.rb"))
-          result = session.typecheck_files(files)
-
-          if result.success?
-            puts "✓ No type errors found!"
-          else
-            puts "✗ Found #{result.errors.size} errors:"
-            result.errors.each do |error|
-              puts "  #{error}"
-            end
-          end
-
-          session.close
-          rescue ex
-            puts "Error running Sorbet session: #{ex.message}"
-        end
-      end
-      puts "> Sorbet Typecheck took #{tc_time.total_milliseconds.to_i}ms"
-    end
-
 
     print_separator
     puts "#{step_nr}. Bundling"
     step_nr += 1
     bundle_file_path = ""
     bundling_time_taken = Time.measure do
-
-      `cp "#{build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
-      `cp "#{build_dir}/components.js" "#{output_dir}/bundle.js"`
+      `cp "#{builder_man.build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
+      `cp "#{builder_man.build_dir}/components.js" "#{output_dir}/bundle.js"`
 
       bundle_js = File.read("#{output_dir}/bundle.js")
 
