@@ -8,8 +8,8 @@ class Typechecker
     # steps 2-4
     BuildMain.new.setup(builder_man)
 
-    fixed_path = "#{builder_man.ruby_src_dir}/lib"
-    files = Dir.glob(File.join(fixed_path, "**", "*.rb"))
+    root_dir = builder_man.ruby_src_dir
+    files = Dir.glob(File.join(root_dir, "**", "*.rb"))
     if files.size < 1
       puts "Error: Cannot run typechecks, no ruby files found".colorize(:red)
       exit 1
@@ -22,7 +22,7 @@ class Typechecker
     #`cd #{builder_man.ruby_src_dir} && export SRB_YES=1 && srb init > /dev/null 2>&1`
 
     session = Sorbet::Session.new(
-      root_dir: fixed_path,
+      root_dir: root_dir,
       multi_threaded: false
     )
 
