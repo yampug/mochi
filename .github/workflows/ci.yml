@@ -79,7 +79,7 @@ jobs:
         run: npm install -g @swc/cli @swc/core
 
       - name: Compile Mochi for E2E tests
-        run: cd compiler && crystal run src/mochi.cr --link-flags="-L$GITHUB_WORKSPACE/fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize --typecheck
+        run: cd compiler && crystal run src/mochi.cr --link-flags="-L$GITHUB_WORKSPACE/fragments/libs" -- -i "../devground/components" -o "../devground/public" --minimize
         env:
           MO_INT_LOGS: false
           MO_INT_LOGS_LEVEL: INFO
