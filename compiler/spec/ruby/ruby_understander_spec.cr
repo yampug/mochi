@@ -340,9 +340,11 @@ describe RubyUnderstander do
       methods.size.should eq 1
       iterate_method = methods["iterate"]
       iterate_method.parameters.should eq ["items"]
-      iterate_method.body.size.should eq 4
+      iterate_method.body.size.should eq 5
+      iterate_method.body[0].should eq "  def iterate(items)"
       iterate_method.body[1].should eq "    items.each do |item|"
       iterate_method.body[2].should eq "      puts item"
+      iterate_method.body[4].should eq "  end"
     end
 
     it "handles empty method" do

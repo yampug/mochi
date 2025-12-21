@@ -5,6 +5,7 @@ require "./ruby_script_engine"
 require "../tree-sitter/class_extractor"
 require "../tree-sitter/property_extractor"
 require "../tree-sitter/imports_extractor"
+require "../tree-sitter/method_body_extractor"
 
 class RubyUnderstander
 
@@ -31,114 +32,12 @@ class RubyUnderstander
     return TreeSitter::ClassExtractor.class_name(code)
   end
 
-  def self.get_def_name(line : String) : String?
-    opt_def_index = line.index("def")
-      return nil unless def_index = opt_def_index
-
-    name_start_pos = def_index + 4
-      return nil unless line.size > name_start_pos
-
-    opt_parenthesis_index = line.index("(")
-    if parenthesis_index = opt_parenthesis_index
-      if name_start_pos > parenthesis_index
-        return nil
-      end
-      return line[name_start_pos...parenthesis_index].strip
-    else
-      # no paranthesis -> take the rest starting from name pos
-      return line[name_start_pos...].strip
-    end
-  end
-
   def self.get_imports(rb_file : String) : Array(String)
-    TreeSitter::ImportsExtractor.extract_imports(rb_file)
-  end
-
-  def self.get_parameters(line : String) : Array(String)
-    parenth_open = line.index("(")
-    parenth_closed = line.index(")")
-
-    if parenth_open && parenth_closed && parenth_open < parenth_closed && parenth_closed > 0
-      params = line[(parenth_open.not_nil! + 1)...parenth_closed.not_nil!]
-
-      #puts "params:'#{params}'"
-      result = [] of String
-      params.split(",").each do |param|
-        result << param.strip
-      end
-
-      return result
-    end
-    return [] of String
+    return TreeSitter::ImportsExtractor.extract_imports(rb_file)
   end
 
   def self.extract_method_bodies(rb_file : String, cls_name : String) : Hash(String, RubyDef)
-    result = {} of String => RubyDef
-    in_method = false
-    def_name : String? = nil
-    parameters = [] of String
-    lines_since_def = [] of String
-    end_stat_counter = 0
-    end_index_at_def = -1
-
-    # puts "extracting methods from class '#{cls_name}'"
-
-    rb_file.each_line do |line|
-      trim = line.strip
-      #puts "trim:'#{trim}'"
-
-      opt_endable = RubyEndableStatement.get_endable(trim)
-      if opt_endable != nil && opt_endable.not_nil!.id.size > 0
-      #puts "endable:'#{opt_endable.not_nil!}'"
-
-        if RubyEndableStatement::DEF == opt_endable
-        #puts "def stat"
-          in_method = true
-          def_name = get_def_name(trim)
-          #puts "def_name:#{def_name}"
-          parameters = get_parameters(trim)
-
-          #puts "params:#{parameters}"
-          end_index_at_def = end_stat_counter
-        else
-          end_stat_counter += 1
-        end
-      end
-
-      if in_method
-        lines_since_def << line
-      end
-
-      #puts "here:#{trim}"
-      if trim.starts_with?("end")
-        if end_stat_counter != end_index_at_def
-        #puts "endable statement within method closed"
-          end_stat_counter -= 1 # reset
-        else
-          # method finished
-          current_def_name = def_name
-          #puts "method finished:'#{current_def_name}'"
-          if current_def_name && in_method
-            actual_def_name = current_def_name.as(String)
-            tmp = RubyDef.new(
-            actual_def_name,
-            "/todo",
-            cls_name,
-            lines_since_def.dup,
-            parameters.dup
-            )
-            result[actual_def_name] = tmp
-          end
-
-
-          def_name = nil
-          end_index_at_def = -1
-          lines_since_def = [] of String
-          in_method = false
-        end
-      end
-    end
-    result
+    return TreeSitter::MethodBodyExtractor.extract_method_bodies(rb_file, cls_name)
   end
 
   def self.get_cmp_name(rb_file : String, cls_name : String) : String?
