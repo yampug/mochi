@@ -16,11 +16,11 @@ describe RubyUnderstander do
   end
 
   it "class_name: inheritance" do
-    check_class_name("MyClass", "class MyClass < ParentClass ")
+    check_class_name("MyClass", "class MyClass < ParentClass")
   end
 
   it "class_name: namespacing" do
-    check_class_name("Class", "class My::Nested::Class")
+    check_class_name("My::Nested::Class", "class My::Nested::Class")
   end
 
   it "class_name: extra spaces" do

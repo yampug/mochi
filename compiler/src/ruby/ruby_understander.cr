@@ -1,5 +1,6 @@
 require "./ruby_var"
 require "./ruby_script_engine"
+require "../tree-sitter/class_extractor"
 
 class RubyUnderstander
 
@@ -28,14 +29,8 @@ class RubyUnderstander
     return inner_body
   end
 
-  def self.class_name(rb_file : String) : String
-    rb_file.each_line do |line|
-      if line.includes?("class ")
-        split = line.strip.split(" ")
-        return split[1] if split.size > 1
-      end
-    end
-    return ""
+  def self.class_name(code : String) : String
+    return TreeSitter::ClassExtractor.class_name(code)
   end
 
   def self.get_def_name(line : String) : String?
@@ -159,7 +154,7 @@ class RubyUnderstander
   end
 
   def self.get_cmp_name(rb_file : String, cls_name : String) : String?
-  # puts "get variables"
+    # puts "get variables"
 
     rb_file.each_line do |line|
 
