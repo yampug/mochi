@@ -2,6 +2,7 @@ require "./ruby_var"
 require "./ruby_script_engine"
 require "../tree-sitter/class_extractor"
 require "../tree-sitter/property_extractor"
+require "../tree-sitter/imports_extractor"
 
 class RubyUnderstander
 
@@ -54,17 +55,7 @@ class RubyUnderstander
   end
 
   def self.get_imports(rb_file : String) : Array(String)
-    result = [] of String
-
-    rb_file.each_line do |line|
-      trim = line.strip
-      if trim.starts_with?("require ")
-        import_value = trim[8...trim.size - 1].strip
-        result << import_value.strip
-      end
-    end
-
-    return result
+    TreeSitter::ImportsExtractor.extract_imports(rb_file)
   end
 
   def self.get_parameters(line : String) : Array(String)
@@ -157,6 +148,5 @@ class RubyUnderstander
   def self.get_cmp_name(rb_file : String, cls_name : String) : String?
     TreeSitter::PropertyExtractor.extract_property(rb_file, "@tag_name")
   end
-
 
 end

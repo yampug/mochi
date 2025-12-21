@@ -190,4 +190,48 @@ describe RubyUnderstander do
     end
   end
 
+  describe "get_imports" do
+    it "extracts simple require statements with double quotes" do
+      code = SpecDataLoader.load("ruby/imports_simple.rb")
+      imports = RubyUnderstander.get_imports(code)
+      imports.should eq ["json", "file_utils"]
+    end
+
+    it "extracts require statements with single quotes" do
+      code = SpecDataLoader.load("ruby/imports_single_quotes.rb")
+      imports = RubyUnderstander.get_imports(code)
+      imports.should eq ["json", "file_utils"]
+    end
+
+    it "extracts mixed quote styles" do
+      code = SpecDataLoader.load("ruby/imports_mixed.rb")
+      imports = RubyUnderstander.get_imports(code)
+      imports.should eq ["json", "file_utils", "http/client"]
+    end
+
+    it "extracts relative path requires" do
+      code = SpecDataLoader.load("ruby/imports_relative.rb")
+      imports = RubyUnderstander.get_imports(code)
+      imports.should eq ["./lib/helper", "../utils/parser"]
+    end
+
+    it "returns empty array when no requires" do
+      code = SpecDataLoader.load("ruby/imports_none.rb")
+      imports = RubyUnderstander.get_imports(code)
+      imports.should eq [] of String
+    end
+
+    it "ignores commented out requires" do
+      code = SpecDataLoader.load("ruby/imports_with_comments.rb")
+      imports = RubyUnderstander.get_imports(code)
+      imports.should eq ["json", "file_utils"]
+    end
+
+    it "handles indented requires" do
+      code = SpecDataLoader.load("ruby/imports_indented.rb")
+      imports = RubyUnderstander.get_imports(code)
+      imports.should eq ["json", "file_utils"]
+    end
+  end
+
 end
