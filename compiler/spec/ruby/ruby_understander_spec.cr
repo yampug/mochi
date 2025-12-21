@@ -7,6 +7,15 @@ def check_class_name(exp_name : String, code : String)
   name.should eq(exp_name)
 end
 
+def extract_string_from_file(rb_file : String, method_name : String) : String?
+  code = SpecDataLoader.load(rb_file)
+  class_name = RubyUnderstander.class_name(code)
+  methods = RubyUnderstander.extract_method_bodies(code, class_name)
+  ruby_def = methods[method_name]?
+  return nil unless ruby_def
+  return RubyUnderstander.extract_raw_string_from_def_body(ruby_def.body, method_name)
+end
+
 describe RubyUnderstander do
 
   it "processes simple if condition" do
@@ -231,6 +240,43 @@ describe RubyUnderstander do
       code = SpecDataLoader.load("ruby/imports_indented.rb")
       imports = RubyUnderstander.get_imports(code)
       imports.should eq ["json", "file_utils"]
+    end
+  end
+
+  describe "extract_raw_string_from_def_body" do
+    it "extracts string from %Q{} format" do
+      result = extract_string_from_file("ruby/def_body_uppercase_Q.rb", "html")
+      result.should eq "<div>Hello World</div>"
+    end
+
+    it "extracts string from %q{} format" do
+      result = extract_string_from_file("ruby/def_body_lowercase_q.rb", "text")
+      result.should eq "Simple text without interpolation"
+    end
+
+    it "extracts string from double quotes" do
+      result = extract_string_from_file("ruby/def_body_double_quotes.rb", "title")
+      result.should eq "Welcome to My App"
+    end
+
+    it "extracts string from single quotes" do
+      result = extract_string_from_file("ruby/def_body_single_quotes.rb", "description")
+      result.should eq "This is a description"
+    end
+
+    it "extracts multiline HTML string" do
+      result = extract_string_from_file("ruby/def_body_multiline_html.rb", "html")
+      result.should eq "<div class=\"container\">\n    <h1>Title</h1>\n    <p>Content here</p>\n   </div>"
+    end
+
+    it "handles tabs in method body" do
+      result = extract_string_from_file("ruby/def_body_with_tabs.rb", "template")
+      result.should eq "<div>With tabs</div>"
+    end
+
+    it "extracts plain return without string delimiters" do
+      result = extract_string_from_file("ruby/def_body_plain_return.rb", "value")
+      result.should eq "some_method_call"
     end
   end
 

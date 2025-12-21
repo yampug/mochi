@@ -1,4 +1,6 @@
 require "./ruby_var"
+require "./ruby_def"
+require "./ruby_endable_statement"
 require "./ruby_script_engine"
 require "../tree-sitter/class_extractor"
 require "../tree-sitter/property_extractor"
@@ -7,26 +9,20 @@ require "../tree-sitter/imports_extractor"
 class RubyUnderstander
 
   def self.extract_raw_string_from_def_body(body : Array(String), name : String) : String?
-  # remove first line (def ...) and last line (end)
     inner_body = body[1...body.size - 1]
     .join("\n")
     .strip
     .gsub("\t", "")
     .gsub("  ", " ")
 
-    #puts "inner:'#{inner_body}'"
     if inner_body.starts_with?("%Q{") && inner_body.ends_with?("}")
-    #puts "case 1 #{name}"
       return inner_body[3, inner_body.size - 4].strip
     elsif inner_body.starts_with?("%q{") && inner_body.ends_with?("}")
-    #puts "case 2"
       return inner_body[3, inner_body.size - 4].strip
     elsif inner_body.starts_with?("\"") && inner_body.ends_with?("\"")
-    # puts "case 3"
-      return inner_body[1, inner_body.size - 1].strip
+      return inner_body[1, inner_body.size - 2].strip
     elsif inner_body.starts_with?("'") && inner_body.ends_with?("'")
-    #puts "case 4"
-      return inner_body[1, inner_body.size - 1].strip
+      return inner_body[1, inner_body.size - 2].strip
     end
     return inner_body
   end
