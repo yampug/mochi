@@ -280,4 +280,109 @@ describe RubyUnderstander do
     end
   end
 
+  describe "extract_method_bodies" do
+    it "extracts simple method with no parameters" do
+      code = SpecDataLoader.load("ruby/methods_simple.rb")
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      methods.size.should eq 1
+      methods.has_key?("render").should be_true
+
+      render_method = methods["render"]
+      render_method.name.should eq "render"
+      render_method.class_name.should eq "MyComponent"
+      render_method.parameters.should eq [] of String
+      render_method.body.should eq ["  def render", "    puts \"Hello\"", "  end"]
+    end
+
+    it "extracts method with parameters" do
+      code = SpecDataLoader.load("ruby/methods_with_params.rb")
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      methods.size.should eq 1
+      methods.has_key?("greet").should be_true
+
+      greet_method = methods["greet"]
+      greet_method.name.should eq "greet"
+      greet_method.parameters.should eq ["name", "age"]
+    end
+
+    it "extracts multiple methods" do
+      code = SpecDataLoader.load("ruby/methods_multiple.rb")
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      methods.size.should eq 3
+      methods.has_key?("first_method").should be_true
+      methods.has_key?("second_method").should be_true
+      methods.has_key?("third_method").should be_true
+
+      methods["first_method"].parameters.should eq [] of String
+      methods["second_method"].parameters.should eq ["arg"]
+      methods["third_method"].parameters.should eq [] of String
+    end
+
+    it "handles method with nested if statement" do
+      code = SpecDataLoader.load("ruby/methods_nested_if.rb")
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      methods.size.should eq 1
+      check_method = methods["check_value"]
+      check_method.parameters.should eq ["value"]
+      check_method.body.size.should eq 7
+      check_method.body[0].should eq "  def check_value(value)"
+      check_method.body[6].should eq "  end"
+    end
+
+    it "handles method with loop" do
+      code = SpecDataLoader.load("ruby/methods_with_loop.rb")
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      methods.size.should eq 1
+      iterate_method = methods["iterate"]
+      iterate_method.parameters.should eq ["items"]
+      iterate_method.body.size.should eq 4
+      iterate_method.body[1].should eq "    items.each do |item|"
+      iterate_method.body[2].should eq "      puts item"
+    end
+
+    it "handles empty method" do
+      code = SpecDataLoader.load("ruby/methods_empty.rb")
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      methods.size.should eq 1
+      empty_method = methods["empty_method"]
+      empty_method.parameters.should eq [] of String
+      empty_method.body.should eq ["  def empty_method", "  end"]
+    end
+
+    it "extracts method with default parameters" do
+      code = SpecDataLoader.load("ruby/methods_default_params.rb")
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      methods.size.should eq 1
+      configure_method = methods["configure"]
+      configure_method.parameters.should eq ["name", "enabled = true"]
+    end
+
+    it "returns empty hash when no methods found" do
+      code = <<-RUBY
+      class MyComponent
+        @name = "test"
+      end
+      RUBY
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      methods.size.should eq 0
+    end
+
+    it "preserves indentation in method body" do
+      code = SpecDataLoader.load("ruby/methods_nested_if.rb")
+      methods = RubyUnderstander.extract_method_bodies(code, "MyComponent")
+
+      check_method = methods["check_value"]
+      check_method.body[1].should eq "    if value > 0"
+      check_method.body[2].should eq "      puts \"positive\""
+    end
+  end
+
 end
