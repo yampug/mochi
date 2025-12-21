@@ -1,6 +1,7 @@
 require "./ruby_var"
 require "./ruby_script_engine"
 require "../tree-sitter/class_extractor"
+require "../tree-sitter/property_extractor"
 
 class RubyUnderstander
 
@@ -154,23 +155,7 @@ class RubyUnderstander
   end
 
   def self.get_cmp_name(rb_file : String, cls_name : String) : String?
-    # puts "get variables"
-
-    rb_file.each_line do |line|
-
-      trim = line.strip
-      if trim.starts_with?("@tag_name")
-
-      #puts "got cmp_name line #{trim}"
-        index_eq = trim.index("=")
-        if index_eq
-          tag_name = trim[index_eq + 1...].strip.gsub("\"", "")
-          #puts "cmp_name is '#{cmp_name}'"
-          return tag_name
-        end
-      end
-    end
-    return nil
+    TreeSitter::PropertyExtractor.extract_property(rb_file, "@tag_name")
   end
 
 
