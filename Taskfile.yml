@@ -20,15 +20,19 @@ tasks:
     cmds:
       - '{{.FRAG_CONFIG}} && cd compiler && rm -rf ./motestproj &&  time crystal run src/mochi.cr {{.LINK_FLAGS}} -- --initialize="motestproj"'
 
+  wipe-build-dir:
+    cmds:
+      - 'rm -r ./compiler/build'
+
   run:
+    deps:
+      - wipe-build-dir
     cmds:
       - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
 
   run-no-internal-logs:
-    cmds:
-      - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
-
-  run-with-typecheck:
+    deps:
+      - wipe-build-dir
     cmds:
       - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
 

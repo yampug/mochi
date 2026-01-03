@@ -2,6 +2,7 @@
 e2e/tests/** linguist-vendored
 e2e/tests-examples/** linguist-vendored
 compiler/spec/** linguist-vendored
+compiler/spec_data/** linguist-documentation
 **/spec/** linguist-vendored
 **/*.spec.ts linguist-vendored
 **/*.spec.js linguist-vendored
