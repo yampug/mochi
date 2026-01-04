@@ -52,7 +52,7 @@ tasks:
 
   dev:
     cmds:
-      - '{{.FRAG_CONFIG}} && cd compiler && crystal run src/mochi.cr {{.LINK_FLAGS}} -- --dev --root="../devground/public"'
+      - '{{.FRAG_CONFIG}} && cd compiler && crystal run src/mochi.cr {{.LINK_FLAGS}} -- --dev --config=../config/dev_server_config.json --root="../devground/public"'
 
   e2e:
     deps:

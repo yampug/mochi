@@ -76,7 +76,10 @@ with_mini = false
 with_tc = false
 is_dev_server = false
 dev_server_root = ""
+dev_server_config_path = ""
 is_standalone_typecheck = false
+
+desc_dev_server = "Launch dev server"
 
 parser = OptionParser.new
 OptionParser.parse do |p|
@@ -111,12 +114,20 @@ OptionParser.parse do |p|
     exit
   end
 
-  p.on("--dev", "Launch dev server") do
+  p.on("--dev", desc_dev_server) do
+    is_dev_server = true
+  end
+
+  p.on("dev", desc_dev_server) do
     is_dev_server = true
   end
 
   p.on("--root=ROOT_DIR", "Root directory for the dev server") do |root_dir|
     dev_server_root = root_dir
+  end
+
+  p.on("--config=DEV_CONFIG", "Path to dev server config file") do |config_path|
+    dev_server_config_path = config_path
   end
 
   # Handle cases where a required argument for an option is missing
@@ -137,8 +148,14 @@ OptionParser.parse do |p|
 end
 
 if is_dev_server
-  dev_server = DevServer.new
-  dev_server.start(dev_server_root)
+  if dev_server_config_path.size < 1 || dev_server_root.size < 1
+    puts "No arguments provided, intended usage:".colorize(:red)
+    puts "  mochi dev --config=</path/to/dev_server_config.json> --root=</path/to/ruby/src>"
+    exit 1
+  else
+    dev_server = DevServer.new
+    dev_server.start(dev_server_root, dev_server_config_path)
+  end
 else
   if is_standalone_typecheck
     if ARGV.empty?
@@ -151,7 +168,7 @@ else
     exit 0
   end
 
-  puts "Mochi v0.1f"
+  puts "Mochi v0.2"
   if !project_name.empty?
     Initializer.new(project_name)
   else

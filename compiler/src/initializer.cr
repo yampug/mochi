@@ -18,6 +18,8 @@ class Initializer
       File.write("#{proj_path}/Taskfile.yml", generate_taskfile)
       File.write("#{proj_path}/Gemfile", generate_gemfile)
       File.write("#{proj_path}/index.html", generate_index_html)
+      File.write("#{proj_path}/dev_server_config.json", generate_dev_server_config)
+      File.write("#{proj_path}/README.md", generate_readme)
       File.write("#{src_path}/MyCounter.rb", generate_my_first_mochi_component)
     end
   end
@@ -29,7 +31,7 @@ class Initializer
     tasks:
       build:
         cmds:
-          - mochi -i "./" -o "./build" -m
+          - mochi -i "./" -o "./build"
     YML
   end
 
@@ -43,6 +45,41 @@ class Initializer
     gem 'sorbet', :group => :development
     gem 'sorbet-runtime'
     gem 'tapioca', require: false, :group => [:development, :test]
+    TEXT
+  end
+
+  def generate_readme : String
+    <<-'TEXT'
+    # Mochi Starter
+
+    The Official Documentation for Mochi can be found under: https://mochirb.com/docs
+
+    ## Getting Started
+
+    ### Building the project
+    In order to build the project you can run `mochi -i "./" -o "./build"` alternatively `task build` has already been preconfigured.
+
+    This will produce the 2 build artifacts:
+    * `./build/bundle.js` - contains your components
+    * `./build/opal-runtime.js` - the opal runtime
+
+    ### Starting the Dev Server
+    Mochi ships with a built-in dev server which can be started with
+    ```
+    mochi dev --config=./dev_server_config.json --root=./
+    ```
+    by default it is be accessible under: http://127.0.0.1:27490
+
+    TEXT
+  end
+
+  def generate_dev_server_config : String
+    <<-'TEXT'
+    {
+      "routes": {
+        "/": "index.html"
+      }
+    }
     TEXT
   end
 

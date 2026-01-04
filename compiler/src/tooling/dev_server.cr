@@ -10,6 +10,7 @@ class DevServer
 
   def load_config(config_path : String)
     if File.exists?(config_path)
+      puts "Loading config from '#{config_path}'"
       begin
         config_content = File.read(config_path)
         json = JSON.parse(config_content)
@@ -108,7 +109,7 @@ class DevServer
     false
   end
 
-  def start(root_dir : String, config_path : String = "../config/dev_server_config.json")
+  def start(root_dir : String, config_path : String)
     load_config(config_path)
 
     server = HTTP::Server.new do |context|
