@@ -1,4 +1,6 @@
 require "./builder_man"
+require "file"
+require "file_utils"
 
 class BuildMain
 
@@ -40,7 +42,9 @@ class BuildMain
     output_dir : String,
     parser : OptionParser,
     with_tc : Bool,
-    with_mini : Bool)
+    with_mini : Bool,
+    keep_granular_build_artifacts : Bool
+  )
 
     # 1. Prepare Input / Output directories
     if input_dir.empty? || output_dir.empty?
@@ -80,8 +84,8 @@ class BuildMain
     step_nr += 1
     bundle_file_path = ""
     bundling_time_taken = Time.measure do
-      `cp "#{builder_man.build_dir}/opal-runtime.js" "#{output_dir}/opal-runtime.js"`
-      `cp "#{builder_man.build_dir}/components.js" "#{output_dir}/bundle.js"`
+      `cp "#{builder_man.build_dir}/runtime.js" "#{output_dir}/runtime.js"`
+      `cp "#{builder_man.build_dir}/bundle.js" "#{output_dir}/bundle.js"`
 
       bundle_js = File.read("#{output_dir}/bundle.js")
 
@@ -103,13 +107,38 @@ class BuildMain
           exit 1
         end
 
-        `npx swc "#{output_dir}/opal-runtime.js" -o "#{output_dir}/opal-runtime.js"`
+        `npx swc "#{output_dir}/runtime.js" -o "#{output_dir}/runtime.js"`
       end
     end
     puts "> Minification took #{mini_time_taken.total_milliseconds.to_i}ms"
 
+    if !keep_granular_build_artifacts
+      puts "removing granular build artifacts"
+
+      remove_file("#{builder_man.build_dir}/ruby.js")
+      remove_directory("#{builder_man.build_dir}/pre_tp")
+      remove_directory("#{builder_man.build_dir}/src")
+    end
 
     print_separator
     puts "Done."
+  end
+
+  def remove_file(file_path : String)
+    begin
+      File.delete(file_path)
+    rescue Exception
+      puts "Unable to remove file, as I couldnt find it: #{file_path}"
+    end
+  end
+
+  def remove_directory(dir_path : String)
+    if dir_path.size > 5 # safety guard so nobody pipes sth like "/" in there
+      begin
+        FileUtils.rm_rf(dir_path)
+      rescue e : Exception
+        puts "Unable to remove directory #{dir_path}: #{e.message}"
+      end
+    end
   end
 end

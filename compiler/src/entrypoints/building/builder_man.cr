@@ -11,7 +11,7 @@ class BuilderMan
     # create mochi dir
     create_mochi_dir_if_missing
 
-    opal_rt_file = "opal-runtime.js"
+    opal_rt_file = "runtime.js"
     entries_to_delete = Dir.entries(build_dir).reject do |entry|
       entry == "." || entry == ".." || entry == opal_rt_file
     end

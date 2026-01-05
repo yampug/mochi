@@ -70,8 +70,8 @@ class Compiler
     components_js_code = components_js_code + "\n" + "console.log('Mochi booted.');" + "\n"
 
     output = transpiled_ruby_code + "\n" + components_js_code
-    puts "Writing #{build_dir}/components.js"
-    File.write("#{build_dir}/components.js", output)
+    puts "Writing #{build_dir}/bundle.js"
+    File.write("#{build_dir}/bundle.js", output)
     puts "Transpilation finished"
 
   end

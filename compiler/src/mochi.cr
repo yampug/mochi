@@ -78,6 +78,7 @@ is_dev_server = false
 dev_server_root = ""
 dev_server_config_path = ""
 is_standalone_typecheck = false
+keep_granular_build_artifacts = false
 
 desc_dev_server = "Launch dev server"
 
@@ -109,6 +110,9 @@ OptionParser.parse do |p|
     is_standalone_typecheck = true
   end
 
+  p.on("--keep_granular_build_artifacts", "Preserves all granular build artifacts (meant for developers working on Mochi)") do
+    keep_granular_build_artifacts = true
+  end
   p.on("-h", "--help", "Show this help") do
     puts p
     exit
@@ -177,7 +181,8 @@ else
       output_dir,
       parser,
       with_tc,
-      with_mini
+      with_mini,
+      keep_granular_build_artifacts
     )
   end
 end

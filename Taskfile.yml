@@ -22,7 +22,7 @@ tasks:
 
   wipe-build-dir:
     cmds:
-      - 'rm -r ./compiler/build'
+      - 'rm -r ./compiler/build || true'
 
   run:
     deps:

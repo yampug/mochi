@@ -15,7 +15,7 @@ devground/a
 devground/bundle.js
 devground/bundle.min.js
 devground/opal-runtime.js
-devground/components.js
+devground/runtime.js
 devground/components.js
 e2e/node_modules
 e2e/test-results

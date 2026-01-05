@@ -61,7 +61,7 @@ class Initializer
 
     This will produce the 2 build artifacts:
     * `./build/bundle.js` - contains your components
-    * `./build/opal-runtime.js` - the opal runtime
+    * `./build/runtime.js` - the opal runtime
 
     ### Starting the Dev Server
     Mochi ships with a built-in dev server which can be started with
@@ -89,7 +89,7 @@ class Initializer
         <head>
             <title>Mochi Starter</title>
             <script
-              src="./build/opal-runtime.js"
+              src="./build/runtime.js"
               onload='Opal.require("native"); Opal.require("promise"); Opal.require("browser/setup/full");'></script>
             <script src="./build/bundle.js"></script>
             <link rel="preconnect" href="https://fonts.googleapis.com">
