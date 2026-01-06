@@ -9,7 +9,7 @@ vars:
         echo 'export LIBRARY_PATH="" && export LD_LIBRARY_PATH="{{.ROOT_DIR}}/fragments/libs"'
       fi
   LINK_FLAGS: '--link-flags="-L{{.ROOT_DIR}}/fragments/libs"'
-  DEFAULT_RUN_PARAMS: '-i "../devground/components" -o "../devground/public" --minimize'
+  DEFAULT_RUN_PARAMS: '-i "../devground/components" -o "../devground/public"'
 
 tasks:
   specs:

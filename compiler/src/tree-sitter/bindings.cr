@@ -1,6 +1,5 @@
 {% begin %}
-  {% libs_path = `cd #{__DIR__.id}/../../../fragments/libs && pwd`.chomp %}
-  @[Link(ldflags: "-L{{libs_path}} -Wl,-rpath,{{libs_path}} -ltree-sitter")]
+  @[Link(ldflags: "#{__DIR__}/../../../fragments/libs/libtree-sitter.a")]
   lib LibTreeSitter
     type Parser = Void*
     type Tree = Void*
@@ -43,7 +42,7 @@
   end
 
   # Ruby language binding
-  @[Link(ldflags: "-L{{libs_path}} -Wl,-rpath,{{libs_path}} -ltree-sitter-ruby")]
+  @[Link(ldflags: "#{__DIR__}/../../../fragments/libs/libtree-sitter-ruby.a")]
   lib LibTreeSitterRuby
     fun tree_sitter_ruby : LibTreeSitter::Language
   end

@@ -1,7 +1,9 @@
 require "json"
 
 # C API bindings for libsorbet
-@[Link("sorbet")]
+# NOTE: Still using shared library (.dylib) for Sorbet due to Bazel build complexity
+# Static linking for Sorbet requires more investigation
+@[Link(ldflags: "#{__DIR__}/../../../fragments/libs/libsorbet.dylib")]
 lib LibSorbet
   type Session = Void*
 

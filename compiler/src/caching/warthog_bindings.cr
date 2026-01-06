@@ -1,4 +1,4 @@
-@[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lwarthogdb")]
+@[Link(ldflags: "#{__DIR__}/../../../fragments/libs/libwarthogdb.a")]
 lib LibWarthog
   alias WarthogHandle = Void*
   alias SnapshotHandle = Void*
