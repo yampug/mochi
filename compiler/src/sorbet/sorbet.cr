@@ -1,9 +1,13 @@
 require "json"
 
 # C API bindings for libsorbet
-# NOTE: Still using shared library (.dylib) for Sorbet due to Bazel build complexity
-# Static linking for Sorbet requires more investigation
-@[Link(ldflags: "#{__DIR__}/../../../fragments/libs/libsorbet.dylib")]
+# Static linking: libsorbet.a + libprism.a + librbs_parser.a
+# NOTE: Current libsorbet.a has incomplete symbols - see BUILD_INSTRUCTIONS_EXT_LIBS.md
+{% if flag?(:darwin) %}
+  @[Link(ldflags: "-Wl,-force_load,#{__DIR__}/../../../fragments/libs/libsorbet.a #{__DIR__}/../../../fragments/libs/libprism.a #{__DIR__}/../../../fragments/libs/librbs_parser.a -lc++ -framework CoreFoundation")]
+{% else %}
+  @[Link(ldflags: "-Wl,--whole-archive #{__DIR__}/../../../fragments/libs/libsorbet.a #{__DIR__}/../../../fragments/libs/libprism.a #{__DIR__}/../../../fragments/libs/librbs_parser.a -Wl,--no-whole-archive -lstdc++ -lpthread -ldl")]
+{% end %}
 lib LibSorbet
   type Session = Void*
 
