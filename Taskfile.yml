@@ -69,3 +69,23 @@ tasks:
     cmds:
       - ruby scripts/fragments_generator.rb
       - crystal tool format ./compiler/src/generated
+
+  download_libs:auto:
+    desc: 'Download platform-specific libraries (auto-detect)'
+    cmds:
+      - ruby scripts/download_libs.rb
+
+  download_libs:macos:
+    desc: 'Download macOS ARM64 libraries'
+    cmds:
+      - ruby scripts/download_libs.rb darwin aarch64
+
+  download_libs:linux:
+    desc: 'Download Linux x86_64 libraries'
+    cmds:
+      - ruby scripts/download_libs.rb linux x86_64
+
+  download_libs:windows:
+    desc: 'Download Windows x86_64 libraries'
+    cmds:
+      - ruby scripts/download_libs.rb windows x86_64
