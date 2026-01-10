@@ -26,6 +26,6 @@ compiler/src/generated
 testapp/package-lock.json
 testapp/node_modules
 /compiler/src/sorbet/test_simple.dwarf
-
+compiler/**/*.md
 
 fragments/libs/lib*.a
