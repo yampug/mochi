@@ -58,5 +58,64 @@ describe QuickJS do
          js.finalize
          File.delete(path)
     end
+    
+    it "supports global property access" do
+      js = QuickJS::Runtime.new
+      js["myVar"] = 42
+      js["myVar"].to_i.should eq 42
+      js.finalize
+    end
+
+    it "supports function calls on global object" do
+      js = QuickJS::Runtime.new
+      js.eval("function add(a, b) { return a + b; }")
+      js.call("add", 10, 20).to_i.should eq 30
+      js.finalize
+    end
+  end
+
+  describe QuickJS::Value do
+    it "supports object property access" do
+      js = QuickJS::Runtime.new
+      obj = js.eval("({a: 1})")
+      obj["a"].to_i.should eq 1
+      obj["b"] = 2
+      obj["b"].to_i.should eq 2
+      js.finalize
+    end
+
+    it "supports array operations" do
+      js = QuickJS::Runtime.new
+      arr = js.eval("[1, 2, 3]")
+      arr.size.should eq 3
+      
+      doubled = arr.map { |v| v.to_i * 2 }
+      doubled.should eq [2, 4, 6]
+      
+      js.finalize
+    end
+    
+    it "supports function calls on values" do
+      js = QuickJS::Runtime.new
+      func = js.eval("(function(a) { return a * a; })")
+      func.call(5).to_i.should eq 25
+      js.finalize
+    end
+
+    it "supports complex conversions" do
+       js = QuickJS::Runtime.new
+       
+       arr = js.eval("[10, 20]")
+       crystal_arr = arr.to_a
+       crystal_arr.size.should eq 2
+       crystal_arr[0].to_i.should eq 10
+       
+       obj = js.eval("({x: 1, y: 2})")
+       h = obj.to_h
+       h["x"].to_i.should eq 1
+       h["y"].to_i.should eq 2
+       
+       js.finalize
+    end
   end
 end

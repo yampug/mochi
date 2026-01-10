@@ -118,6 +118,127 @@ module QuickJS
       res != 0
     end
 
+    def to_a : Array(Value)
+      raise TypeError.new("Value is not an array") unless array?
+      
+      result = [] of Value
+      each do |val|
+        result << val
+      end
+      result
+    end
+
+    def to_h : Hash(String, Value)
+      raise TypeError.new("Value is not an object") unless object?
+      
+      result = {} of String => Value
+      keys.each do |key|
+        result[key] = self[key]
+      end
+      result
+    end
+
+    def [](key : String) : Value
+      prop = LibQuickJS.js_getpropertystr(@runtime.context, @handle, key)
+      Value.new(@runtime, prop)
+    end
+
+    def [](index : Int32) : Value
+      prop = LibQuickJS.js_getpropertyuint32(@runtime.context, @handle, index.to_u32)
+      Value.new(@runtime, prop)
+    end
+
+    def []=(key : String, value)
+      js_val = @runtime.to_js_value(value)
+      LibQuickJS.js_setpropertystr(@runtime.context, @handle, key, js_val)
+    end
+
+    def []=(index : Int32, value)
+      js_val = @runtime.to_js_value(value)
+      LibQuickJS.js_setpropertyuint32(@runtime.context, @handle, index.to_u32, js_val)
+    end
+    
+    def has_key?(key : String) : Bool
+       atom = LibQuickJS.js_newatom(@runtime.context, key)
+       ret = LibQuickJS.js_hasproperty(@runtime.context, @handle, atom)
+       LibQuickJS.js_freeatom(@runtime.context, atom)
+       ret != 0
+    end
+
+    def keys : Array(String)
+      global = LibQuickJS.js_getglobalobject(@runtime.context)
+      object_cls = LibQuickJS.js_getpropertystr(@runtime.context, global, "Object")
+      keys_func = LibQuickJS.js_getpropertystr(@runtime.context, object_cls, "keys")
+      
+      args = [@handle]
+      result = LibQuickJS.js_call(@runtime.context, keys_func, QuickJS::UNDEFINED, 1, pointerof(@handle))
+      
+      LibQuickJS.js_freevalue(@runtime.context, keys_func)
+      LibQuickJS.js_freevalue(@runtime.context, object_cls)
+      LibQuickJS.js_freevalue(@runtime.context, global)
+      
+      if QuickJS.is_exception?(result)
+         LibQuickJS.js_freevalue(@runtime.context, result)
+         raise Error.new("Failed to get keys")
+      end
+
+      # result is an array of strings
+      # Convert to Crystal Array(String)
+      keys_val = Value.new(@runtime, result)
+      arr = [] of String
+      keys_val.each do |k|
+        arr << k.to_s
+      end
+      
+      keys_val.each do |k|
+        arr << k.to_s
+      end
+      
+      arr
+    end
+
+    def call(*args) : Value
+      call(nil, *args)
+    end
+
+    def call(this_obj : Value?, *args) : Value
+      raise TypeError.new("Value is not a function") unless function?
+      
+      js_this = this_obj ? this_obj.handle : QuickJS::UNDEFINED
+      
+      js_args = args.map { |arg| @runtime.to_js_value(arg) }.to_a
+      
+      result = LibQuickJS.js_call(@runtime.context, @handle, js_this, js_args.size, js_args.to_unsafe)
+      
+      if QuickJS.is_exception?(result)
+        @runtime.check_exception!
+        raise Error.new("Function call failed") # Fallback
+      end
+
+      Value.new(@runtime, result)
+    end
+
+
+    def size : Int32
+      len_val = LibQuickJS.js_getpropertystr(@runtime.context, @handle, "length")
+      val = Value.new(@runtime, len_val)
+      val.to_i 
+    end
+
+    def each(&block : Value ->)
+      sz = size
+      sz.times do |i|
+        yield self[i]
+      end
+    end
+
+    def map(&block : Value -> T) : Array(T) forall T
+      result = [] of T
+      each do |val|
+        result << yield val
+      end
+      result
+    end
     def as_i(default = 0) : Int32
       to_i
     rescue

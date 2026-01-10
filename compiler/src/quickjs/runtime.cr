@@ -60,11 +60,100 @@ module QuickJS
       eval(code, path)
     end
 
+    def [](key : String) : Value
+      global = LibQuickJS.js_getglobalobject(@context)
+      prop = LibQuickJS.js_getpropertystr(@context, global, key)
+      LibQuickJS.js_freevalue(@context, global)
+      
+      val = Value.new(self, prop)
+      LibQuickJS.js_freevalue(@context, prop)
+      val
+    end
+
+    def []=(key : String, value)
+      global = LibQuickJS.js_getglobalobject(@context)
+      js_val = to_js_value(value)
+      
+      LibQuickJS.js_setpropertystr(@context, global, key, js_val)
+      LibQuickJS.js_freevalue(@context, global)
+    end
+
+    def call(function_name : String, *args) : Value
+      global = LibQuickJS.js_getglobalobject(@context)
+      func_obj = LibQuickJS.js_getpropertystr(@context, global, function_name)
+      LibQuickJS.js_freevalue(@context, global)
+
+      if LibQuickJS.js_isfunction(@context, func_obj) == 0
+        LibQuickJS.js_freevalue(@context, func_obj)
+        raise TypeError.new("'#{function_name}' is not a function")
+      end
+      
+      js_args = args.map { |arg| to_js_value(arg) }.to_a
+      
+      result = LibQuickJS.js_call(@context, func_obj, QuickJS::UNDEFINED, js_args.size, js_args.to_unsafe)
+      LibQuickJS.js_freevalue(@context, func_obj)
+      
+      if QuickJS.is_exception?(result)
+        check_exception!
+        raise Error.new("Error calling function '#{function_name}'")
+      end
+
+      val = Value.new(self, result)
+      LibQuickJS.js_freevalue(@context, result)
+      val
+    end
+
+    def to_js_value(value : Int32) : LibQuickJS::JSValue
+      QuickJS.mkval(LibQuickJS::JS_TAG_INT, value)
+    end
+
+    def to_js_value(value : Int64) : LibQuickJS::JSValue
+       LibQuickJS.js_newbigint64(@context, value)
+    end
+
+    def to_js_value(value : Float64) : LibQuickJS::JSValue
+      LibQuickJS.js_newnumber(@context, value)
+    end
+
+    def to_js_value(value : String) : LibQuickJS::JSValue
+      LibQuickJS.js_newstringlen(@context, value.to_unsafe, value.bytesize)
+    end
+
+    def to_js_value(value : Bool) : LibQuickJS::JSValue
+      value ? QuickJS::TRUE : QuickJS::FALSE
+    end
+
+    def to_js_value(value : Nil) : LibQuickJS::JSValue
+      QuickJS::NULL
+    end
+
+    def to_js_value(value : Value) : LibQuickJS::JSValue
+      LibQuickJS.js_dupvalue(@context, value.handle)
+    end
+
+    def to_js_value(value : Array) : LibQuickJS::JSValue
+      arr = LibQuickJS.js_newarray(@context)
+      value.each_with_index do |v, i|
+        js_v = to_js_value(v)
+        LibQuickJS.js_setpropertyuint32(@context, arr, i, js_v)
+      end
+      arr
+    end
+    
+    def to_js_value(value : Hash) : LibQuickJS::JSValue
+      obj = LibQuickJS.js_newobject(@context)
+      value.each do |k, v|
+        js_v = to_js_value(v)
+        LibQuickJS.js_setpropertystr(@context, obj, k.to_s, js_v)
+      end
+      obj
+    end
+
     def gc
       LibQuickJS.js_rungc(@handle)
     end
 
-    private def check_exception!
+    protected def check_exception!
        exception_val = LibQuickJS.js_getexception(@context)
        
        str_val = LibQuickJS.js_tostring(@context, exception_val)
