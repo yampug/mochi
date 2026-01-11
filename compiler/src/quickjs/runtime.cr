@@ -153,6 +153,58 @@ module QuickJS
       LibQuickJS.js_rungc(@handle)
     end
 
+    def set_memory_limit(limit : UInt64)
+      LibQuickJS.js_setmemorylimit(@handle, limit)
+    end
+
+    def set_gc_threshold(threshold : UInt64)
+      LibQuickJS.js_setgcthreshold(@handle, threshold)
+    end
+
+    # Callbacks
+    def register_function(name : String, &block : Array(Value) -> Value)
+      raise Error.new("Registering functions with closures not fully implemented yet without C shim extensions")
+    end 
+    
+    def run_jobs
+      pctx = Pointer(Void).null.as(LibQuickJS::JSContext)
+      loop do
+        ret = LibQuickJS.js_executependingjob(@handle, pointerof(pctx))
+        break if ret == 0
+        if ret < 0
+             break
+        end
+      end
+    end
+
+    def eval_async(code : String) : Value
+      val = eval(code)
+      run_jobs if val.promise?
+      val
+    end
+
+    # Modules
+    def load_module(path : String) : Value
+      code = File.read(path)
+      
+      js_val = LibQuickJS.js_eval(
+        @context,
+        code.to_unsafe,
+        code.bytesize,
+        path.to_unsafe,
+        LibQuickJS::JS_EVAL_TYPE_MODULE
+      )
+
+      if QuickJS.is_exception?(js_val)
+        check_exception!
+        raise Error.new("Failed to compile module")
+      end
+      
+      val = Value.new(self, js_val)
+      LibQuickJS.js_freevalue(@context, js_val)
+      val
+    end
+
     protected def check_exception!
        exception_val = LibQuickJS.js_getexception(@context)
        

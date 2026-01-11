@@ -72,9 +72,41 @@ describe QuickJS do
       js.call("add", 10, 20).to_i.should eq 30
       js.finalize
     end
+
+    it "supports module loading" do
+      path = "test_mod.js"
+      File.write(path, "export const x = 42;")
+      
+      js = QuickJS::Runtime.new
+      mod = js.load_module(path)
+      js.finalize
+      File.delete(path)
+    end
+
+    it "supports async/await promises" do
+      js = QuickJS::Runtime.new
+      js.eval("var p = Promise.resolve(42)")
+      js.run_jobs
+      js.finalize
+    end
   end
 
   describe QuickJS::Value do
+    it "supports JSON stringify" do
+      js = QuickJS::Runtime.new
+      obj = js.eval("({a: 1})")
+      obj.to_json.should eq %({"a":1})
+      js.finalize
+    end
+
+    it "supports TypedArrays" do
+      js = QuickJS::Runtime.new
+      arr = js.eval("new Uint8Array([1, 2, 3])")
+      arr.uint8_array?.should be_true
+      arr.size.should eq 3
+      js.finalize
+    end
+
     it "supports object property access" do
       js = QuickJS::Runtime.new
       obj = js.eval("({a: 1})")

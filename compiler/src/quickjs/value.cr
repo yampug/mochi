@@ -138,6 +138,26 @@ module QuickJS
       result
     end
 
+    def to_json : String
+       str_val = LibQuickJS.js_jsonstringify(@runtime.context, @handle, QuickJS::UNDEFINED, QuickJS::UNDEFINED)
+       if QuickJS.is_exception?(str_val)
+          LibQuickJS.js_freevalue(@runtime.context, str_val)
+          raise Error.new("Failed to stringify to JSON")
+       end
+       
+       val = Value.new(@runtime, str_val)
+       result = val.to_s
+       result
+    end
+
+    def promise? : Bool
+      LibQuickJS.js_ispromise(@handle)
+    end
+
+    def uint8_array? : Bool
+      LibQuickJS.js_gettypedarraytype(@handle) != 0
+    end
+
     def [](key : String) : Value
       prop = LibQuickJS.js_getpropertystr(@runtime.context, @handle, key)
       Value.new(@runtime, prop)
@@ -182,14 +202,6 @@ module QuickJS
          raise Error.new("Failed to get keys")
       end
 
-      # result is an array of strings
-      # Convert to Crystal Array(String)
-      keys_val = Value.new(@runtime, result)
-      arr = [] of String
-      keys_val.each do |k|
-        arr << k.to_s
-      end
-      
       keys_val.each do |k|
         arr << k.to_s
       end
