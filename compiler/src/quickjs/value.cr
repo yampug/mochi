@@ -88,7 +88,7 @@ module QuickJS
 
     def to_s : String
       str_val = LibQuickJS.js_tostring(@runtime.context, @handle)
-      
+
       if QuickJS.is_exception?(str_val)
          LibQuickJS.js_freevalue(@runtime.context, str_val)
          raise Error.new("Could not convert value to string")
@@ -96,17 +96,17 @@ module QuickJS
 
       plen = 0_u64
       str_ptr = LibQuickJS.js_tocstringlen2(@runtime.context, pointerof(plen), str_val, false)
-      
+
       if str_ptr.null?
          LibQuickJS.js_freevalue(@runtime.context, str_val)
          raise Error.new("Could not get C string from value")
       end
 
       result = String.new(str_ptr, plen)
-      
+
       LibQuickJS.js_freecstring(@runtime.context, str_ptr)
       LibQuickJS.js_freevalue(@runtime.context, str_val)
-      
+
       result
     end
 
@@ -120,7 +120,7 @@ module QuickJS
 
     def to_a : Array(Value)
       raise TypeError.new("Value is not an array") unless array?
-      
+
       result = [] of Value
       each do |val|
         result << val
@@ -130,7 +130,7 @@ module QuickJS
 
     def to_h : Hash(String, Value)
       raise TypeError.new("Value is not an object") unless object?
-      
+
       result = {} of String => Value
       keys.each do |key|
         result[key] = self[key]
@@ -144,7 +144,7 @@ module QuickJS
           LibQuickJS.js_freevalue(@runtime.context, str_val)
           raise Error.new("Failed to stringify to JSON")
        end
-       
+
        val = Value.new(@runtime, str_val)
        result = val.to_s
        result
@@ -177,7 +177,7 @@ module QuickJS
       js_val = @runtime.to_js_value(value)
       LibQuickJS.js_setpropertyuint32(@runtime.context, @handle, index.to_u32, js_val)
     end
-    
+
     def has_key?(key : String) : Bool
        atom = LibQuickJS.js_newatom(@runtime.context, key)
        ret = LibQuickJS.js_hasproperty(@runtime.context, @handle, atom)
@@ -189,23 +189,25 @@ module QuickJS
       global = LibQuickJS.js_getglobalobject(@runtime.context)
       object_cls = LibQuickJS.js_getpropertystr(@runtime.context, global, "Object")
       keys_func = LibQuickJS.js_getpropertystr(@runtime.context, object_cls, "keys")
-      
+
       args = [@handle]
       result = LibQuickJS.js_call(@runtime.context, keys_func, QuickJS::UNDEFINED, 1, pointerof(@handle))
-      
+
       LibQuickJS.js_freevalue(@runtime.context, keys_func)
       LibQuickJS.js_freevalue(@runtime.context, object_cls)
       LibQuickJS.js_freevalue(@runtime.context, global)
-      
+
       if QuickJS.is_exception?(result)
          LibQuickJS.js_freevalue(@runtime.context, result)
          raise Error.new("Failed to get keys")
       end
 
+      keys_val = Value.new(@runtime, result)
+      arr = [] of String
       keys_val.each do |k|
         arr << k.to_s
       end
-      
+
       arr
     end
 
@@ -215,16 +217,16 @@ module QuickJS
 
     def call(this_obj : Value?, *args) : Value
       raise TypeError.new("Value is not a function") unless function?
-      
+
       js_this = this_obj ? this_obj.handle : QuickJS::UNDEFINED
-      
+
       js_args = args.map { |arg| @runtime.to_js_value(arg) }.to_a
-      
+
       result = LibQuickJS.js_call(@runtime.context, @handle, js_this, js_args.size, js_args.to_unsafe)
-      
+
       if QuickJS.is_exception?(result)
         @runtime.check_exception!
-        raise Error.new("Function call failed") # Fallback
+        raise Error.new("Function call failed")
       end
 
       Value.new(@runtime, result)
@@ -234,7 +236,7 @@ module QuickJS
     def size : Int32
       len_val = LibQuickJS.js_getpropertystr(@runtime.context, @handle, "length")
       val = Value.new(@runtime, len_val)
-      val.to_i 
+      val.to_i
     end
 
     def each(&block : Value ->)

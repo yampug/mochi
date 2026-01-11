@@ -161,6 +161,10 @@ module QuickJS
       LibQuickJS.js_setgcthreshold(@handle, threshold)
     end
 
+    def set_max_stack_size(stack_size : UInt64)
+      LibQuickJS.js_setmaxstacksize(@handle, stack_size)
+    end
+
     # Callbacks
     def register_function(name : String, &block : Array(Value) -> Value)
       raise Error.new("Registering functions with closures not fully implemented yet without C shim extensions")

@@ -1,3 +1,5 @@
+require "./../../quickjs"
+
 class Compiler
   def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan)
     build_dir = builder_man.build_dir
@@ -57,10 +59,72 @@ class Compiler
     puts "Done with preparing components for transpilation"
     puts "Transpiling..."
     transpiled_ruby_code_path = "#{build_dir}/ruby.js"
-    `cd #{builder_man.ruby_src_dir} && bundler install`
-    puts "gems installed"
-    `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map --no-method-missing`
-    transpiled_ruby_code = File.read(transpiled_ruby_code_path)
+    # `cd #{builder_man.ruby_src_dir} && bundler install`
+    puts "gems installed (skipped)"
+
+    use_quickjs = true
+
+    if use_quickjs
+      builder = QuickJS::Opal::Builder.new(include_runtime: false)
+      builder.add_stdlib("await")
+      builder.add_stdlib("json")
+      builder.add_raw_js("Opal.modules['sorbet-runtime'] = function(Opal) { return Opal.nil; };")
+      builder.add_raw_js("Opal.modules['sorbet'] = function(Opal) { return Opal.nil; };")
+
+      # Add 'lib' to Opal load path so that `require 'mochi'` finds `lib/mochi`
+      # IMPORTANT: Opal VFS often behaves better with absolute paths like '/lib'
+      builder.compile("$LOAD_PATH.unshift('/lib'); $LOAD_PATH.unshift('lib'); $LOAD_PATH.unshift('./lib')", "lib_setup")
+      builder.add_raw_js("Opal.load('lib_setup');")
+
+      lib_dir = "#{builder_man.ruby_src_dir}/lib"
+      src_dir = builder_man.ruby_src_dir
+      puts "Scanning #{lib_dir} for source files..."
+
+      if Dir.exists?(lib_dir)
+        Dir.glob("#{lib_dir}/**/*.rb") do |full_path|
+           # skip Root.rb, handled as entry point
+           next if full_path.ends_with?("/Root.rb")
+
+           code = File.read(full_path)
+           rel_path_src = Path[full_path].relative_to(src_dir).to_s
+           rel_path_lib = Path[full_path].relative_to(lib_dir).to_s
+
+           if rel_path_lib == "mochi.rb"
+             # mochi.rb is special: it exists as BOTH mochi and lib/mochi
+             puts "Compiling (dual): #{rel_path_lib} AND #{rel_path_src}"
+             builder.compile(code, rel_path_lib)
+             builder.compile(code, rel_path_src)
+           elsif rel_path_lib.starts_with?("sorbet-types/") # sorbet-types are relative to src
+             puts "Compiling (src-relative): #{rel_path_src}"
+             builder.compile(code, rel_path_src)
+           else # Everything else (e.g. commons/...) is relative to lib
+             puts "Compiling (lib-relative): #{rel_path_lib}"
+             builder.compile(code, rel_path_lib)
+           end
+        end
+      else
+        puts "ERROR: lib_dir does not exist: #{lib_dir}"
+      end
+
+      puts "Compiling Entry Point: lib/Root.rb (as main)"
+      root_path = "#{lib_dir}/Root.rb"
+      if File.exists?(root_path)
+        builder.compile(File.read(root_path), "lib/Root.rb", requirable: false)
+      else
+        puts "ERROR: Root.rb not found at #{root_path}"
+      end
+
+      transpiled_ruby_code = builder.build(nil)
+
+      File.write(transpiled_ruby_code_path, transpiled_ruby_code)
+      builder.finalize
+    else
+      # Opal CLI
+      puts "Using Opal CLI (Old Logic)..."
+      # `cd #{builder_man.ruby_src_dir} && bundler install`
+      `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map --no-method-missing`
+      transpiled_ruby_code = File.read(transpiled_ruby_code_path)
+    end
 
     # assemble the js code (webcomponents etc)
     components_js_code = ""
@@ -105,20 +169,16 @@ class Compiler
         # puts "Item: #{item}"
       end
 
-      # Process conditionals before binding extraction
       conditional_result = ConditionalProcessor.process(html)
 
-      # Inject conditional methods into Ruby code
       amped_ruby_code = ConditionalMethodGenerator.inject_methods_into_class(
       amped_ruby_code,
       cls_name,
       conditional_result.conditionals
       )
 
-      # Process each blocks
       each_result = EachProcessor.process(conditional_result.html)
 
-      # Inject each methods into Ruby code
       amped_ruby_code = EachMethodGenerator.inject_methods_into_class(
       amped_ruby_code,
       cls_name,

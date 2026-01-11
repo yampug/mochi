@@ -6,6 +6,8 @@ require "./quickjs/error"
 require "./quickjs/callback_registry"
 require "./quickjs/builder"
 require "./quickjs/sandbox"
+require "./quickjs/opal"
+require "./quickjs/opal_builder"
 
 module QuickJS
 end

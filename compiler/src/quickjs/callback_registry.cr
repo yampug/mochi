@@ -1,6 +1,5 @@
 module QuickJS
   class CallbackRegistry
-    # Maps callback_id -> Proc
     @@callbacks = {} of UInt32 => Proc(Array(Value), Value)
     @@next_id = 1_u32
 

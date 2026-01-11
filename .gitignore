@@ -14,9 +14,11 @@ compiler/motestproj
 devground/a
 devground/bundle.js
 devground/bundle.min.js
+devground/public/bundle_cli.js
 devground/opal-runtime.js
-devground/runtime.js
+devground/public/runtime.js
 devground/components.js
+
 e2e/node_modules
 e2e/test-results
 e2e/playwright-report
