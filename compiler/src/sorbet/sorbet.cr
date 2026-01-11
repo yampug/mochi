@@ -1,12 +1,11 @@
 require "json"
 
 # C API bindings for libsorbet
-# Static linking: libsorbet.a + libprism.a + librbs_parser.a
-# NOTE: Current libsorbet.a has incomplete symbols - see BUILD_INSTRUCTIONS_EXT_LIBS.md
+# Shared library linking: libsorbet.dylib (includes prism and rbs_parser)
 {% if flag?(:darwin) %}
-  @[Link(ldflags: "-Wl,-force_load,#{__DIR__}/../../../fragments/libs/libsorbet.a #{__DIR__}/../../../fragments/libs/libprism.a #{__DIR__}/../../../fragments/libs/librbs_parser.a -lc++ -framework CoreFoundation")]
+  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lsorbet -rpath #{__DIR__}/../../../fragments/libs -lc++ -framework CoreFoundation")]
 {% else %}
-  @[Link(ldflags: "-Wl,--whole-archive #{__DIR__}/../../../fragments/libs/libsorbet.a #{__DIR__}/../../../fragments/libs/libprism.a #{__DIR__}/../../../fragments/libs/librbs_parser.a -Wl,--no-whole-archive -lstdc++ -lpthread -ldl")]
+  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lsorbet -rpath #{__DIR__}/../../../fragments/libs -lstdc++ -lpthread -ldl")]
 {% end %}
 lib LibSorbet
   type Session = Void*

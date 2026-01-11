@@ -1,5 +1,5 @@
 {% begin %}
-  @[Link(ldflags: "#{__DIR__}/../../../fragments/libs/libtree-sitter.a")]
+  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -ltree-sitter -rpath #{__DIR__}/../../../fragments/libs")]
   lib LibTreeSitter
     type Parser = Void*
     type Tree = Void*
@@ -42,7 +42,7 @@
   end
 
   # Ruby language binding
-  @[Link(ldflags: "#{__DIR__}/../../../fragments/libs/libtree-sitter-ruby.a")]
+  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -ltree-sitter-ruby -rpath #{__DIR__}/../../../fragments/libs")]
   lib LibTreeSitterRuby
     fun tree_sitter_ruby : LibTreeSitter::Language
   end

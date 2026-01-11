@@ -3,14 +3,21 @@
 .claude
 .idea
 build
+
 components/Gemfile.lock
 mo_build
 mo_build_cr
 bundle.js
+
 compiler/lib
 compiler/mochi
 compiler/mochi.dwarf
 compiler/motestproj
+compiler/build
+compiler/src/generated
+/compiler/src/sorbet/test_simple.dwarf
+compiler/**/*.md
+
 devground/a
 devground/bundle.js
 devground/bundle.min.js
@@ -22,12 +29,9 @@ devground/components.js
 e2e/node_modules
 e2e/test-results
 e2e/playwright-report
-taz_icon.png
-compiler/build
-compiler/src/generated
+
 testapp/package-lock.json
 testapp/node_modules
-/compiler/src/sorbet/test_simple.dwarf
-compiler/**/*.md
 
 fragments/libs/lib*.a
+fragments/libs/lib*.dylib
