@@ -61,7 +61,8 @@ Copy the `libwarthogdb.[so,dylib]` into the `./fragments/libs` folder inside the
 ```
 git clone https://github.com/quickjs-ng/quickjs.git
 cd quickjs
-make // output: ./build/libqjs.[so,dylib]
+cmake -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j $(nproc)
 ```
 Copy `./build/libqjs.dylib` and `./build/libqjs.0.dylib` (the symlink) into the `./fragments/libs` folder inside the mochi repo.
 
