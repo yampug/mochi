@@ -35,6 +35,9 @@ Copy the `libsorbet.[so,dylib]` into the `./fragments/libs` folder inside the mo
 gh repo clone yampug/tree-sitter
 cd tree-sitter
 task build-shared // output: ./libtree-sitter.[so,dylib]
+
+# Note tree sitter so files are versioned so create a symlink of the current version in fragments/libs:
+ ln -s libtree-sitter.so libtree-sitter.so.0.27
 ```
 Copy the `libtree-sitter.[so,dylib]` into the `./fragments/libs` folder inside the mochi repo.
 
