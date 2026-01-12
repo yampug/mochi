@@ -11,6 +11,7 @@ compiler/spec_data/** linguist-documentation
 **/build/** linguist-generated
 **/node_modules/** linguist-vendored
 compiler/lib/** linguist-vendored
+fragments/vendor/** linguist-vendored
 
 # Mark test configuration as documentation
 playwright.config.ts linguist-documentation
