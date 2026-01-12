@@ -1,4 +1,4 @@
-@[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lqjs -rpath #{__DIR__}/../../../fragments/libs")]
+@[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lqjs -Wl,-rpath,#{__DIR__}/../../../fragments/libs")]
 lib LibQuickJS
   # Opaque types
   type JSRuntime = Void*

@@ -3,9 +3,9 @@ require "json"
 # C API bindings for libsorbet
 # Shared library linking: libsorbet.dylib (includes prism and rbs_parser)
 {% if flag?(:darwin) %}
-  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lsorbet -rpath #{__DIR__}/../../../fragments/libs -lc++ -framework CoreFoundation")]
+  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lsorbet -Wl,-rpath,#{__DIR__}/../../../fragments/libs -lc++ -framework CoreFoundation")]
 {% else %}
-  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lsorbet -rpath #{__DIR__}/../../../fragments/libs -lstdc++ -lpthread -ldl")]
+  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lsorbet -Wl,-rpath,#{__DIR__}/../../../fragments/libs -lstdc++ -lpthread -ldl")]
 {% end %}
 lib LibSorbet
   type Session = Void*
