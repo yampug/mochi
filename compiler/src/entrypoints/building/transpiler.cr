@@ -1,8 +1,11 @@
 require "./../../quickjs"
 require "./../../caching/cache"
+require "../../../../fragments/vendor/libpftrace/bindings/crystal/src/pftrace"
+require "./trace_helper"
 
 class Compiler
-  def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan)
+  include TraceHelper
+  def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan, trace : Pftrace::Trace? = nil, sequence_id : UInt32 = 1_u32)
     build_dir = builder_man.build_dir
     puts "inputDir:'#{input_dir}', outDir:'#{output_dir}', build_dir:'#{build_dir}'"
 
@@ -13,48 +16,50 @@ class Compiler
     nr_files = 0
     done_channel = Channel(Nil).new
 
-    Dir.glob(Path[input_dir, "**", "*.rb"].to_s) do |path|
-      if File.file?(path) && path.ends_with?(".rb")
-        nr_files += 1
-        spawn do
-          begin
-            puts "Processing #{path}"
-            content = File.read(path)
-            absolute_path = Path[path].expand.to_s
+    trace_slice(trace, "ProcessComponents", sequence_id) do
+      Dir.glob(Path[input_dir, "**", "*.rb"].to_s) do |path|
+        if File.file?(path) && path.ends_with?(".rb")
+          nr_files += 1
+          spawn do
+            begin
+              puts "Processing #{path}"
+              content = File.read(path)
+              absolute_path = Path[path].expand.to_s
 
-            rb_file = File.read(absolute_path)
-            component = transpile_component(rb_file, i, absolute_path)
+              rb_file = File.read(absolute_path)
+              component = transpile_component(rb_file, i, absolute_path)
 
-            i += 1
-            if component
-              components << component
+              i += 1
+              if component
+                components << component
 
-              # replace ruby code with amplified version
-              src_dir = builder_man.ruby_src_dir
-              lib_path = rb_rewriter.extract_lib_path(absolute_path)
-              file_path = "#{src_dir}/#{lib_path}"
-              puts "lib_path:#{lib_path}, src_dir:#{src_dir}, file_path:#{file_path}"
-              File.write(file_path, component.ruby_code)
+                src_dir = builder_man.ruby_src_dir
+                lib_path = rb_rewriter.extract_lib_path(absolute_path)
+                file_path = "#{src_dir}/#{lib_path}"
+                puts "lib_path:#{lib_path}, src_dir:#{src_dir}, file_path:#{file_path}"
+                File.write(file_path, component.ruby_code)
+              end
+              done_channel.send(nil)
             end
-            done_channel.send(nil)
+            rescue ex
+              puts "Error reading file #{path}: #{ex.message}"
           end
-          rescue ex
-            puts "Error reading file #{path}: #{ex.message}"
         end
       end
 
+      nr_files.times do |i|
+        done_channel.receive
+      end
     end
 
-    nr_files.times do |i|
-      done_channel.receive
+    trace_slice(trace, "SorbetSignatures", sequence_id) do
+      rb_rewriter.comment_out_all_sorbet_signatures_in_dir("#{builder_man.ruby_src_dir}/lib")
     end
 
-
-    # comment out Sorbet signatures
-    rb_rewriter.comment_out_all_sorbet_signatures_in_dir("#{builder_man.ruby_src_dir}/lib")
-
-    mochi_root = rb_rewriter.gen_mochi_ruby_root(components)
-    File.write("#{builder_man.ruby_src_dir}/lib/Root.rb", mochi_root)
+    trace_slice(trace, "GenerateRoot", sequence_id) do
+      mochi_root = rb_rewriter.gen_mochi_ruby_root(components)
+      File.write("#{builder_man.ruby_src_dir}/lib/Root.rb", mochi_root)
+    end
 
 
     puts "Done with preparing components for transpilation"
@@ -67,80 +72,93 @@ class Compiler
 
     cache = Cache.new
 
-    if use_quickjs
-      builder = QuickJS::Opal::Builder.new(include_runtime: false)
-      builder.add_stdlib("await")
-      builder.add_stdlib("json")
-      builder.add_raw_js("Opal.modules['sorbet-runtime'] = function(Opal) { return Opal.nil; };")
-      builder.add_raw_js("Opal.modules['sorbet'] = function(Opal) { return Opal.nil; };")
+    transpiled_ruby_code = trace_slice(trace, "QuickJSCompilation", sequence_id) do
+      if use_quickjs
+        builder = trace_slice(trace, "BuilderSetup", sequence_id) do
+          b = trace_slice(trace, "BuilderInit", sequence_id) do
+            QuickJS::Opal::Builder.new(include_runtime: false)
+          end
 
-      # Add 'lib' to Opal load path so that `require 'mochi'` finds `lib/mochi`
-      # IMPORTANT: Opal VFS often behaves better with absolute paths like '/lib'
-      builder.compile("$LOAD_PATH.unshift('/lib'); $LOAD_PATH.unshift('lib'); $LOAD_PATH.unshift('./lib')", "lib_setup")
-      builder.add_raw_js("Opal.load('lib_setup');")
+          trace_slice(trace, "AddStdlibAwait", sequence_id) { b.add_stdlib("await") }
+          trace_slice(trace, "AddStdlibJson", sequence_id) { b.add_stdlib("json") }
 
-      lib_dir = "#{builder_man.ruby_src_dir}/lib"
-      src_dir = builder_man.ruby_src_dir
-      puts "Scanning #{lib_dir} for source files..."
+          b.add_raw_js("Opal.modules['sorbet-runtime'] = function(Opal) { return Opal.nil; };")
+          b.add_raw_js("Opal.modules['sorbet'] = function(Opal) { return Opal.nil; };")
 
-      if Dir.exists?(lib_dir)
-        Dir.glob("#{lib_dir}/**/*.rb") do |full_path|
-           # skip Root.rb, handled as entry point
-           next if full_path.ends_with?("/Root.rb")
+          trace_slice(trace, "CompileLibSetup", sequence_id) do
+            b.compile("$LOAD_PATH.unshift('/lib'); $LOAD_PATH.unshift('lib'); $LOAD_PATH.unshift('./lib')", "lib_setup")
+          end
 
-           code = File.read(full_path)
-           rel_path_src = Path[full_path].relative_to(src_dir).to_s
-           rel_path_lib = Path[full_path].relative_to(lib_dir).to_s
-
-          # TODO use code hash for + hash of rel_path for cache_key
-           if rel_path_lib == "mochi.rb"
-             # mochi.rb is special: it exists as BOTH mochi and lib/mochi
-             #puts "Compiling (dual): #{rel_path_lib} AND #{rel_path_src}"
-             builder.compile_with_cache(code, rel_path_src, cache)
-             builder.compile_with_cache(code, rel_path_lib, cache)
-           elsif rel_path_lib.starts_with?("sorbet-types/") # sorbet-types are relative to src
-             #puts "Compiling (src-relative): #{rel_path_src}"
-             builder.compile_with_cache(code, rel_path_src, cache)
-           else # Everything else (e.g. commons/...) is relative to lib
-             #puts "Compiling (lib-relative): #{rel_path_lib}"
-             builder.compile_with_cache(code, rel_path_lib, cache)
-           end
+          b.add_raw_js("Opal.load('lib_setup');")
+          b
         end
+
+        lib_dir = "#{builder_man.ruby_src_dir}/lib"
+        src_dir = builder_man.ruby_src_dir
+        puts "Scanning #{lib_dir} for source files..."
+
+        trace_slice(trace, "CompileSourceFiles", sequence_id) do
+          if Dir.exists?(lib_dir)
+            Dir.glob("#{lib_dir}/**/*.rb") do |full_path|
+              next if full_path.ends_with?("/Root.rb")
+
+              code = File.read(full_path)
+              rel_path_src = Path[full_path].relative_to(src_dir).to_s
+              rel_path_lib = Path[full_path].relative_to(lib_dir).to_s
+
+              if rel_path_lib == "mochi.rb"
+                builder.compile_with_cache(code, rel_path_src, cache)
+                builder.compile_with_cache(code, rel_path_lib, cache)
+              elsif rel_path_lib.starts_with?("sorbet-types/")
+                builder.compile_with_cache(code, rel_path_src, cache)
+              else
+                builder.compile_with_cache(code, rel_path_lib, cache)
+              end
+            end
+          else
+            puts "ERROR: lib_dir does not exist: #{lib_dir}"
+          end
+        end
+
+        puts "Compiling Entry Point: lib/Root.rb (as main)"
+
+        trace_slice(trace, "CompileEntryPoint", sequence_id) do
+          root_path = "#{lib_dir}/Root.rb"
+          if File.exists?(root_path)
+            builder.compile_with_cache(File.read(root_path), "lib/Root.rb", cache, requirable: false)
+          else
+            puts "ERROR: Root.rb not found at #{root_path}"
+          end
+        end
+
+        result = trace_slice(trace, "BuildOutput", sequence_id) do
+          builder.build(nil)
+        end
+
+        File.write(transpiled_ruby_code_path, result)
+        builder.finalize
+        result
       else
-        puts "ERROR: lib_dir does not exist: #{lib_dir}"
+        puts "Using Opal CLI (Old Logic)..."
+        `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map --no-method-missing`
+        File.read(transpiled_ruby_code_path)
       end
-
-      puts "Compiling Entry Point: lib/Root.rb (as main)"
-      root_path = "#{lib_dir}/Root.rb"
-      if File.exists?(root_path)
-        builder.compile_with_cache(File.read(root_path), "lib/Root.rb", cache, requirable: false)
-      else
-        puts "ERROR: Root.rb not found at #{root_path}"
-      end
-
-      transpiled_ruby_code = builder.build(nil)
-
-      File.write(transpiled_ruby_code_path, transpiled_ruby_code)
-      builder.finalize
-    else
-      # Opal CLI
-      puts "Using Opal CLI (Old Logic)..."
-      # `cd #{builder_man.ruby_src_dir} && bundler install`
-      `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map --no-method-missing`
-      transpiled_ruby_code = File.read(transpiled_ruby_code_path)
     end
+
     cache.close
 
-    # assemble the js code (webcomponents etc)
-    components_js_code = ""
-    components.each do |mochi_comp|
-      components_js_code = components_js_code + "\n" + mochi_comp.web_component.js_code + "\n"
-    end
-    components_js_code = components_js_code + "\n" + "console.log('Mochi booted.');" + "\n"
+    trace_slice(trace, "AssembleJS", sequence_id) do
+      components_js_code = ""
+      components.each do |mochi_comp|
+        components_js_code = components_js_code + "\n" + mochi_comp.web_component.js_code + "\n"
+      end
+      components_js_code = components_js_code + "\n" + "console.log('Mochi booted.');" + "\n"
 
-    output = transpiled_ruby_code + "\n" + components_js_code
-    puts "Writing #{build_dir}/bundle.js"
-    File.write("#{build_dir}/bundle.js", output)
+      output = transpiled_ruby_code + "\n" + components_js_code
+      puts "Writing #{build_dir}/bundle.js"
+      File.write("#{build_dir}/bundle.js", output)
+    end
+
     puts "Transpilation finished"
 
   end

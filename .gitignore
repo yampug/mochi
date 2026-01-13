@@ -34,3 +34,4 @@ testapp/package-lock.json
 testapp/node_modules
 
 fragments/libs/lib*.a
+*.pftrace

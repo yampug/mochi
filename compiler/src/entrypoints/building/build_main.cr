@@ -1,8 +1,11 @@
 require "./builder_man"
 require "file"
 require "file_utils"
+require "../../../../fragments/vendor/libpftrace/bindings/crystal/src/pftrace"
+require "./trace_helper"
 
 class BuildMain
+  include TraceHelper
 
   def setup(builder_man : BuilderMan)
     build_dir = builder_man.build_dir
@@ -45,6 +48,13 @@ class BuildMain
     with_mini : Bool,
     keep_granular_build_artifacts : Bool
   )
+    trace = Pftrace::Trace.new("mochi_build.pftrace")
+    start_time = Time.monotonic.total_nanoseconds.to_u64
+    sequence_id = 1_u32
+
+    trace.write_clock_snapshot(start_time)
+    trace.write_process_descriptor(pid: Process.pid.to_i32, name: "MochiBuild", uuid: 100_u64)
+    trace.write_thread_descriptor(pid: Process.pid.to_i32, tid: Process.pid.to_i32, name: "MainThread", uuid: 101_u64, parent_uuid: 100_u64)
 
     # 1. Prepare Input / Output directories
     if input_dir.empty? || output_dir.empty?
@@ -59,21 +69,30 @@ class BuildMain
     # steps 2-4
     puts "BuildID: #{builder_man.build_id}"
     puts "Working Dir: #{Dir.current}"
-    setup(builder_man)
+
+    trace_slice(trace, "Setup", sequence_id, "build") do
+      setup(builder_man)
+    end
 
     print_separator
     transpiler = Compiler.new()
     puts "5. Transpiling Mochi Components"
+
     mochi_comp_time = Time.measure do
-      transpiler.transpile_directory("#{builder_man.pre_tp_dir}/lib", output_dir, builder_man)
+      trace_slice(trace, "Transpiling", sequence_id, "build") do
+        transpiler.transpile_directory("#{builder_man.pre_tp_dir}/lib", output_dir, builder_man, trace, sequence_id)
+      end
     end
     puts "> Compilation took #{mochi_comp_time.total_milliseconds.to_i}ms"
 
     print_separator
     puts "6. Generating Opal Runtime"
+
     opal_rt_time = Time.measure do
-      opal_rt_gen = OpalRuntimeGenerator.new()
-      opal_rt_gen.generate(builder_man.build_dir)
+      trace_slice(trace, "OpalRuntimeGen", sequence_id, "build") do
+        opal_rt_gen = OpalRuntimeGenerator.new()
+        opal_rt_gen.generate(builder_man.build_dir)
+      end
     end
     puts "> Opal RT gen took #{opal_rt_time.total_milliseconds.to_i}ms"
 
@@ -83,31 +102,31 @@ class BuildMain
     puts "#{step_nr}. Bundling"
     step_nr += 1
     bundle_file_path = ""
+
     bundling_time_taken = Time.measure do
-      `cp "#{builder_man.build_dir}/runtime.js" "#{output_dir}/runtime.js"`
-      `cp "#{builder_man.build_dir}/bundle.js" "#{output_dir}/bundle.js"`
+      trace_slice(trace, "Bundling", sequence_id, "build") do
+        `cp "#{builder_man.build_dir}/runtime.js" "#{output_dir}/runtime.js"`
+        `cp "#{builder_man.build_dir}/bundle.js" "#{output_dir}/bundle.js"`
 
-      bundle_js = File.read("#{output_dir}/bundle.js")
-
-      # bundle in js batteries
-      File.write("#{output_dir}/bundle.js", "#{bundle_js}\n#{JsLoggerGenerator.generate()}")
+        bundle_js = File.read("#{output_dir}/bundle.js")
+        File.write("#{output_dir}/bundle.js", "#{bundle_js}\n#{JsLoggerGenerator.generate()}")
+      end
     end
     puts "> Bundling took #{bundling_time_taken.total_milliseconds.to_i}ms"
 
-
-    # check swc is installed
     print_separator
     puts "#{step_nr}. Minify the output: #{with_mini}"
     step_nr += 1
+
     mini_time_taken = Time.measure do
-
-      if with_mini
-        unless Process.find_executable("swc")
-          STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
-          exit 1
+      trace_slice(trace, "Minification", sequence_id, "build") do
+        if with_mini
+          unless Process.find_executable("swc")
+            STDERR.puts "Error: swc is not installed. Please run 'npm install -g @swc/cli @swc/core'."
+            exit 1
+          end
+          `npx swc "#{output_dir}/runtime.js" -o "#{output_dir}/runtime.js"`
         end
-
-        `npx swc "#{output_dir}/runtime.js" -o "#{output_dir}/runtime.js"`
       end
     end
     puts "> Minification took #{mini_time_taken.total_milliseconds.to_i}ms"
@@ -119,6 +138,9 @@ class BuildMain
       remove_directory("#{builder_man.build_dir}/pre_tp")
       remove_directory("#{builder_man.build_dir}/src")
     end
+
+    trace.close
+    puts "Trace saved to mochi_build.pftrace"
 
     print_separator
     puts "Done."
