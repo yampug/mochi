@@ -1,0 +1,3 @@
+[submodule "fragements/vendor/libpftrace"]
+	path = fragements/vendor/libpftrace
+	url = https://github.com/yampug/libpftrace
