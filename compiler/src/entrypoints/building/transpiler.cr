@@ -1,4 +1,5 @@
 require "./../../quickjs"
+require "./../../caching/cache"
 
 class Compiler
   def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan)
@@ -64,6 +65,8 @@ class Compiler
 
     use_quickjs = true
 
+    cache = Cache.new
+
     if use_quickjs
       builder = QuickJS::Opal::Builder.new(include_runtime: false)
       builder.add_stdlib("await")
@@ -89,17 +92,18 @@ class Compiler
            rel_path_src = Path[full_path].relative_to(src_dir).to_s
            rel_path_lib = Path[full_path].relative_to(lib_dir).to_s
 
+          # TODO use code hash for + hash of rel_path for cache_key
            if rel_path_lib == "mochi.rb"
              # mochi.rb is special: it exists as BOTH mochi and lib/mochi
-             puts "Compiling (dual): #{rel_path_lib} AND #{rel_path_src}"
-             builder.compile(code, rel_path_lib)
-             builder.compile(code, rel_path_src)
+             #puts "Compiling (dual): #{rel_path_lib} AND #{rel_path_src}"
+             builder.compile_with_cache(code, rel_path_src, cache)
+             builder.compile_with_cache(code, rel_path_lib, cache)
            elsif rel_path_lib.starts_with?("sorbet-types/") # sorbet-types are relative to src
-             puts "Compiling (src-relative): #{rel_path_src}"
-             builder.compile(code, rel_path_src)
+             #puts "Compiling (src-relative): #{rel_path_src}"
+             builder.compile_with_cache(code, rel_path_src, cache)
            else # Everything else (e.g. commons/...) is relative to lib
-             puts "Compiling (lib-relative): #{rel_path_lib}"
-             builder.compile(code, rel_path_lib)
+             #puts "Compiling (lib-relative): #{rel_path_lib}"
+             builder.compile_with_cache(code, rel_path_lib, cache)
            end
         end
       else
@@ -109,7 +113,7 @@ class Compiler
       puts "Compiling Entry Point: lib/Root.rb (as main)"
       root_path = "#{lib_dir}/Root.rb"
       if File.exists?(root_path)
-        builder.compile(File.read(root_path), "lib/Root.rb", requirable: false)
+        builder.compile_with_cache(File.read(root_path), "lib/Root.rb", cache, requirable: false)
       else
         puts "ERROR: Root.rb not found at #{root_path}"
       end
@@ -125,6 +129,7 @@ class Compiler
       `cd #{builder_man.ruby_src_dir} && opal -I ./lib -cO -s opal -s native -s promise -s browser/setup/full -s sorbet-runtime ./lib/Root.rb -o #{transpiled_ruby_code_path} --no-source-map --no-method-missing`
       transpiled_ruby_code = File.read(transpiled_ruby_code_path)
     end
+    cache.close
 
     # assemble the js code (webcomponents etc)
     components_js_code = ""

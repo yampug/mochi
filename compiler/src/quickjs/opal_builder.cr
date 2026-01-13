@@ -1,4 +1,6 @@
 require "./opal"
+require "./../caching/cache"
+require "digest/md5"
 
 module QuickJS
   module Opal
@@ -53,6 +55,19 @@ module QuickJS
              compile(content, relative_path)
           end
         end
+      end
+
+      def compile_with_cache(code : String, path : String, cache : Cache, requirable : Bool = true)
+        compiled = ""
+        cache_key = Digest::MD5.hexdigest("#{path}::#{code}")
+        if cache.has(cache_key)
+          compiled = cache.get(cache_key)
+        else
+          compiled = @compiler.compile(code, path, requirable: requirable)
+          cache.put(cache_key, compiled)
+        end
+
+        @parts << compiled
       end
 
       def compile(code : String, path : String, requirable : Bool = true)
