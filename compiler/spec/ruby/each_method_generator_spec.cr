@@ -17,6 +17,7 @@ describe EachMethodGenerator do
     )
     ruby_code = EachMethodGenerator.generate_method(block, "abc")
     ruby_code.should eq(exp_code)
+
   end
 
   it "generate_method - with index" do
@@ -32,6 +33,7 @@ describe EachMethodGenerator do
     )
     ruby_code = EachMethodGenerator.generate_method(block, "abc")
     ruby_code.should eq(exp_code)
+
   end
 
   it "inject: no each blocks" do
@@ -67,6 +69,7 @@ describe EachMethodGenerator do
       loop_def = EachLoopDef.new("@items", "item", nil)
       block = EachBlock.new(loop_def, "<p>content</p>", 0, 20, 10, 0)
 
+
       ruby_code = EachMethodGenerator.generate_method(block, "Test")
 
       ruby_code.should contain("# auto-generated each method")
@@ -79,6 +82,7 @@ describe EachMethodGenerator do
       ruby_code = EachMethodGenerator.generate_method(block, "ProductList")
 
       ruby_code.should contain("return @products")
+    
     end
   end
 
