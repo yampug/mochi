@@ -35,3 +35,7 @@ testapp/node_modules
 
 fragments/libs/lib*.a
 *.pftrace
+
+
+todo/
+done/
