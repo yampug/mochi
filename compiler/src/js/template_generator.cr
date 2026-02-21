@@ -6,6 +6,13 @@ module JS
       JS
     end
 
+    def self.generate_fragment(template_id : String, static_html : String) : String
+      <<-JS
+      _mochi_templates['#{template_id}'] = document.createElement('template');
+      _mochi_templates['#{template_id}'].innerHTML = #{static_html.inspect};
+      JS
+    end
+
     def self.generate_component(component_name : String, template_id : String, static_html : String) : String
       <<-JS
       _mochi_templates['#{template_id}'] = document.createElement('template');

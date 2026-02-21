@@ -14,9 +14,7 @@ describe ConditionalProcessor do
 
       result = ConditionalProcessor.process(html)
 
-      result.html.should contain("<mochi-if data-cond-id=\"0\">")
-      result.html.should contain("<p>Visible!</p>")
-      result.html.should contain("</mochi-if>")
+      result.html.should contain("<!--if-anchor-0-->")
       result.conditionals.size.should eq(1)
       result.conditionals[0].condition.should eq("@show")
       result.conditionals[0].id.should eq(0)
@@ -36,9 +34,8 @@ describe ConditionalProcessor do
 
       result = ConditionalProcessor.process(html)
 
-      result.conditionals.size.should eq(2)
-      result.html.should contain("data-cond-id=\"0\"")
-      result.html.should contain("data-cond-id=\"1\"")
+      result.html.should contain("<!--if-anchor-0-->")
+      result.html.should contain("<!--if-anchor-1-->")
       # Blocks are sorted by reverse start position, so order may differ
       # Just verify both IDs exist
       ids = result.conditionals.map(&.id).sort
@@ -61,9 +58,10 @@ describe ConditionalProcessor do
       result = ConditionalProcessor.process(html)
 
       result.conditionals.size.should eq(2)
-      # Should have both conditions transformed with IDs
-      result.html.should contain("data-cond-id=\"0\"")
-      result.html.should contain("data-cond-id=\"1\"")
+      # Should have top-level condition transformed with ID
+      result.html.should contain("<!--if-anchor-0-->")
+      result.html.should_not contain("<!--if-anchor-1-->") # removed along with block 0 content
+
       # Blocks are sorted by reverse start position, so verify both IDs exist
       ids = result.conditionals.map(&.id).sort
       ids.should eq([0, 1])
@@ -84,7 +82,7 @@ describe ConditionalProcessor do
       result.conditionals[0].condition.should eq("@count > 5")
       result.conditionals[0].id.should eq(0)
       # No need to escape in data-cond-id, just use ID
-      result.html.should contain("data-cond-id=\"0\"")
+      result.html.should contain("<!--if-anchor-0-->")
     end
 
     it "processes condition with method calls" do
@@ -127,8 +125,8 @@ describe ConditionalProcessor do
 
       result = ConditionalProcessor.process(html)
 
-      result.html.should contain("<h1>Title</h1>")
-      result.html.should contain("<p>Paragraph</p>")
+      # Content is now separated so shouldn't check inside html result any longer. Let's just confirm an anchor is here
+      result.html.should contain("<!--if-anchor-0-->")
     end
   end
 
