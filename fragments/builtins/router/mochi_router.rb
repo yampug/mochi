@@ -84,7 +84,13 @@ class MochiRouter
                 if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('//')) {
                   e.preventDefault();
                   console.log('MochiRouter: navigating to', href);
-                  window.history.pushState({}, '', href);
+                  
+                  try {
+                    window.history.pushState({}, '', href);
+                  } catch (e) {
+                    console.warn('MochiRouter: pushState failed (likely due to file:// protocol)', e);
+                  }
+                  
                   Opal.MochiRouter.$navigate(href);
                 }
               }
