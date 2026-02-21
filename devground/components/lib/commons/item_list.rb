@@ -143,7 +143,7 @@ class ItemList
   def remove_item
     if @items.length > 0
       removed = @items.pop
-      @counter = @counter + 1
+      @counter = @counter - 1
       item_name = `#{removed}.name`
       puts "Removed item: #{item_name}"
     end
