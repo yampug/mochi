@@ -27,5 +27,25 @@ module JS
       }
       JS
     end
+
+    def self.component_code : String
+      <<-JS
+      class MochiComponent {
+        constructor() {
+          this._cleanups = [];
+        }
+        mount(target) {
+          throw new Error('mount not implemented');
+        }
+        unmount() {
+          for (let c of this._cleanups) c();
+          this._cleanups = [];
+        }
+        onCleanup(fn) {
+          this._cleanups.push(fn);
+        }
+      }
+      JS
+    end
   end
 end
