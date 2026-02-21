@@ -287,14 +287,34 @@ class WebComponentGenerator
   def self.generate_conditional_evaluation_code(conditionals : Array(ConditionalBlock)) : String
     return "" if conditionals.empty?
 
-    result = <<-TEXT
-      let conditionalElements = this.shadow.querySelectorAll('mochi-if');
-      for (let condEl of conditionalElements) {
-        let condId = parseInt(condEl.getAttribute('data-cond-id'));
-        let result = this.evaluateCondition(condId);
-        condEl.style.display = result ? '' : 'none';
-      }
-    TEXT
+    result = ""
+    conditionals.each do |block|
+      result += <<-TEXT
+        if (!this._frag_templates) this._frag_templates = {};
+        if (!this._frag_templates[#{block.id}]) {
+          const t = document.createElement('template');
+          t.innerHTML = #{block.content.inspect};
+          this._frag_templates[#{block.id}] = t;
+        }
+        
+        {
+          let it = document.createNodeIterator(this.shadow, NodeFilter.SHOW_COMMENT, {
+            acceptNode: function(node) {
+              return node.nodeValue === 'if-anchor-#{block.id}' ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+            }
+          });
+          
+          let anchor = it.nextNode();
+          if (anchor) {
+             let result = this.evaluateCondition(#{block.id});
+             if (result) {
+                let clone = this._frag_templates[#{block.id}].content.cloneNode(true);
+                anchor.parentNode.insertBefore(clone, anchor.nextSibling);
+             }
+          }
+        }
+      TEXT
+    end
 
     result
   end
