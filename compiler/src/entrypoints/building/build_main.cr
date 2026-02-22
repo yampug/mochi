@@ -46,7 +46,8 @@ class BuildMain
     parser : OptionParser,
     with_tc : Bool,
     with_mini : Bool,
-    keep_granular_build_artifacts : Bool
+    keep_granular_build_artifacts : Bool,
+    use_new_engine : Bool = false
   )
     trace = Pftrace::Trace.new("mochi_build.pftrace")
     start_time = Time.monotonic.total_nanoseconds.to_u64
@@ -75,7 +76,7 @@ class BuildMain
     end
 
     print_separator
-    transpiler = Compiler.new()
+    transpiler = Compiler.new(use_new_engine)
     puts "5. Transpiling Mochi Components"
 
     mochi_comp_time = Time.measure do

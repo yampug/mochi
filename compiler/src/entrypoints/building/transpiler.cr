@@ -5,6 +5,10 @@ require "./trace_helper"
 
 class Compiler
   include TraceHelper
+
+  def initialize(@use_new_engine : Bool = false)
+  end
+
   def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan, trace : Pftrace::Trace? = nil, sequence_id : UInt32 = 1_u32)
     build_dir = builder_man.build_dir
     puts "inputDir:'#{input_dir}', outDir:'#{output_dir}', build_dir:'#{build_dir}'"
@@ -229,7 +233,7 @@ class Compiler
             amped_ruby_code = amped_ruby_code[0...insertion_point] + setter_code_to_insert + amped_ruby_code[insertion_point..-1]
           end
         end
-        web_comp_generator = WebComponentGenerator.new
+        web_comp_generator = LegacyComponentGenerator.new
 
         web_component = web_comp_generator.generate(
         mochi_cmp_name = cls_name,

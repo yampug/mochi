@@ -1,10 +1,10 @@
 require "spec"
 require "../../src/html/each_processor"
-require "../../src/webcomponents/web_component_generator"
+require "../../src/webcomponents/legacy_component_generator"
 require "../../src/webcomponents/web_component_placeholder"
 require "../../src/html/conditional_processor"
 
-describe WebComponentGenerator do
+describe LegacyComponentGenerator do
   describe "each block comment anchor generation" do
     it "replaces each blocks with comment anchors in processed HTML" do
       html = "<div>{each @items as item, index}<p>{index}</p>{end}</div>"
@@ -31,7 +31,7 @@ describe WebComponentGenerator do
         "\n<p>{index}</p>\n",
         0, 40, 20, 0
       )
-      code = WebComponentGenerator.generate_each_init_code([block])
+      code = LegacyComponentGenerator.generate_each_init_code([block])
 
       code.should contain("each-anchor-0")
       code.should contain("document.createElement('template')")
@@ -42,7 +42,7 @@ describe WebComponentGenerator do
     end
 
     it "returns empty string for no each blocks" do
-      code = WebComponentGenerator.generate_each_init_code([] of EachBlock)
+      code = LegacyComponentGenerator.generate_each_init_code([] of EachBlock)
       code.should eq("")
     end
   end
@@ -54,7 +54,7 @@ describe WebComponentGenerator do
         "<p>{index}</p>",
         0, 30, 15, 0
       )
-      code = WebComponentGenerator.generate_each_update_code([block])
+      code = LegacyComponentGenerator.generate_each_update_code([block])
 
       code.should contain("this._reconcileEachBlock(0)")
     end
@@ -64,14 +64,14 @@ describe WebComponentGenerator do
         EachBlock.new(EachLoopDef.new("@items", "item", "index"), "<li>{index}</li>", 0, 30, 10, 0),
         EachBlock.new(EachLoopDef.new("@rows", "row", "i"), "<tr>{i}</tr>", 40, 70, 50, 1),
       ]
-      code = WebComponentGenerator.generate_each_update_code(blocks)
+      code = LegacyComponentGenerator.generate_each_update_code(blocks)
 
       code.should contain("this._reconcileEachBlock(0)")
       code.should contain("this._reconcileEachBlock(1)")
     end
 
     it "returns empty string for no each blocks" do
-      code = WebComponentGenerator.generate_each_update_code([] of EachBlock)
+      code = LegacyComponentGenerator.generate_each_update_code([] of EachBlock)
       code.should eq("")
     end
   end
@@ -83,7 +83,7 @@ describe WebComponentGenerator do
         "\n<div>{index}</div>\n",
         0, 50, 25, 0
       )
-      gen = WebComponentGenerator.new
+      gen = LegacyComponentGenerator.new
       component = gen.generate(
         "MyList",
         "my-list",
@@ -111,7 +111,7 @@ describe WebComponentGenerator do
         "<li>{i}</li>",
         0, 30, 15, 0
       )
-      gen = WebComponentGenerator.new
+      gen = LegacyComponentGenerator.new
       component = gen.generate(
         "MyItems",
         "my-items",
@@ -128,7 +128,7 @@ describe WebComponentGenerator do
     end
 
     it "reactive text nodes are cached and updated without innerHTML reset" do
-      gen = WebComponentGenerator.new
+      gen = LegacyComponentGenerator.new
       component = gen.generate(
         "Counter",
         "my-counter",

@@ -3,7 +3,7 @@ require "./web_component_placeholder"
 require "../html/conditional_processor"
 require "../html/each_processor"
 
-class WebComponentGenerator
+class LegacyComponentGenerator
 
   def initialize
   end
@@ -114,8 +114,8 @@ class WebComponentGenerator
       web_cmp_name = "#{mochi_cmp_name}WebComp"
       reactables_arr_name = "reactablesArr#{web_cmp_name}"
 
-      bindings_code = WebComponentGenerator.generate_bindings_code(bindings)
-      bindings_update_code = WebComponentGenerator.generate_bindings_update_code(bindings)
+      bindings_code = LegacyComponentGenerator.generate_bindings_code(bindings)
+      bindings_update_code = LegacyComponentGenerator.generate_bindings_update_code(bindings)
 
       js_code = <<-TEXT
         let #{reactables_arr_name} = #{reactables};
@@ -258,7 +258,7 @@ class WebComponentGenerator
           }
 
           render() {
-            #{WebComponentGenerator.generate_render_code(
+            #{LegacyComponentGenerator.generate_render_code(
                 reactables_arr_name,
                 conditionals,
                 each_blocks,
@@ -277,7 +277,7 @@ class WebComponentGenerator
               return #{reactables};
           }
 
-          #{WebComponentGenerator.generate_attribute_changed_callback}
+          #{LegacyComponentGenerator.generate_attribute_changed_callback}
         }
         customElements.define("#{tag_name}", #{mochi_cmp_name});
       TEXT

@@ -14,7 +14,7 @@ require "./html/each_processor"
 require "./ruby/each_method_generator"
 require "./ruby/ruby_understander"
 require "./ruby/ruby_rewriter"
-require "./webcomponents/web_component_generator"
+require "./webcomponents/legacy_component_generator"
 require "./webcomponents/web_component"
 require "./mochi_cmp"
 require "./opal/opal_runtime_generator"
@@ -79,6 +79,7 @@ dev_server_root = ""
 dev_server_config_path = ""
 is_standalone_typecheck = false
 keep_granular_build_artifacts = false
+use_new_engine = false
 
 desc_dev_server = "Launch dev server"
 
@@ -113,6 +114,11 @@ OptionParser.parse do |p|
   p.on("--keep_granular_build_artifacts", "Preserves all granular build artifacts (meant for developers working on Mochi)") do
     keep_granular_build_artifacts = true
   end
+
+  p.on("--experimental-new-engine", "Use the new experimental rendering engine") do
+    use_new_engine = true
+  end
+
   p.on("-h", "--help", "Show this help") do
     puts p
     exit
@@ -182,7 +188,8 @@ else
       parser,
       with_tc,
       with_mini,
-      keep_granular_build_artifacts
+      keep_granular_build_artifacts,
+      use_new_engine
     )
   end
 end
