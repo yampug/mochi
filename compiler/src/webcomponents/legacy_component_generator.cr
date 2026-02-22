@@ -186,19 +186,44 @@ class LegacyComponentGenerator
           }
 
           _substituteItemVars(root, item, index) {
-            let walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+            const sub = (v) => v
+              .replace(/\\{index\\}/g, index)
+              .replace(/\\{item\\.(\\w+)\\}/g, (_, p) => {
+                try {
+                  if (typeof item['$' + p] === 'function') return item['$' + p]();
+                  if (item[p] !== undefined) return item[p];
+                } catch(e) {}
+                return '{item.' + p + '}';
+              });
+            let walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null);
             let node;
             while ((node = walker.nextNode())) {
-              if (node.data.includes('{index}')) {
-                node.data = node.data.replace(/\\{index\\}/g, index);
+              if (node.nodeType === 3) {
+                if (node.data.includes('{')) node.data = sub(node.data);
+              } else {
+                for (const attr of Array.from(node.attributes)) {
+                  if (attr.value.includes('{')) node.setAttribute(attr.name, sub(attr.value));
+                }
               }
-              node.data = node.data.replace(/\\{item\\.(\\w+)\\}/g, (_, prop) => {
-                try {
-                  if (typeof item['$' + prop] === 'function') return item['$' + prop]();
-                  if (item[prop] !== undefined) return item[prop];
-                } catch(e) {}
-                return '{item.' + prop + '}';
-              });
+            }
+          }
+
+          _patchNodes(template, oldNodes, item, index) {
+            let frag = template.content.cloneNode(true);
+            this._substituteItemVars(frag, item, index);
+            let newNodes = Array.from(frag.childNodes);
+            for (let i = 0; i < oldNodes.length && i < newNodes.length; i++) this._patchNode(oldNodes[i], newNodes[i]);
+          }
+
+          _patchNode(old, nu) {
+            if (old.nodeType === 3) {
+              if (old.data !== nu.data) old.data = nu.data;
+            } else if (old.nodeType === 1) {
+              for (const attr of Array.from(nu.attributes)) {
+                if (old.getAttribute(attr.name) !== attr.value) old.setAttribute(attr.name, attr.value);
+              }
+              let oc = Array.from(old.childNodes), nc = Array.from(nu.childNodes);
+              for (let i = 0; i < oc.length && i < nc.length; i++) this._patchNode(oc[i], nc[i]);
             }
           }
 
@@ -241,6 +266,7 @@ class LegacyComponentGenerator
                     cursor = node;
                   }
                 } else {
+                  this._patchNodes(this._eachTemplates[blockId], old.nodes, item, index);
                   cursor = old.nodes[old.nodes.length - 1];
                 }
                 nextItemStates.push({key, nodes: old.nodes});

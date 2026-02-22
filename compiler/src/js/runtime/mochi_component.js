@@ -63,17 +63,25 @@ class MochiComponent extends HTMLElement {
     }
 
     _substituteItemVars(root, item, index) {
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+        const sub = (v) => v
+            .replace(/\{index\}/g, index)
+            .replace(/\{item\.(\w+)\}/g, (_, p) => {
+                try {
+                    if (typeof item['$' + p] === 'function') return item['$' + p]();
+                    if (item[p] !== undefined) return item[p];
+                } catch(e) {}
+                return '{item.' + p + '}';
+            });
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null);
         let node;
         while ((node = walker.nextNode())) {
-            node.data = node.data.replace(/\{index\}/g, index);
-            node.data = node.data.replace(/\{item\.(\w+)\}/g, (_, prop) => {
-                try {
-                    if (typeof item['$' + prop] === 'function') return item['$' + prop]();
-                    if (item[prop] !== undefined) return item[prop];
-                } catch(e) {}
-                return '{item.' + prop + '}';
-            });
+            if (node.nodeType === 3) {
+                if (node.data.includes('{')) node.data = sub(node.data);
+            } else {
+                for (const attr of Array.from(node.attributes)) {
+                    if (attr.value.includes('{')) node.setAttribute(attr.name, sub(attr.value));
+                }
+            }
         }
     }
     
