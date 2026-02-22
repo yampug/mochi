@@ -50,7 +50,9 @@ test.describe('Item List Test Page', () => {
         await removeItemBtn.click();
         await expect(counterEl).toHaveText("Counter: -3");
 
-        const noItemsIfLabel = page.locator('item-list mochi-if p', { hasText: 'No items to display' });
-        await expect(noItemsIfLabel).toBeVisible();
+        const noItemsIfLabel = page.locator('item-list p', { hasText: 'No items to display' });
+        const html = await page.locator('item-list').evaluate((el: any) => el.shadowRoot?.innerHTML);
+        console.log("Component HTML:", html);
+        await expect(noItemsIfLabel).toBeVisible({ timeout: 2000 });
     });
 });

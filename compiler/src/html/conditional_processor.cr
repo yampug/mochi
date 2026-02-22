@@ -112,28 +112,29 @@ class ConditionalProcessor
   end
 
   # replace all blocks with <mochi-if> elements, processing from end to start
+  # replace all blocks with <!--if-anchor--> elements
   private def self.replace_blocks_with_elements(html : String, blocks : Array(ConditionalBlock)) : String
     return html if blocks.empty?
 
-    result = html.dup
-    blocks.sort_by! { |b| -b.start_pos }
+    # Find top-level blocks only (blocks that are not contained by any other block)
+    top_level_blocks = blocks.reject do |block|
+      blocks.any? { |other| other != block && other.contains?(block) }
+    end
 
-    blocks.each do |block|
+    top_level_blocks.sort_by! { |b| -b.start_pos }
+    
+    result = html.dup
+    top_level_blocks.each do |block|
       element = generate_element(block, blocks)
-      result = replace_range(result, block.start_pos, block.end_pos, element)
+      result = result[0...block.start_pos] + element + result[block.end_pos..-1]
     end
 
     result
   end
 
-  private def self.replace_range(str : String, start_pos : Int32, end_pos : Int32, replacement : String) : String
-    str[0...start_pos] + replacement + str[end_pos..-1]
-  end
-
-  # generate <mochi-if> element for a block, handling nested blocks
+  # generate comment anchor for a block
   private def self.generate_element(block : ConditionalBlock, all_blocks : Array(ConditionalBlock)) : String
-    content = process_nested_blocks(block, all_blocks)
-    %Q{<mochi-if data-cond-id="#{block.id}">#{content}</mochi-if>}
+    "<!--if-anchor-#{block.id}-->"
   end
 
   # process nested blocks within a parent block's content

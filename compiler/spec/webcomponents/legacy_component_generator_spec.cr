@@ -1,11 +1,11 @@
 require "spec"
 require "lexbor"
 require "diff"
-require "../../src/webcomponents/web_component_generator"
+require "../../src/webcomponents/legacy_component_generator"
 require "../spec_data_loader"
 require "../code_test_utils"
 
-describe WebComponentGenerator do
+describe LegacyComponentGenerator do
 
   it "generate_bindings_code: simple" do
     bindings = {"abc" => "href"}
@@ -13,7 +13,7 @@ describe WebComponentGenerator do
       SpecDataLoader.load("bindings/bindings_simple.js")
     )
     code = CodeTestUtils.trim_lines(
-      WebComponentGenerator.generate_bindings_code(bindings)
+      LegacyComponentGenerator.generate_bindings_code(bindings)
     )
     code.should eq(exp_code)
   end
@@ -24,7 +24,7 @@ describe WebComponentGenerator do
       SpecDataLoader.load("bindings/bindings_two.js")
     )
     code = CodeTestUtils.trim_lines(
-      WebComponentGenerator.generate_bindings_code(bindings)
+      LegacyComponentGenerator.generate_bindings_code(bindings)
     )
     code.should eq(exp_code)
   end
@@ -34,7 +34,7 @@ describe WebComponentGenerator do
       SpecDataLoader.load("bindings/attr_changed_callback.js")
     )
     code = CodeTestUtils.trim_lines(
-      WebComponentGenerator.generate_attribute_changed_callback()
+      LegacyComponentGenerator.generate_attribute_changed_callback()
     )
     diff = Diff.new(code, exp_code.chomp, Diff::MyersLinear)
     code.should eq(exp_code)
@@ -54,7 +54,7 @@ describe WebComponentGenerator do
     )
     conditionals = [block] of ConditionalBlock
     code = CodeTestUtils.trim_lines(
-      WebComponentGenerator.generate_conditional_evaluation_code(conditionals)
+      LegacyComponentGenerator.generate_conditional_update_code(conditionals)
     )
     code.should eq(exp_code)
   end
@@ -62,7 +62,7 @@ describe WebComponentGenerator do
   it "generate_cond_eval_code: no conditions" do
     conditionals = [] of ConditionalBlock
     code = CodeTestUtils.trim_lines(
-      WebComponentGenerator.generate_conditional_evaluation_code(conditionals)
+      LegacyComponentGenerator.generate_conditional_update_code(conditionals)
     )
     code.should eq("")
   end

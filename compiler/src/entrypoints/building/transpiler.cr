@@ -2,9 +2,14 @@ require "./../../quickjs"
 require "./../../caching/cache"
 require "../../../../fragments/vendor/libpftrace/bindings/crystal/src/pftrace"
 require "./trace_helper"
+require "../../webcomponents/new_component_generator"
 
 class Compiler
   include TraceHelper
+
+  def initialize(@use_new_engine : Bool = false)
+  end
+
   def transpile_directory(input_dir : String, output_dir : String, builder_man : BuilderMan, trace : Pftrace::Trace? = nil, sequence_id : UInt32 = 1_u32)
     build_dir = builder_man.build_dir
     puts "inputDir:'#{input_dir}', outDir:'#{output_dir}', build_dir:'#{build_dir}'"
@@ -213,34 +218,55 @@ class Compiler
 
 
       if tag_name
-      # add getters & setters to the ruby class
-        reactables_arr.each do |reactable|
-          var_name = reactable
-          second_last_index = find_second_last_index(amped_ruby_code, "end")
+        # Build all methods to inject (getters, setters, and internal mounted bridge)
+        injected_methods = [] of String
+        if @use_new_engine
+          injected_methods << "def __mochi_mounted(shadow, el); @element = el; end"
+        end
 
-          if second_last_index
-            insertion_point = second_last_index + 3
-            # add getter
-            getter_code_to_insert = "\n\n\tdef get_#{var_name}\n\t\t@#{var_name}\n\tend\n"
-            amped_ruby_code = amped_ruby_code[0...insertion_point] + getter_code_to_insert + amped_ruby_code[insertion_point..-1]
-
-            # add setter
-            setter_code_to_insert = "\n\n\tdef set_#{var_name}(value)\n\t\t@#{var_name} = value\n\tend\n"
-            amped_ruby_code = amped_ruby_code[0...insertion_point] + setter_code_to_insert + amped_ruby_code[insertion_point..-1]
+        reactables_arr.each do |var_name|
+          injected_methods << "def get_#{var_name}; @#{var_name}; end"
+          if @use_new_engine
+            injected_methods << "def set_#{var_name}(value); @#{var_name} = value; `\#{@element}.update_#{var_name}(\#{value})` if @element; end"
+          else
+            injected_methods << "def set_#{var_name}(value); @#{var_name} = value; end"
           end
         end
-        web_comp_generator = WebComponentGenerator.new
 
-        web_component = web_comp_generator.generate(
-        mochi_cmp_name = cls_name,
-        tag_name = tag_name.not_nil!,
-        css,
-        html = bindings.html.not_nil!,
-        reactables,
-        bindings.bindings,
-        conditional_result.conditionals,
-        each_result.each_blocks
-        )
+        # Find insertion point once and insert all methods together
+        insertion_point = find_second_last_index(amped_ruby_code, "end")
+        if insertion_point && insertion_point > 0
+          insertion_point += 3
+          methods_code = "\n\n  #{injected_methods.join("\n\n  ")}\n"
+          amped_ruby_code = amped_ruby_code[0...insertion_point] + methods_code + amped_ruby_code[insertion_point..-1]
+        else
+          # Fallback if class structure is simple
+          amped_ruby_code += "\n\n#{injected_methods.join("\n\n")}\n"
+        end
+
+        web_component = if @use_new_engine
+            NewComponentGenerator.new.generate(
+                mochi_cmp_name = cls_name,
+                tag_name = tag_name.not_nil!,
+                css,
+                html = each_result.html,
+                reactables,
+                bindings.bindings,
+                conditional_result.conditionals,
+                each_result.each_blocks
+            )
+        else
+            LegacyComponentGenerator.new.generate(
+                mochi_cmp_name = cls_name,
+                tag_name = tag_name.not_nil!,
+                css,
+                html = bindings.html.not_nil!,
+                reactables,
+                bindings.bindings,
+                conditional_result.conditionals,
+                each_result.each_blocks
+            )
+        end
 
         print_cmp_end_seperator(cls_name, i)
         # puts no_types_ruby_code

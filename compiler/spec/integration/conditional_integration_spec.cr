@@ -6,7 +6,7 @@ require "../../src/bind_extractor"
 require "../../src/html/conditional_processor"
 require "../../src/ruby/conditional_method_generator"
 require "../../src/ruby/ruby_understander"
-require "../../src/webcomponents/web_component_generator"
+require "../../src/webcomponents/legacy_component_generator"
 require "../../src/webcomponents/web_component"
 require "../../src/mochi_cmp"
 
@@ -69,7 +69,7 @@ def transpile_test_component(rb_file : String)
         end
       end
 
-      web_comp_generator = WebComponentGenerator.new
+      web_comp_generator = LegacyComponentGenerator.new
       web_component = web_comp_generator.generate(
         mochi_cmp_name = cls_name,
         tag_name = tag_name.not_nil!,
@@ -163,8 +163,8 @@ RUBY
         js_code.should contain("evaluateCondition(condId)")
         js_code.should contain("$__mochi_cond_")
 
-        # Verify data-cond-id is used
-        js_code.should contain("data-cond-id")
+        # Verify comment anchors are used
+        js_code.should contain("if-anchor-")
 
         # Verify old approach is removed
         js_code.should_not contain("condition.replace(/@")
@@ -275,9 +275,9 @@ RUBY
         ruby_code.should contain("@outer")
         ruby_code.should contain("@inner")
 
-        # HTML should have both data-cond-id attributes
-        js_code.should contain("data-cond-id=\"0\"")
-        js_code.should contain("data-cond-id=\"1\"")
+        # HTML should have comment anchors for both conditionals
+        js_code.should contain("'if-anchor-0'")
+        js_code.should contain("'if-anchor-1'")
       end
     end
 

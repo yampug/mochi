@@ -6,8 +6,15 @@ attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue === newValue) {
         return;
     }
+    if (typeof newValue === 'string' && /^\{[^}]+\}$/.test(newValue)) {
+        return;
+    }
     try {
         let currentValue = this.rubyComp["$get_" + name]();
+        let alreadyMatches = typeof currentValue === "number"
+          ? currentValue === Number(newValue)
+          : String(currentValue) === String(newValue);
+        if (alreadyMatches) return;
         if (typeof currentValue === "number") {
             // assign as number
             this.rubyComp["$set_" + name](Number(newValue));
