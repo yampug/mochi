@@ -45,24 +45,11 @@ class MochiComponent extends HTMLElement {
 
         const items = itemsFn() || [];
         const oldNodes = this._eachItems[id] || [];
-        
-        // Very basic reconciliation: clear and re-render (will optimize in story 4.2)
+
+        // Clear old nodes
         oldNodes.forEach(nodes => nodes.forEach(n => n.parentNode && n.parentNode.removeChild(n)));
-        
-        const newNodes = [];
+
         const t = MochiComponent.getTemplate(templateId);
-        
-        items.forEach((item, index) => {
-            const clone = t.content.cloneNode(true);
-            // Substitute vars (simplified)
-            this._substituteItemVars(clone, item, index);
-            const nodes = Array.from(clone.childNodes);
-            anchor.parentNode.insertBefore(clone, anchor.nextSibling); // This is wrong, needs to be after last item
-            // Fix: append to a fragment first or keep track of cursor
-            newNodes.push(nodes);
-        });
-        
-        // Actually, let's use a document fragment for better performance and correct ordering
         const frag = document.createDocumentFragment();
         const nextItemsNodes = [];
         items.forEach((item, index) => {

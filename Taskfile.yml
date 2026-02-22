@@ -29,7 +29,11 @@ tasks:
       - wipe-build-dir
     cmds:
       - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}}'
-
+  run-new-engine:
+    deps:
+      - wipe-build-dir
+    cmds:
+      - '{{.FRAG_CONFIG}} && cd compiler && time crystal run src/mochi.cr {{.LINK_FLAGS}} -- {{.DEFAULT_RUN_PARAMS}} --experimental-new-engine'
   run-no-internal-logs:
     deps:
       - wipe-build-dir
