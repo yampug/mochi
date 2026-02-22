@@ -54,7 +54,7 @@ describe WebComponentGenerator do
     )
     conditionals = [block] of ConditionalBlock
     code = CodeTestUtils.trim_lines(
-      WebComponentGenerator.generate_conditional_evaluation_code(conditionals)
+      WebComponentGenerator.generate_conditional_update_code(conditionals)
     )
     code.should eq(exp_code)
   end
@@ -62,7 +62,7 @@ describe WebComponentGenerator do
   it "generate_cond_eval_code: no conditions" do
     conditionals = [] of ConditionalBlock
     code = CodeTestUtils.trim_lines(
-      WebComponentGenerator.generate_conditional_evaluation_code(conditionals)
+      WebComponentGenerator.generate_conditional_update_code(conditionals)
     )
     code.should eq("")
   end

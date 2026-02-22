@@ -12,8 +12,6 @@ class WebComponentGenerator
     result = ""
     i = 0
     bindings.each do |key, value|
-      #puts "key:#{key}, val:#{value}"
-
       bind_el_obj = "bindElements#{i}"
       tmp = <<-TEXT
         let #{bind_el_obj} = this.shadow.querySelectorAll('[#{value}]');
@@ -43,6 +41,21 @@ class WebComponentGenerator
     return result
   end
 
+  def self.generate_bindings_update_code(bindings : Hash(String, String)) : String
+    return "" if bindings.empty?
+    result = ""
+    bindings.each do |key, attr_name|
+      result += <<-TEXT
+        {
+          let _bval = this.rubyComp["$get_#{key}"]();
+          let _bels = this.shadow.querySelectorAll('[#{attr_name}]');
+          for (let _bel of _bels) _bel.setAttribute(#{attr_name.inspect}, _bval);
+        }
+      TEXT
+    end
+    result
+  end
+
   def self.generate_attribute_changed_callback() : String
     result = <<-TEXT
       attributeChangedCallback(name, oldValue, newValue) {
@@ -53,8 +66,15 @@ class WebComponentGenerator
           if (oldValue === newValue) {
               return;
           }
+          if (typeof newValue === 'string' && /^\\{[^}]+\\}$/.test(newValue)) {
+              return;
+          }
           try {
               let currentValue = this.rubyComp["$get_" + name]();
+              let alreadyMatches = typeof currentValue === "number"
+                ? currentValue === Number(newValue)
+                : String(currentValue) === String(newValue);
+              if (alreadyMatches) return;
               if (typeof currentValue === "number") {
                   // assign as number
                   this.rubyComp["$set_" + name](Number(newValue));
@@ -92,12 +112,13 @@ class WebComponentGenerator
 
     time = Time.measure do
       web_cmp_name = "#{mochi_cmp_name}WebComp"
-      reactables_arr_anme = "reactablesArr#{web_cmp_name}"
+      reactables_arr_name = "reactablesArr#{web_cmp_name}"
 
       bindings_code = WebComponentGenerator.generate_bindings_code(bindings)
+      bindings_update_code = WebComponentGenerator.generate_bindings_update_code(bindings)
 
       js_code = <<-TEXT
-        let #{reactables_arr_anme} = #{reactables};
+        let #{reactables_arr_name} = #{reactables};
 
         class #{mochi_cmp_name} extends HTMLElement {
           constructor() {
@@ -111,24 +132,19 @@ class WebComponentGenerator
             this.shadow = this.attachShadow({ mode: "open" });
             this.render();
             this.rubyComp.$mounted(this.shadow, this);
+            this.render();
           }
 
           syncAttributes() {
-            // sync attributes (method call may have altered them)
             il.debug("syncing attributes")
-            for (let i = 0; i < #{reactables_arr_anme}.length; i++) {
-                this.setAttribute(#{reactables_arr_anme}[i], this.rubyComp["$get_" + #{reactables_arr_anme}[i]]());
+            for (let i = 0; i < #{reactables_arr_name}.length; i++) {
+                this.setAttribute(#{reactables_arr_name}[i], this.rubyComp["$get_" + #{reactables_arr_name}[i]]());
             }
           }
 
           evaluateCondition(condId) {
-            // Call the pre-compiled Ruby method for this conditional
             try {
-              let methodName = `$__mochi_cond_${condId}`;
-              let result = this.rubyComp[methodName]();
-
-              // Convert Ruby truthy/falsy to JavaScript boolean
-              // In Opal: false and nil are falsy, everything else is truthy
+              let result = this.rubyComp[`$__mochi_cond_${condId}`]();
               return result !== false && result !== Opal.nil;
             } catch (e) {
               il.error('Error evaluating conditional method ' + condId, e);
@@ -137,16 +153,9 @@ class WebComponentGenerator
           }
 
           evaluateEachLoop(loopId) {
-            // Call the pre-compiled Ruby method to get items array
             try {
-              let itemsMethodName = `$__mochi_each_${loopId}_items`;
-              let items = this.rubyComp[itemsMethodName]();
-
-              // Convert Opal array to JavaScript array if needed
-              if (items && items.$to_a) {
-                items = items.$to_a();
-              }
-
+              let items = this.rubyComp[`$__mochi_each_${loopId}_items`]();
+              if (items && items.$to_a) items = items.$to_a();
               return items || [];
             } catch (e) {
               il.error('Error evaluating each loop method ' + loopId, e);
@@ -155,26 +164,108 @@ class WebComponentGenerator
           }
 
           getEachLoopKey(loopId, item, index) {
-            // Call the pre-compiled Ruby method to get the key for an item
-            let keyMethodName = "";
             try {
-              keyMethodName = `$__mochi_each_${loopId}_key`;
-              let key = this.rubyComp[keyMethodName](item, index);
-              return key;
+              return this.rubyComp[`$__mochi_each_${loopId}_key`](item, index);
             } catch (e) {
-              il.error('Error getting key "' + keyMethodName + '" for loop ' + loopId, e);
               return index;
             }
           }
 
+          _computeLIS(arr) {
+            if (!arr.length) return [];
+            let tails = [], preds = new Array(arr.length).fill(-1);
+            for (let i = 0; i < arr.length; i++) {
+              let lo = 0, hi = tails.length;
+              while (lo < hi) { let mid = lo + hi >> 1; arr[tails[mid]] < arr[i] ? lo = mid + 1 : hi = mid; }
+              tails[lo] = i;
+              if (lo > 0) preds[i] = tails[lo - 1];
+            }
+            let res = [], i = tails[tails.length - 1];
+            while (i !== undefined && i !== -1) { res.unshift(i); i = preds[i]; }
+            return res;
+          }
+
+          _substituteItemVars(root, item, index) {
+            let walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+            let node;
+            while ((node = walker.nextNode())) {
+              if (node.data.includes('{index}')) {
+                node.data = node.data.replace(/\\{index\\}/g, index);
+              }
+              node.data = node.data.replace(/\\{item\\.(\\w+)\\}/g, (_, prop) => {
+                try {
+                  if (typeof item['$' + prop] === 'function') return item['$' + prop]();
+                  if (item[prop] !== undefined) return item[prop];
+                } catch(e) {}
+                return '{item.' + prop + '}';
+              });
+            }
+          }
+
+          _reconcileEachBlock(blockId) {
+            let rawItems = this.evaluateEachLoop(blockId);
+            let newItems = rawItems || [];
+            let oldStates = this._eachItems[blockId];
+            let anchor = this._eachAnchors[blockId];
+            if (!anchor) return;
+
+            let oldKeyMap = new Map(oldStates.map(s => [s.key, s]));
+            let newStates = newItems.map((item, i) => ({
+              key: this.getEachLoopKey(blockId, item, i),
+              item,
+              index: i
+            }));
+            let newKeySet = new Set(newStates.map(s => s.key));
+
+            for (let [key, old] of oldKeyMap) {
+              if (!newKeySet.has(key)) {
+                for (let node of old.nodes) node.parentNode && node.parentNode.removeChild(node);
+              }
+            }
+
+            let surviving = oldStates.filter(s => newKeySet.has(s.key));
+            let keyToNewIdx = new Map(newStates.map((s, i) => [s.key, i]));
+            let survivingNewIndices = surviving.map(s => keyToNewIdx.get(s.key));
+            let lisResult = this._computeLIS(survivingNewIndices);
+            let lisKeys = new Set(lisResult.map(i => surviving[i].key));
+
+            let cursor = anchor;
+            let nextItemStates = [];
+
+            for (let {key, item, index} of newStates) {
+              if (oldKeyMap.has(key)) {
+                let old = oldKeyMap.get(key);
+                if (!lisKeys.has(key)) {
+                  for (let node of old.nodes) {
+                    cursor.parentNode.insertBefore(node, cursor.nextSibling);
+                    cursor = node;
+                  }
+                } else {
+                  cursor = old.nodes[old.nodes.length - 1];
+                }
+                nextItemStates.push({key, nodes: old.nodes});
+              } else {
+                let frag = this._eachTemplates[blockId].content.cloneNode(true);
+                this._substituteItemVars(frag, item, index);
+                let nodes = Array.from(frag.childNodes);
+                cursor.parentNode.insertBefore(frag, cursor.nextSibling);
+                cursor = nodes[nodes.length - 1];
+                nextItemStates.push({key, nodes});
+              }
+            }
+
+            this._eachItems[blockId] = nextItemStates;
+          }
+
           render() {
             #{WebComponentGenerator.generate_render_code(
-                reactables_arr_anme,
+                reactables_arr_name,
                 conditionals,
                 each_blocks,
                 html,
                 css,
-                bindings_code
+                bindings_code,
+                bindings_update_code
             )}
           }
 
@@ -191,197 +282,229 @@ class WebComponentGenerator
         customElements.define("#{tag_name}", #{mochi_cmp_name});
       TEXT
 
-      # heredocs syntax removes backslashes, so need to be added like this
       js_code = js_code
         .gsub(WebComponentPlaceholder::OnClick.string_value, "[on\\\\:click]")
         .gsub(WebComponentPlaceholder::OnChange.string_value, "input[on\\\\:change]")
-
-      #puts js_code
     end
     puts "> WebComponent '#{web_cmp_name}' generation took #{time.total_milliseconds.to_i}ms"
     return WebComponent.new(name = web_cmp_name, js_code)
   end
 
   def self.generate_render_code(
-    reactables_arr_anme : String,
+    reactables_arr_name : String,
     conditionals : Array(ConditionalBlock),
     each_blocks : Array(EachBlock),
     html : String,
     css : String,
-    bindings_code : String) : String
+    bindings_code : String,
+    bindings_update_code : String = "") : String
 
+    cond_init = generate_conditional_init_code(conditionals)
+    cond_update = generate_conditional_update_code(conditionals)
+    each_init = generate_each_init_code(each_blocks)
+    each_update = generate_each_update_code(each_blocks)
 
     result = <<-TEXT
-    // TODO check if vars actually changed (optimization)
-    let html = `
-      #{html}
-    `;
+    if (!this.shadow) return;
+    if (this.paintCount === 0) {
+        this.shadow.innerHTML = `
+          #{html}
+        `;
 
-    for (let i = 0; i < #{reactables_arr_anme}.length; i++) {
-        il.info(#{reactables_arr_anme}[i]);
-        html = html.replaceAll("{" + #{reactables_arr_anme}[i] + "}", this.rubyComp["$get_" + #{reactables_arr_anme}[i]]());
-    }
+        this._rnCache = {};
+        this._attrCache = {};
+        {
+          let _w = document.createTreeWalker(this.shadow, NodeFilter.SHOW_TEXT, null);
+          let _n;
+          while ((_n = _w.nextNode())) {
+            for (let _r of #{reactables_arr_name}) {
+              if (_n.data.includes('{' + _r + '}')) {
+                if (!this._rnCache[_r]) this._rnCache[_r] = [];
+                this._rnCache[_r].push({node: _n, t: _n.data, container: null});
+              }
+            }
+          }
+          let _all = this.shadow.querySelectorAll('*');
+          for (let _el of _all) {
+            for (let _r of #{reactables_arr_name}) {
+              for (let _a of _el.attributes) {
+                if (_a.value.includes('{' + _r + '}')) {
+                  if (!this._attrCache[_r]) this._attrCache[_r] = [];
+                  this._attrCache[_r].push({el: _el, attr: _a.name, t: _a.value});
+                }
+              }
+            }
+          }
+        }
 
-    if (this.shadow) {
-        this.shadow.innerHTML = html;
+        this._ifTemplates = {}; this._ifAnchors = {}; this._ifRendered = {};
+        #{cond_init}
 
-        // Evaluate conditional blocks
-        #{WebComponentGenerator.generate_conditional_evaluation_code(conditionals)}
+        this._eachTemplates = {}; this._eachAnchors = {}; this._eachItems = {};
+        #{each_init}
 
-        // Evaluate each loop blocks
-        #{WebComponentGenerator.generate_each_evaluation_code(each_blocks)}
+        this.shadow.addEventListener('click', (event) => {
+          const clickedElement = event.target;
+          const actionTarget = clickedElement.closest('#{WebComponentPlaceholder::OnClick.string_value}');
+          if (actionTarget) {
+            let actionValue = actionTarget.getAttribute('on:click');
+            let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
+            this.rubyComp["$"+trimmedActionVal]();
+            this.syncAttributes();
+            this.render();
+          }
+        });
+
+        let _changeTargets = this.shadow.querySelectorAll("#{WebComponentPlaceholder::OnChange.string_value}");
+        if (_changeTargets) {
+          for (let _i = 0; _i < _changeTargets.length; _i++) {
+            _changeTargets[_i].addEventListener("change", (event) => {
+              let actionValue = event.target.getAttribute('on:change');
+              let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
+              let value = event.target.value;
+              const primValue = Number(value);
+              if (Number.isFinite(primValue)) {
+                this.rubyComp["$"+trimmedActionVal](event, primValue);
+              } else {
+                this.rubyComp["$"+trimmedActionVal](event, value);
+              }
+              this.syncAttributes();
+              this.render();
+            });
+          }
+        }
+
+        #{bindings_code}
 
         const style = document.createElement("style");
         style.textContent = `
             #{css}
         `;
         this.shadow.appendChild(style);
-        if (this.paintCount === 0) {
-            // listen to click events
-            this.shadow.addEventListener('click', (event) => {
-              const clickedElement = event.target;
-              const actionTarget = clickedElement.closest('#{WebComponentPlaceholder::OnClick.string_value}');
-              if (actionTarget) {
-                let actionValue = actionTarget.getAttribute('on:click');
-                // remove curly braces
-                let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
-
-                // basically call the method Opal.compInstance.new.method()
-                this.rubyComp["$"+trimmedActionVal]()
-                this.syncAttributes();
-                this.render();
-              }
-            });
-
-            // listen to change events
-            let matches = this.shadow.querySelectorAll("#{WebComponentPlaceholder::OnChange.string_value}")
-            if (matches) {
-                for (let i = 0; i < matches.length; i++) {
-                    matches[i].addEventListener("change", (event) => {
-                        let actionValue = event.target.getAttribute('on:change');
-                        // remove curly braces
-                        let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
-                        let value = event.target.value;
-                        // auto-convert value to number if numeric
-                        const primValue = Number(value);
-                        if (Number.isFinite(primValue)) {
-                          this.rubyComp["$"+trimmedActionVal](event, primValue);
-                        } else {
-                          this.rubyComp["$"+trimmedActionVal](event, value);
-                        }
-
-                        this.syncAttributes();
-                        this.render();
-                    });
-                }
-            }
-        }
-
-        #{bindings_code}
-        this.paintCount = this.paintCount + 1;
     }
+
+    for (let _r of #{reactables_arr_name}) {
+        let _val = this.rubyComp["$get_" + _r]();
+        let _entries = this._rnCache[_r];
+        if (_entries) {
+          for (let e of _entries) {
+            let _s = String(_val);
+            if (_s.includes('<')) {
+              if (!e.container) {
+                let _sp = document.createElement('span');
+                e.node.parentNode.replaceChild(_sp, e.node);
+                e.container = _sp;
+              }
+              e.container.innerHTML = _s;
+            } else if (e.container) {
+              let _tn = document.createTextNode(e.t.replace('{' + _r + '}', _s));
+              e.container.parentNode.replaceChild(_tn, e.container);
+              e.node = _tn;
+              e.container = null;
+            } else {
+              e.node.data = e.t.replace('{' + _r + '}', _val);
+            }
+          }
+        }
+        let _aentries = this._attrCache[_r];
+        if (_aentries) {
+          for (let {el, attr, t} of _aentries) {
+            el.setAttribute(attr, t.replace('{' + _r + '}', _val));
+          }
+        }
+    }
+
+    #{bindings_update_code}
+
+    #{each_update}
+
+    #{cond_update}
+
+    this.paintCount++;
     TEXT
     return result
   end
 
-  def self.generate_conditional_evaluation_code(conditionals : Array(ConditionalBlock)) : String
+  def self.generate_conditional_init_code(conditionals : Array(ConditionalBlock)) : String
     return "" if conditionals.empty?
 
     result = ""
     conditionals.each do |block|
       result += <<-TEXT
-        if (!this._frag_templates) this._frag_templates = {};
-        if (!this._frag_templates[#{block.id}]) {
-          const t = document.createElement('template');
-          t.innerHTML = #{block.content.inspect};
-          this._frag_templates[#{block.id}] = t;
-        }
-        
         {
-          let it = document.createNodeIterator(this.shadow, NodeFilter.SHOW_COMMENT, {
+          const _t = document.createElement('template');
+          _t.innerHTML = #{block.content.inspect};
+          this._ifTemplates[#{block.id}] = _t;
+          let _it = document.createNodeIterator(this.shadow, NodeFilter.SHOW_COMMENT, {
             acceptNode: function(node) {
               return node.nodeValue === 'if-anchor-#{block.id}' ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
             }
           });
-          
-          let anchor = it.nextNode();
-          if (anchor) {
-             let result = this.evaluateCondition(#{block.id});
-             if (result) {
-                let clone = this._frag_templates[#{block.id}].content.cloneNode(true);
-                anchor.parentNode.insertBefore(clone, anchor.nextSibling);
-             }
+          this._ifAnchors[#{block.id}] = _it.nextNode();
+          this._ifRendered[#{block.id}] = null;
+        }
+      TEXT
+    end
+    result
+  end
+
+  def self.generate_conditional_update_code(conditionals : Array(ConditionalBlock)) : String
+    return "" if conditionals.empty?
+
+    result = ""
+    conditionals.each do |block|
+      result += <<-TEXT
+        {
+          let _anchor = this._ifAnchors[#{block.id}];
+          if (_anchor) {
+            let _show = this.evaluateCondition(#{block.id});
+            if (_show && !this._ifRendered[#{block.id}]) {
+              let _clone = this._ifTemplates[#{block.id}].content.cloneNode(true);
+              this._ifRendered[#{block.id}] = Array.from(_clone.childNodes);
+              _anchor.parentNode.insertBefore(_clone, _anchor.nextSibling);
+            } else if (!_show && this._ifRendered[#{block.id}]) {
+              this._ifRendered[#{block.id}].forEach(n => n.parentNode && n.parentNode.removeChild(n));
+              this._ifRendered[#{block.id}] = null;
+            }
           }
         }
       TEXT
     end
-
     result
   end
 
-  def self.generate_each_evaluation_code(each_blocks : Array(EachBlock)) : String
+  def self.generate_each_init_code(each_blocks : Array(EachBlock)) : String
     return "" if each_blocks.empty?
 
-    result = <<-TEXT
-      // Initialize template storage on first render
-      if (!this.eachTemplates) {
-        this.eachTemplates = {};
-      }
-
-      let eachElements = this.shadow.querySelectorAll('mochi-each');
-      for (let eachEl of eachElements) {
-        let loopId = parseInt(eachEl.getAttribute('data-loop-id'));
-
-        // Store template on first access
-        if (!this.eachTemplates[loopId]) {
-          this.eachTemplates[loopId] = eachEl.innerHTML;
-        }
-
-        let template = this.eachTemplates[loopId];
-        let items = this.evaluateEachLoop(loopId);
-
-        // Clear current content
-        eachEl.innerHTML = '';
-
-        // Render each item
-        for (let i = 0; i < items.length; i++) {
-          let item = items[i];
-          let key = this.getEachLoopKey(loopId, item, i);
-
-          // Clone template for this item
-          let itemHtml = template;
-
-          // Replace item property references like {item.name}, {item.id}, etc.
-          // We call Ruby methods on the item to get property values
-          let propertyPattern = /\\{item\\.(\\w+)\\}/g;
-          itemHtml = itemHtml.replace(propertyPattern, (match, propName) => {
-            try {
-              // Call Ruby getter method on the item
-              let methodName = '$' + propName;
-              if (item[methodName]) {
-                return item[methodName]();
-              }
-              return match; // Keep original if method not found
-            } catch (e) {
-              il.error('Error accessing property ' + propName + ' on item', e);
-              return match;
+    result = ""
+    each_blocks.each do |block|
+      result += <<-TEXT
+        {
+          const _t = document.createElement('template');
+          _t.innerHTML = #{block.content.inspect};
+          this._eachTemplates[#{block.id}] = _t;
+          let _it = document.createNodeIterator(this.shadow, NodeFilter.SHOW_COMMENT, {
+            acceptNode: function(node) {
+              return node.nodeValue === 'each-anchor-#{block.id}' ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
             }
           });
-
-          // Replace {index} references
-          itemHtml = itemHtml.replace(/\\{index\\}/g, i);
-
-          // Create wrapper for this item
-          let itemWrapper = document.createElement('div');
-          itemWrapper.setAttribute('data-each-item', '');
-          itemWrapper.setAttribute('data-key', key);
-          itemWrapper.innerHTML = itemHtml;
-
-          eachEl.appendChild(itemWrapper);
+          this._eachAnchors[#{block.id}] = _it.nextNode();
+          this._eachItems[#{block.id}] = [];
+          this._reconcileEachBlock(#{block.id});
         }
-      }
-    TEXT
-
+      TEXT
+    end
     result
   end
+
+  def self.generate_each_update_code(each_blocks : Array(EachBlock)) : String
+    return "" if each_blocks.empty?
+
+    result = ""
+    each_blocks.each do |block|
+      result += "this._reconcileEachBlock(#{block.id});\n"
+    end
+    result
+  end
+
 end

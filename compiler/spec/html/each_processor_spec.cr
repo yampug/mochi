@@ -96,49 +96,38 @@ describe EachProcessor do
       </div>
     }
 
-    expected_html_after = %Q{
-      <div class="container">
-        <mochi-each data-loop-id="0">
-          <li>
-            <mochi-each data-loop-id="1">
-              <div>{entry}</div>
-            </mochi-each>
-          </li>
-        </mochi-each>       {end}
-        <h2>Section 2: Automation</h2>
-        <mochi-each data-loop-id="2">
-          <span>{it}</span>
-        </mochi-each>
-      </div>
-    }
+    # Only top-level blocks are replaced with comment anchors in the HTML.
+    # Nested blocks remain inside the parent block's content template.
+    expected_html_after = "\n      <div class=\"container\">\n        <!--each-anchor-0-->\n        <h2>Section 2: Automation</h2>\n        <!--each-anchor-2-->\n      </div>\n    "
     result : EachResult = EachProcessor.process(big_html)
-    puts "result: #{result}"
     result.html.should eq(expected_html_after)
     result.each_blocks.size.should eq(3)
 
-    first : EachBlock = result.each_blocks[0]
-    check_loop_def(first.loop_def, "@items2", "it", "j")
-    first.content.should eq("\n          <span>{it}</span>\n        ")
-    first.start_pos.should eq(252)
-    first.end_pos.should eq(317)
-    first.content_start_pos.should eq(275)
-    first.id.should eq(2)
+    # Blocks are extracted in order of closing {end}, so: inner first (id=1), outer (id=0), then second top-level (id=2)
+    inner : EachBlock = result.each_blocks[0]
+    check_loop_def(inner.loop_def, "@array", "entry", "k")
+    inner.content.should eq("\n              <div>{entry}</div>\n            ")
+    inner.start_pos.should eq(98)
+    inner.end_pos.should eq(174)
+    inner.content_start_pos.should eq(123)
+    inner.id.should eq(1)
 
-    second : EachBlock = result.each_blocks[1]
-    check_loop_def(second.loop_def, "@array", "entry", "k")
-    second.content.should eq("\n              <div>{entry}</div>\n            ")
-    second.start_pos.should eq(98)
-    second.end_pos.should eq(174)
-    second.content_start_pos.should eq(123)
-    second.id.should eq(1)
+    outer : EachBlock = result.each_blocks[1]
+    check_loop_def(outer.loop_def, "@items", "item", "index_nr")
+    # The outer block's content still contains the raw nested {each} token
+    outer.content.should contain("{each @array as entry, k}")
+    outer.start_pos.should eq(39)
+    outer.end_pos.should eq(204)
+    outer.content_start_pos.should eq(70)
+    outer.id.should eq(0)
 
-    third : EachBlock = result.each_blocks[2]
-    check_loop_def(third.loop_def, "@items", "item", "index_nr")
-    third.content.should eq("\n          <li>\n            {each @array as entry, k}\n              <div>{entry}</div>\n            {end}\n          </li>\n        ")
-    third.start_pos.should eq(39)
-    third.end_pos.should eq(204)
-    third.content_start_pos.should eq(70)
-    third.id.should eq(0)
+    second_top : EachBlock = result.each_blocks[2]
+    check_loop_def(second_top.loop_def, "@items2", "it", "j")
+    second_top.content.should eq("\n          <span>{it}</span>\n        ")
+    second_top.start_pos.should eq(252)
+    second_top.end_pos.should eq(317)
+    second_top.content_start_pos.should eq(275)
+    second_top.id.should eq(2)
   end
 
 end

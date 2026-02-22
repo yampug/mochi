@@ -74,10 +74,14 @@ class EachProcessor
   def self.replace_blocks_with_elements(html : String, all_blocks : Array(EachBlock)) : String
     return html if all_blocks.empty?
 
-    result = html.dup
-    all_blocks.sort_by! { |b| -b.start_pos }
+    top_level = all_blocks.reject do |block|
+      all_blocks.any? { |other| other != block && other.contains?(block) }
+    end
 
-    all_blocks.each do |block|
+    result = html.dup
+    top_level.sort_by! { |b| -b.start_pos }
+
+    top_level.each do |block|
       element = generate_element(block, all_blocks)
       result = replace_range(result, block.start_pos, block.end_pos, element)
     end
@@ -90,8 +94,7 @@ class EachProcessor
   end
 
   def self.generate_element(block : EachBlock, all_blocks : Array(EachBlock)) : String
-    content = process_nested_blocks(block, all_blocks)
-    return %Q{<mochi-each data-loop-id="#{block.id}">#{content}</mochi-each>}
+    "<!--each-anchor-#{block.id}-->"
   end
 
   private def self.process_nested_blocks(block : EachBlock, all_blocks : Array(EachBlock)) : String
