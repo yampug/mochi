@@ -12,9 +12,14 @@ class OpalRuntimeGenerator
   def generate(build_dir : String)
     output_file = get_runtime_file_path(build_dir)
 
-    # TODO make path different in production
-    FileUtils.cp("../fragments/vendor/runtime.js", output_file)
-    #Old code:`opal -c -q opal-browser -p native -p promise -p opal-browser -p browser/setup/full -s sorbet -s sorbet-runtime -e '#' -E > #{get_runtime_file_path(build_dir)}`
+    # Base Opal runtime
+    base_runtime = File.read("../fragments/vendor/runtime.js")
+    
+    # New runtime components
+    mochi_comp = File.read("src/js/runtime/mochi_component.js")
+    signal_rt = File.read("src/js/runtime/signal.js")
+    
+    File.write(output_file, base_runtime + "\n" + signal_rt + "\n" + mochi_comp)
   end
 
 end

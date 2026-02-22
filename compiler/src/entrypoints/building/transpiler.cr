@@ -2,6 +2,7 @@ require "./../../quickjs"
 require "./../../caching/cache"
 require "../../../../fragments/vendor/libpftrace/bindings/crystal/src/pftrace"
 require "./trace_helper"
+require "../../webcomponents/new_component_generator"
 
 class Compiler
   include TraceHelper
@@ -217,6 +218,16 @@ class Compiler
 
 
       if tag_name
+        # Inject `mounted` method for new engine
+        if @use_new_engine
+          second_last_index = find_second_last_index(amped_ruby_code, "end")
+          if second_last_index
+            insertion_point = second_last_index + 3
+            mounted_code = "\n\n\tdef mounted(shadow, el)\n\t\t@element = el\n\tend\n"
+            amped_ruby_code = amped_ruby_code[0...insertion_point] + mounted_code + amped_ruby_code[insertion_point..-1]
+          end
+        end
+
       # add getters & setters to the ruby class
         reactables_arr.each do |reactable|
           var_name = reactable
@@ -229,22 +240,38 @@ class Compiler
             amped_ruby_code = amped_ruby_code[0...insertion_point] + getter_code_to_insert + amped_ruby_code[insertion_point..-1]
 
             # add setter
-            setter_code_to_insert = "\n\n\tdef set_#{var_name}(value)\n\t\t@#{var_name} = value\n\tend\n"
+            setter_code_to_insert = if @use_new_engine
+              "\n\n\tdef set_#{var_name}(value)\n\t\t@#{var_name} = value\n\t\t`\#{@element}.update_#{var_name}(\#{value})`\n\tend\n"
+            else
+              "\n\n\tdef set_#{var_name}(value)\n\t\t@#{var_name} = value\n\tend\n"
+            end
             amped_ruby_code = amped_ruby_code[0...insertion_point] + setter_code_to_insert + amped_ruby_code[insertion_point..-1]
           end
         end
-        web_comp_generator = LegacyComponentGenerator.new
 
-        web_component = web_comp_generator.generate(
-        mochi_cmp_name = cls_name,
-        tag_name = tag_name.not_nil!,
-        css,
-        html = bindings.html.not_nil!,
-        reactables,
-        bindings.bindings,
-        conditional_result.conditionals,
-        each_result.each_blocks
-        )
+        web_component = if @use_new_engine
+            NewComponentGenerator.new.generate(
+                mochi_cmp_name = cls_name,
+                tag_name = tag_name.not_nil!,
+                css,
+                html = bindings.html.not_nil!,
+                reactables,
+                bindings.bindings,
+                conditional_result.conditionals,
+                each_result.each_blocks
+            )
+        else
+            LegacyComponentGenerator.new.generate(
+                mochi_cmp_name = cls_name,
+                tag_name = tag_name.not_nil!,
+                css,
+                html = bindings.html.not_nil!,
+                reactables,
+                bindings.bindings,
+                conditional_result.conditionals,
+                each_result.each_blocks
+            )
+        end
 
         print_cmp_end_seperator(cls_name, i)
         # puts no_types_ruby_code
