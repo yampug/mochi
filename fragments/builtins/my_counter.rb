@@ -7,10 +7,6 @@ class MyCounter
     @count = 0
   end
 
-  def reactables
-    ["count"]
-  end
-
   def html
     %Q{
           <div class="wrapper">

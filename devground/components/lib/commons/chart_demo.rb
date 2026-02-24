@@ -7,10 +7,6 @@ class ChartDemo
   def initialize
   end
 
-  def reactables
-    []
-  end
-
   def html
     %Q{
       <div id="main" style="width: 600px;height:400px;">

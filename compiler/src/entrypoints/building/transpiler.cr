@@ -3,6 +3,7 @@ require "./../../caching/cache"
 require "../../../../fragments/vendor/libpftrace/bindings/crystal/src/pftrace"
 require "./trace_helper"
 require "../../webcomponents/new_component_generator"
+require "../../tree-sitter/instance_var_analyzer"
 
 class Compiler
   include TraceHelper
@@ -189,13 +190,27 @@ class Compiler
       imports = RubyUnderstander.get_imports(rb_file)
       css = RubyUnderstander.extract_raw_string_from_def_body(methods["css"].body, "css")
       html = RubyUnderstander.extract_raw_string_from_def_body(methods["html"].body, "html")
-      reactables = RubyUnderstander.extract_raw_string_from_def_body(methods["reactables"].body, "reactables")
-      # puts "reactables:'#{reactables}'"
 
-      reactables_arr = js_to_cr_array(reactables)
-      reactables_arr.each do |item|
-        # puts "Item: #{item}"
+      # Analyze instance variables to determine reactables automatically
+      vars = TreeSitter::InstanceVarAnalyzer.analyze(rb_file)
+      
+      # Filter for variables that are either:
+      # - Bound in the HTML (used in {}) AND are actual state (written/mutated)
+      # - Mutated via attr_accessor/attr_writer
+      # - Written to outside of the constructor (state)
+      reactive_vars = vars.select do |v| 
+        (v.is_bound && (v.writes > 0 || v.attr_mutated)) || v.attr_mutated || v.written_outside_constructor 
       end
+      
+      reactables_arr = reactive_vars.map { |v| v.name.sub(/^@/, "") }
+      # puts "Computed reactables for #{cls_name}: #{reactables_arr}"
+      reactables = if reactables_arr.empty?
+                     "[]"
+                   else
+                     "['#{reactables_arr.join("', '")}']"
+                   end
+      
+      # puts "reactables: #{reactables}"
 
       conditional_result = ConditionalProcessor.process(html)
 

@@ -20,11 +20,6 @@ class Counter
     # puts Text::Levenshtein.distance('test', 'test')
   end
 
-  sig { returns(T::Array[String]) }
-  def reactables
-    ["count", "modifications"]
-  end
-
   sig { returns(String) }
   def html
     %Q{

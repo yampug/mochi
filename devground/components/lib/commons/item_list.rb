@@ -25,10 +25,6 @@ class ItemList
     @items.push(item)
   end
 
-  def reactables
-    ["counter"]
-  end
-
   def html
     %Q{
       <div class="wrapper">

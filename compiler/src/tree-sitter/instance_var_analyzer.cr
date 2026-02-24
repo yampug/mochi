@@ -57,11 +57,20 @@ module TreeSitter
       end
 
       # 1. Handle attr_accessor / attr_writer / attr_reader
+      method_name = nil
+      args_node = nil
+
       if node.type == "call"
         method_name_node = node.child_by_field_name("method")
         method_name = method_name_node ? method_name_node.text : nil
-        if method_name.in?("attr_accessor", "attr_writer", "attr_reader")
-          args_node = node.child_by_field_name("arguments")
+        args_node = node.child_by_field_name("arguments")
+      elsif node.type == "command"
+        method_name_node = node.child_by_field_name("name")
+        method_name = method_name_node ? method_name_node.text : nil
+        args_node = node.child_by_field_name("arguments")
+      end
+
+      if method_name && method_name.in?("attr_accessor", "attr_writer", "attr_reader")
           if args_node
             args_node.each_named_child do |arg|
               if arg.type == "simple_symbol"
@@ -78,7 +87,6 @@ module TreeSitter
               end
             end
           end
-        end
       end
 
       # 2. Handle assignments and reads for instance_variables
@@ -115,14 +123,38 @@ module TreeSitter
         end
       end
 
-      # 3. Handle string_content for {@var} interpolations, specifically inside html
+      # 3. Handle string_content for interpolations inside html
       if current_method == "html" && node.type == "string_content"
         content = node.text
-        content.scan(/\{@([a-zA-Z0-9_]+)\}/) do |match|
-          var_name = "@#{match[1]}"
-          var_info = get_var(variables, var_name)
-          var_info.is_bound = true
-          var_info.reads += 1
+        
+        # Scan for anything inside braces
+        content.scan(/\{([^}]+)\}/) do |match|
+          inner = match[1].strip
+          
+          # Skip control flow
+          next if inner.starts_with?("if ") || inner.starts_with?("each ") || inner.starts_with?("elsif ") || inner.starts_with?("unless ") || inner == "else" || inner == "end"
+
+          # Handle explicit instance var: {@var}
+          if inner =~ /^@[a-zA-Z0-9_]+$/
+             var_name = inner
+             var_info = get_var(variables, var_name)
+             var_info.is_bound = true
+             var_info.reads += 1
+             next
+          end
+
+          # Handle implicit var: {var}
+          if inner =~ /^[a-zA-Z0-9_]+$/
+             name = inner
+             # implicit binding
+             keywords = ["if", "else", "elsif", "end", "unless", "while", "until", "case", "when", "then", "do", "begin", "rescue", "true", "false", "nil", "self", "super"]
+             unless keywords.includes?(name)
+                var_name = "@#{name}"
+                var_info = get_var(variables, var_name)
+                var_info.is_bound = true
+                var_info.reads += 1
+             end
+          end
         end
       end
       

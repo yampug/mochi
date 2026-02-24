@@ -8,10 +8,6 @@ class RubyImportComp
   def initialize
   end
 
-  def reactables
-    []
-  end
-
   def html
     %Q{
       <div>

@@ -15,10 +15,6 @@ class MochiBenchmark
     @_tmp = nil
   end
 
-  def reactables
-    ["version"]
-  end
-
   def html
     %Q{
       <div class="container">

@@ -12,10 +12,6 @@ class Route
     @component_ref = nil
   end
 
-  def reactables
-    ["active"]
-  end
-
   def html
     %Q{
             <div class="route-content">

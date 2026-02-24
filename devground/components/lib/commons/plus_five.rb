@@ -7,14 +7,10 @@ class PlusFive
   extend T::Sig
 
   @tag_name = "plus-five"
-  @pfcount
+  attr_accessor :pfcount
 
   def initialize
     @pfcount = 0
-  end
-
-  def reactables
-    ["pfcount"]
   end
 
   sig { returns(Integer) }

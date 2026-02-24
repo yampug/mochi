@@ -8,10 +8,6 @@ class MochiBrowserUtils
   def initialize
   end
 
-  def reactables
-    []
-  end
-
   def html
     %Q{
       <div>

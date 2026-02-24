@@ -10,9 +10,6 @@ class MochiRouter
   end
 
   # Dummy methods to satisfy the transpiler (not actually rendered)
-  def reactables
-    []
-  end
 
   def html
     %Q{

@@ -9,6 +9,7 @@ require "../../src/ruby/ruby_understander"
 require "../../src/webcomponents/legacy_component_generator"
 require "../../src/webcomponents/web_component"
 require "../../src/mochi_cmp"
+require "../../src/tree-sitter/instance_var_analyzer"
 
 def find_second_last_index(text : String, substring_to_find : String) : Int32?
   last_idx = text.rindex(substring_to_find)
@@ -36,9 +37,14 @@ def transpile_test_component(rb_file : String)
     imports = RubyUnderstander.get_imports(rb_file)
     css = RubyUnderstander.extract_raw_string_from_def_body(methods["css"].body, "css")
     html = RubyUnderstander.extract_raw_string_from_def_body(methods["html"].body, "html")
-    reactables = RubyUnderstander.extract_raw_string_from_def_body(methods["reactables"].body, "reactables")
-
-    reactables_arr = js_to_cr_array(reactables)
+    
+    # Use InstanceVarAnalyzer
+    vars = TreeSitter::InstanceVarAnalyzer.analyze(rb_file)
+    reactive_vars = vars.select do |v| 
+      v.is_bound || v.attr_mutated || v.written_outside_constructor 
+    end
+    reactables_arr = reactive_vars.map { |v| v.name.sub(/^@/, "") }
+    reactables = "['#{reactables_arr.join("', '")}']"
 
     # Process conditionals
     conditional_result = ConditionalProcessor.process(html)
@@ -107,10 +113,6 @@ class TestComponent
   def initialize
     @count = 0
     @enabled = true
-  end
-
-  def reactables
-    ["count", "enabled"]
   end
 
   def html
@@ -186,10 +188,6 @@ class SimpleComponent
     @value = 0
   end
 
-  def reactables
-    ["value"]
-  end
-
   def html
     %Q{
       <div>
@@ -231,10 +229,6 @@ class NestedComponent
   def initialize
     @outer = true
     @inner = false
-  end
-
-  def reactables
-    ["outer", "inner"]
   end
 
   def html
@@ -291,10 +285,6 @@ class ComplexComponent
   def initialize
     @items = []
     @user = nil
-  end
-
-  def reactables
-    ["items", "user"]
   end
 
   def html

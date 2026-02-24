@@ -47,6 +47,19 @@ module TreeSitter
               deps[var_name] << DomOperation.new(binding.path, binding.type, binding.attr_name)
             end
           end
+
+          # Implicit binding {count} -> @count
+          implicit_matches = binding.expression.scan(/\{([a-zA-Z0-9_]+)\}/)
+          keywords = ["if", "else", "elsif", "end", "unless", "while", "until", "case", "when", "then", "do", "begin", "rescue", "true", "false", "nil", "self", "super"]
+          implicit_matches.each do |match|
+            name = match[1]
+            unless keywords.includes?(name)
+              var_name = "@#{name}"
+              if bound_vars.any? { |v| v.name == var_name }
+                deps[var_name] << DomOperation.new(binding.path, binding.type, binding.attr_name)
+              end
+            end
+          end
         end
       end
 

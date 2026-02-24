@@ -6,10 +6,6 @@ class DevRootBackButton
   def initialize
   end
 
-  def reactables
-    []
-  end
-
   def html
     %Q{
       <a href="/" data-external style="margin-right: 10px;">&lt; Go to Root</a>

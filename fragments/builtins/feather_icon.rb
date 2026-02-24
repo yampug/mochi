@@ -5,13 +5,11 @@ class FeatherIcon
   @icon
   @rendered_svg
 
+  attr_accessor :icon
+  
   def initialize
     @icon = ""
     @rendered_svg = ""
-  end
-
-  def reactables
-    ["icon", "rendered_svg"]
   end
 
   def html

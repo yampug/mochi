@@ -8,10 +8,6 @@ class SlotTest
     @title = "Slot Container"
   end
 
-  def reactables
-    ["title"]
-  end
-
   def html
     %Q{
       <div class="slot-container">
