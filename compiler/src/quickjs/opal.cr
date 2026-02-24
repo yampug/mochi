@@ -37,7 +37,13 @@ module QuickJS
       end
 
       private def load_opal
-        candidates = ["fragments/vendor/opal", "../fragments/vendor/opal"]
+        exe_dir = File.dirname(Process.executable_path || "")
+        candidates = [
+          "fragments/vendor/opal",
+          "../fragments/vendor/opal",
+          File.join(exe_dir, "../fragments/vendor/opal"),
+          File.join(exe_dir, "fragments/vendor/opal"),
+        ]
         base_path = candidates.find { |p| File.exists?(File.join(p, "opal.js")) }
 
         raise "Opal vendor files not found at #{candidates.join(" or ")}" unless base_path

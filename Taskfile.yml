@@ -46,7 +46,7 @@ tasks:
 
   build:
     cmds:
-      - '{{.FRAG_CONFIG}} && cd compiler && time crystal build src/mochi.cr {{.LINK_FLAGS}}'
+      - '{{.FRAG_CONFIG}} && cd compiler && time crystal build src/mochi.cr -Dstatic_sorbet --link-flags="-L{{.ROOT_DIR}}/fragments/libs -Wl,-force_load,{{.ROOT_DIR}}/fragments/libs/libsorbet.a -Wl,-ld_classic"'
 
   build-and-execute:
     deps:

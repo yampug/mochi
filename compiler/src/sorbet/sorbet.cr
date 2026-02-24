@@ -1,8 +1,14 @@
 require "json"
 
 # C API bindings for libsorbet
-# Shared library linking: libsorbet.dylib (includes prism and rbs_parser)
-{% if flag?(:darwin) %}
+{% if flag?(:static_sorbet) %}
+  # Static linking: libsorbet.a is force-loaded via --link-flags in the build task
+  {% if flag?(:darwin) %}
+    @[Link(ldflags: "-lc++ -framework CoreFoundation")]
+  {% else %}
+    @[Link(ldflags: "-lstdc++ -lpthread -ldl")]
+  {% end %}
+{% elsif flag?(:darwin) %}
   @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lsorbet -Wl,-rpath,#{__DIR__}/../../../fragments/libs -lc++ -framework CoreFoundation")]
 {% else %}
   @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -lsorbet -Wl,-rpath,#{__DIR__}/../../../fragments/libs -lstdc++ -lpthread -ldl")]

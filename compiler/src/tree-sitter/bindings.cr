@@ -42,7 +42,7 @@
   end
 
   # Ruby language binding
-  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -ltree-sitter-ruby -Wl,-rpath,#{__DIR__}/../../../fragments/libs")]
+  @[Link(ldflags: "-L#{__DIR__}/../../../fragments/libs -ltree-sitter-ruby")]
   lib LibTreeSitterRuby
     fun tree_sitter_ruby : LibTreeSitter::Language
   end

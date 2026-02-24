@@ -33,7 +33,14 @@ module QuickJS
       end
 
       def resolve_vendor_root
-         ["fragments/vendor", "../fragments/vendor"].find { |p| Dir.exists?(File.join(p, "opal")) } || "fragments/vendor"
+        exe_dir = File.dirname(Process.executable_path || "")
+        candidates = [
+          "fragments/vendor",
+          "../fragments/vendor",
+          File.join(exe_dir, "../fragments/vendor"),
+          File.join(exe_dir, "fragments/vendor"),
+        ]
+        candidates.find { |p| Dir.exists?(File.join(p, "opal")) } || "fragments/vendor"
       end
 
       def add_vendor_file(filename : String)
