@@ -48,7 +48,7 @@ module TreeSitter
     def text : String
       start_byte = LibTreeSitter.ts_node_start_byte(@raw)
       end_byte = LibTreeSitter.ts_node_end_byte(@raw)
-      @source[start_byte...end_byte]
+      @source.byte_slice(start_byte, end_byte - start_byte)
     end
 
     def to_s(io : IO)

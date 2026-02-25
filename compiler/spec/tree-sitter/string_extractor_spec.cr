@@ -54,5 +54,21 @@ describe TreeSitter::StringExtractor do
       result = extract_string_from_method("treesitter/string_extractor/reactables_array.rb", "reactables")
       result.should eq("['count', 'name']")
     end
+
+    it "handles multi-byte characters without crashing" do
+      code = SpecDataLoader.load("ruby/multi_byte.rb")
+      class_name = "MultiByteComponent"
+      methods = TreeSitter::MethodBodyExtractor.extract_method_bodies(code, class_name)
+      
+      html_def = methods["html"]
+      html_result = TreeSitter::StringExtractor.extract_raw_string_from_def_body(html_def.body, "html")
+      html_result.should contain("Arrows: ←, →")
+      html_result.should contain("Box: ┌─┐")
+      html_result.should contain("Emoji: 🚀✨")
+
+      css_def = methods["css"]
+      css_result = TreeSitter::StringExtractor.extract_raw_string_from_def_body(css_def.body, "css")
+      css_result.should contain("content: '│';")
+    end
   end
 end

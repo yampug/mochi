@@ -278,6 +278,16 @@ describe RubyUnderstander do
       result = extract_string_from_file("ruby/def_body_plain_return.rb", "value")
       result.should eq "some_method_call"
     end
+
+    it "extracts strings with multi-byte characters without crashing" do
+      result = extract_string_from_file("ruby/multi_byte.rb", "html")
+      result.should_not be_nil
+      result.not_nil!.should contain("Arrows: ←, →")
+      
+      result_css = extract_string_from_file("ruby/multi_byte.rb", "css")
+      result_css.should_not be_nil
+      result_css.not_nil!.should contain("content: '│';")
+    end
   end
 
   describe "extract_method_bodies" do

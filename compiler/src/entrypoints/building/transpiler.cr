@@ -48,7 +48,7 @@ class Compiler
               done_channel.send(nil)
             end
             rescue ex
-              puts "Error reading file #{path}: #{ex.message}"
+              puts "Error processing file #{path}: #{ex.message}\n#{ex.inspect_with_backtrace}"
           end
         end
       end
