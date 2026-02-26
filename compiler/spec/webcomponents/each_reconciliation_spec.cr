@@ -1,7 +1,6 @@
 require "spec"
 require "../../src/html/each_processor"
 require "../../src/webcomponents/legacy_component_generator"
-require "../../src/webcomponents/web_component_placeholder"
 require "../../src/html/conditional_processor"
 
 describe LegacyComponentGenerator do

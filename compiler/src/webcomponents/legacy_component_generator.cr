@@ -1,5 +1,4 @@
 require "./web_component"
-require "./web_component_placeholder"
 require "../html/conditional_processor"
 require "../html/each_processor"
 
@@ -310,9 +309,6 @@ class LegacyComponentGenerator
         customElements.define("#{tag_name}", #{mochi_cmp_name});
       TEXT
 
-      js_code = js_code
-        .gsub(WebComponentPlaceholder::OnClick.string_value, "[on\\\\:click]")
-        .gsub(WebComponentPlaceholder::OnChange.string_value, "input[on\\\\:change]")
     end
     puts "> WebComponent '#{web_cmp_name}' generation took #{time.total_milliseconds.to_i}ms"
     return WebComponent.new(name = web_cmp_name, js_code)
@@ -373,28 +369,71 @@ class LegacyComponentGenerator
 
         this.shadow.addEventListener('click', (event) => {
           const clickedElement = event.target;
-          const actionTarget = clickedElement.closest('#{WebComponentPlaceholder::OnClick.string_value}');
+          const actionTarget = clickedElement.closest('[onclick]');
           if (actionTarget) {
-            let actionValue = actionTarget.getAttribute('on:click');
-            let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
-            this.rubyComp["$"+trimmedActionVal]();
+            let actionValue = actionTarget.getAttribute('onclick').replace(/[{}]/g, '');
+            let methodName = actionValue.split('(')[0].trim();
+            const args = [];
+            let i = 0;
+            while (actionTarget.hasAttribute('data-mochi-arg-'+i)) {
+              let rawVal = actionTarget.getAttribute('data-mochi-arg-'+i);
+              if (rawVal === '$event') {
+                args.push(event);
+              } else if (rawVal === '$element') {
+                args.push(actionTarget);
+              } else {
+                let primVal = Number(rawVal);
+                args.push(Number.isFinite(primVal) ? primVal : rawVal);
+              }
+              i++;
+            }
+            // pass dataset as well by default
+            if (actionTarget.dataset) {
+               args.push(Object.assign({}, actionTarget.dataset));
+            }
+            this.rubyComp["$"+methodName](...args);
             this.syncAttributes();
             this.render();
           }
         });
 
-        let _changeTargets = this.shadow.querySelectorAll("#{WebComponentPlaceholder::OnChange.string_value}");
+        let _changeTargets = this.shadow.querySelectorAll("[onchange]");
         if (_changeTargets) {
           for (let _i = 0; _i < _changeTargets.length; _i++) {
             _changeTargets[_i].addEventListener("change", (event) => {
-              let actionValue = event.target.getAttribute('on:change');
-              let trimmedActionVal = actionValue.substring(1, actionValue.length - 1);
-              let value = event.target.value;
-              const primValue = Number(value);
-              if (Number.isFinite(primValue)) {
-                this.rubyComp["$"+trimmedActionVal](event, primValue);
+              let actionValue = event.target.getAttribute('onchange').replace(/[{}]/g, '');
+              let methodName = actionValue.split('(')[0].trim();
+              const args = [];
+              let argIndex = 0;
+              let hasArgs = false;
+              while (event.target.hasAttribute('data-mochi-arg-'+argIndex)) {
+                hasArgs = true;
+                let rawVal = event.target.getAttribute('data-mochi-arg-'+argIndex);
+                if (rawVal === '$event') {
+                  args.push(event);
+                } else if (rawVal === '$element') {
+                  args.push(event.target);
+                } else {
+                  let primVal = Number(rawVal);
+                  args.push(Number.isFinite(primVal) ? primVal : rawVal);
+                }
+                argIndex++;
+              }
+
+              // dataset fallback support
+              let dataset = event.target.dataset ? Object.assign({}, event.target.dataset) : {};
+
+              if (hasArgs) {
+                args.push(dataset);
+                this.rubyComp["$"+methodName](...args);
               } else {
-                this.rubyComp["$"+trimmedActionVal](event, value);
+                let value = event.target.value;
+                const primValue = Number(value);
+                if (Number.isFinite(primValue)) {
+                  this.rubyComp["$"+methodName](event, primValue, dataset);
+                } else {
+                  this.rubyComp["$"+methodName](event, value, dataset);
+                }
               }
               this.syncAttributes();
               this.render();

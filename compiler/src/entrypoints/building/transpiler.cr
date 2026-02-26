@@ -6,6 +6,7 @@ require "../../webcomponents/new_component_generator"
 require "../../tree-sitter/instance_var_analyzer"
 require "../../html/attribute_conditional_extractor"
 require "../../html/attribute_hash_extractor"
+require "../../html/event_argument_extractor"
 require "../../ruby/attribute_method_generator"
 require "../../ruby/attribute_hash_generator"
 
@@ -214,6 +215,9 @@ class Compiler
         cls_name,
         attr_cond_result.conditionals
       )
+
+      # 3. Extract event handler arguments into data- attributes
+      html = EventArgumentExtractor.process(html)
 
       # Analyze instance variables to determine reactables automatically
       vars = TreeSitter::InstanceVarAnalyzer.analyze(rb_file)

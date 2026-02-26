@@ -46,10 +46,10 @@ describe BindExtractor do
         {if @count < 0}
           <p style=\"border-radius: 8px;\">Count is negative!</p>
         {end}
-        <button on:click={increment}>Increment</button>
-        <button on:click={decrement}>Decrement</button>
+        <button onclick={increment}>Increment</button>
+        <button onclick={decrement}>Decrement</button>
         <plus-five bind:pfcount=\"{count}\"></plus-five>
-        <input value={count} on:change={input_changed} type=\"text\"></input>
+        <input value={count} onchange={input_changed} type=\"text\"></input>
       </div>")
     puts result
     result.html.should eq("<div class=\"wrapper\">
@@ -61,10 +61,10 @@ describe BindExtractor do
         {if @count &lt; 0}
           <p style=\"border-radius: 8px;\">Count is negative!</p>
         {end}
-        <button on:click=\"{increment}\">Increment</button>
-        <button on:click=\"{decrement}\">Decrement</button>
+        <button onclick=\"{increment}\">Increment</button>
+        <button onclick=\"{decrement}\">Decrement</button>
         <plus-five pfcount=\"{count}\"></plus-five>
-        <input value=\"{count}\" on:change=\"{input_changed}\" type=\"text\">
+        <input value=\"{count}\" onchange=\"{input_changed}\" type=\"text\">
       </div>")
     result.bindings.should eq({"count" => "pfcount"})
   end

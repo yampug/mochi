@@ -25,21 +25,21 @@ class ALayout
           </div>
           <nav class="menu">
             <div class="menu-group">
-              <div class="menu-item {wsb_active_class}" on:click={toggle_wsb}>
+              <div class="menu-item {wsb_active_class}" onclick={toggle_wsb}>
                 <span class="menu-icon">📊</span>
                 <span class="menu-text">WSB</span>
                 <span class="menu-arrow">{wsb_arrow}</span>
               </div>
               <div class="submenu {submenu_class}">
-                <div class="submenu-item {get_active_class('wsb-overview')}" on:click={navigate_to_wsb_overview}>
+                <div class="submenu-item {get_active_class('wsb-overview')}" onclick={navigate_to_wsb_overview}>
                   <span class="submenu-text">Overview</span>
                 </div>
-                <div class="submenu-item {get_active_class('wsb-feed')}" on:click={navigate_to_wsb_feed}>
+                <div class="submenu-item {get_active_class('wsb-feed')}" onclick={navigate_to_wsb_feed}>
                   <span class="submenu-text">Feed</span>
                 </div>
               </div>
             </div>
-            <div class="menu-item {get_active_class('watchlist')}" on:click={navigate_to_watchlist}>
+            <div class="menu-item {get_active_class('watchlist')}" onclick={navigate_to_watchlist}>
               <span class="menu-icon">⭐</span>
               <span class="menu-text">Watchlist</span>
             </div>

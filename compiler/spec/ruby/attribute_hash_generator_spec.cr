@@ -16,7 +16,7 @@ RUBY
     amped_ruby = AttributeHashGenerator.inject_methods_into_class(ruby_code, "MyComp", extractor_result.hashes)
     
     amped_ruby.should contain("def __mochi_attr_hash_0")
-    amped_ruby.should contain(%Q(_hash = {  "nav-item" => true, "active" => @is_active  }))
+    amped_ruby.should contain(%Q(_hash = { \"nav-item\" => true, \"active\" => @is_active }))
     amped_ruby.should contain(%Q(_hash.select { |k, v| v }.keys.join(" ")))
   end
 end
