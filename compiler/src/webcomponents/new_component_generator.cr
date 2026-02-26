@@ -173,8 +173,10 @@ class NewComponentGenerator
         s << "  }\n\n"
 
         # observedAttributes + attributeChangedCallback for initial HTML attribute propagation
-        if react_vars.size > 0
-            obs_list = react_vars.map { |v| "'#{v}'" }.join(", ")
+        # Do not expose internal computed attribute conditionals as observed attributes
+        public_react_vars = react_vars.reject { |v| v.starts_with?("__mochi_attr_cond_") || v.starts_with?("__mochi_attr_hash_") }
+        if public_react_vars.size > 0
+            obs_list = public_react_vars.map { |v| "'#{v}'" }.join(", ")
             s << "  static get observedAttributes() { return [#{obs_list}]; }\n\n"
             s << "  attributeChangedCallback(name, oldValue, newValue) {\n"
             s << "    if (oldValue === newValue) return;\n"

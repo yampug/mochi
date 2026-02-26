@@ -10,6 +10,8 @@ require "../../src/webcomponents/legacy_component_generator"
 require "../../src/webcomponents/web_component"
 require "../../src/mochi_cmp"
 require "../../src/tree-sitter/instance_var_analyzer"
+require "../../src/html/attribute_conditional_extractor"
+require "../../src/ruby/attribute_method_generator"
 
 def find_second_last_index(text : String, substring_to_find : String) : Int32?
   last_idx = text.rindex(substring_to_find)
@@ -38,12 +40,26 @@ def transpile_test_component(rb_file : String)
     css = RubyUnderstander.extract_raw_string_from_def_body(methods["css"].body, "css")
     html = RubyUnderstander.extract_raw_string_from_def_body(methods["html"].body, "html")
     
+    attr_cond_result = AttributeConditionalExtractor.process(html)
+    html = attr_cond_result.html
+    
+    amped_ruby_code = AttributeMethodGenerator.inject_methods_into_class(
+      amped_ruby_code,
+      cls_name,
+      attr_cond_result.conditionals
+    )
+
     # Use InstanceVarAnalyzer
     vars = TreeSitter::InstanceVarAnalyzer.analyze(rb_file)
     reactive_vars = vars.select do |v| 
-      v.is_bound || v.attr_mutated || v.written_outside_constructor 
+      (v.is_bound && (v.writes > 0 || v.attr_mutated)) || v.attr_mutated || v.written_outside_constructor 
     end
     reactables_arr = reactive_vars.map { |v| v.name.sub(/^@/, "") }
+    
+    attr_cond_result.conditionals.each do |cond|
+      reactables_arr << "__mochi_attr_cond_#{cond.id}"
+    end
+    
     reactables = "['#{reactables_arr.join("', '")}']"
 
     # Process conditionals
@@ -67,11 +83,19 @@ def transpile_test_component(rb_file : String)
 
         if second_last_index
           insertion_point = second_last_index + 3
-          getter_code_to_insert = "\n\n\tdef get_#{var_name}\n\t\t@#{var_name}\n\tend\n"
-          amped_ruby_code = amped_ruby_code[0...insertion_point] + getter_code_to_insert + amped_ruby_code[insertion_point..-1]
+          if var_name.starts_with?("__mochi_attr_cond_")
+            getter_code_to_insert = "\n\n\tdef get_#{var_name}\n\t\t#{var_name}()\n\tend\n"
+            amped_ruby_code = amped_ruby_code[0...insertion_point] + getter_code_to_insert + amped_ruby_code[insertion_point..-1]
 
-          setter_code_to_insert = "\n\n\tdef set_#{var_name}(value)\n\t\t@#{var_name} = value\n\tend\n"
-          amped_ruby_code = amped_ruby_code[0...insertion_point] + setter_code_to_insert + amped_ruby_code[insertion_point..-1]
+            setter_code_to_insert = "\n\n\tdef set_#{var_name}(value)\n\tend\n"
+            amped_ruby_code = amped_ruby_code[0...insertion_point] + setter_code_to_insert + amped_ruby_code[insertion_point..-1]
+          else
+            getter_code_to_insert = "\n\n\tdef get_#{var_name}\n\t\t@#{var_name}\n\tend\n"
+            amped_ruby_code = amped_ruby_code[0...insertion_point] + getter_code_to_insert + amped_ruby_code[insertion_point..-1]
+
+            setter_code_to_insert = "\n\n\tdef set_#{var_name}(value)\n\t\t@#{var_name} = value\n\tend\n"
+            amped_ruby_code = amped_ruby_code[0...insertion_point] + setter_code_to_insert + amped_ruby_code[insertion_point..-1]
+          end
         end
       end
 
@@ -326,6 +350,50 @@ RUBY
         ruby_code.should contain("@items.empty?")
         ruby_code.should contain("@user.nil?")
         ruby_code.should contain("@items.length > 10 && !@user.nil?")
+      end
+    end
+
+    it "handles attribute-level conditionals" do
+      component_code = <<-RUBY
+class AttrCondComponent
+  @tag_name = "attr-cond-comp"
+  @active
+  @id
+
+  def initialize
+    @active = true
+    @id = 42
+  end
+
+  def html
+    %Q{
+      <a class="nav-item {if @active}active-{@id}{end}" href="/test">Link</a>
+    }
+  end
+
+  def css
+    %Q{
+      .active { color: red; }
+    }
+  end
+end
+RUBY
+
+      component = transpile_test_component(component_code)
+      component.should_not be_nil
+
+      if component
+        ruby_code = component.ruby_code
+        js_code = component.web_component.js_code
+
+        # Should have the computed attribute method
+        ruby_code.should contain("def __mochi_attr_cond_0")
+        ruby_code.should contain(%Q{_res += "nav-item "})
+        ruby_code.should contain(%Q{if @active})
+        ruby_code.should contain(%Q{_res += "active-\#{@id}"})
+
+        # JS code should expect the computed property as an observed attribute/reactable
+        js_code.should contain("__mochi_attr_cond_0")
       end
     end
   end

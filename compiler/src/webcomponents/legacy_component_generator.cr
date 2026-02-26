@@ -138,7 +138,9 @@ class LegacyComponentGenerator
           syncAttributes() {
             il.debug("syncing attributes")
             for (let i = 0; i < #{reactables_arr_name}.length; i++) {
-                this.setAttribute(#{reactables_arr_name}[i], this.rubyComp["$get_" + #{reactables_arr_name}[i]]());
+                if (!#{reactables_arr_name}[i].startsWith('__mochi_attr_cond_') && !#{reactables_arr_name}[i].startsWith('__mochi_attr_hash_')) {
+                    this.setAttribute(#{reactables_arr_name}[i], this.rubyComp["$get_" + #{reactables_arr_name}[i]]());
+                }
             }
           }
 
@@ -300,7 +302,7 @@ class LegacyComponentGenerator
           }
 
           static get observedAttributes() {
-              return #{reactables};
+              return #{reactables}.filter(r => !r.startsWith('__mochi_attr_cond_') && !r.startsWith('__mochi_attr_hash_'));
           }
 
           #{LegacyComponentGenerator.generate_attribute_changed_callback}

@@ -4,6 +4,10 @@ require "../../../../fragments/vendor/libpftrace/bindings/crystal/src/pftrace"
 require "./trace_helper"
 require "../../webcomponents/new_component_generator"
 require "../../tree-sitter/instance_var_analyzer"
+require "../../html/attribute_conditional_extractor"
+require "../../html/attribute_hash_extractor"
+require "../../ruby/attribute_method_generator"
+require "../../ruby/attribute_hash_generator"
 
 class Compiler
   include TraceHelper
@@ -191,6 +195,26 @@ class Compiler
       css = RubyUnderstander.extract_raw_string_from_def_body(methods["css"].body, "css")
       html = RubyUnderstander.extract_raw_string_from_def_body(methods["html"].body, "html")
 
+      # 1. Extract hash attributes BEFORE anything else (since {{...}} breaks Lexbor parsing)
+      attr_hash_result = AttributeHashExtractor.process(html)
+      html = attr_hash_result.html
+      
+      amped_ruby_code = AttributeHashGenerator.inject_methods_into_class(
+        amped_ruby_code,
+        cls_name,
+        attr_hash_result.hashes
+      )
+
+      # 2. Extract attribute conditionals
+      attr_cond_result = AttributeConditionalExtractor.process(html)
+      html = attr_cond_result.html
+      
+      amped_ruby_code = AttributeMethodGenerator.inject_methods_into_class(
+        amped_ruby_code,
+        cls_name,
+        attr_cond_result.conditionals
+      )
+
       # Analyze instance variables to determine reactables automatically
       vars = TreeSitter::InstanceVarAnalyzer.analyze(rb_file)
       
@@ -203,6 +227,15 @@ class Compiler
       end
       
       reactables_arr = reactive_vars.map { |v| v.name.sub(/^@/, "") }
+      
+      # Add the new attribute conditionals and hashes to reactables so they are tracked
+      attr_cond_result.conditionals.each do |cond|
+        reactables_arr << "__mochi_attr_cond_#{cond.id}"
+      end
+      attr_hash_result.hashes.each do |hash_cond|
+        reactables_arr << "__mochi_attr_hash_#{hash_cond.id}"
+      end
+      
       # puts "Computed reactables for #{cls_name}: #{reactables_arr}"
       reactables = if reactables_arr.empty?
                      "[]"
@@ -240,11 +273,16 @@ class Compiler
         end
 
         reactables_arr.each do |var_name|
-          injected_methods << "def get_#{var_name}; @#{var_name}; end"
-          if @use_new_engine
-            injected_methods << "def set_#{var_name}(value); @#{var_name} = value; `\#{@element}.update_#{var_name}(\#{value})` if @element; end"
+          if var_name.starts_with?("__mochi_attr_cond_") || var_name.starts_with?("__mochi_attr_hash_")
+            injected_methods << "def get_#{var_name}; #{var_name}(); end"
+            injected_methods << "def set_#{var_name}(value); end"
           else
-            injected_methods << "def set_#{var_name}(value); @#{var_name} = value; end"
+            injected_methods << "def get_#{var_name}; @#{var_name}; end"
+            if @use_new_engine
+              injected_methods << "def set_#{var_name}(value); @#{var_name} = value; `\#{@element}.update_#{var_name}(\#{value})` if @element; end"
+            else
+              injected_methods << "def set_#{var_name}(value); @#{var_name} = value; end"
+            end
           end
         end
 
