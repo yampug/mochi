@@ -1,5 +1,32 @@
 window._mochi_templates = {};
 
+// Mochi Inter-Component Event Bus
+window.Mochi = window.Mochi || {};
+window.Mochi._events = window.Mochi._events || {};
+
+window.Mochi.on = function (eventName, callback) {
+    if (!window.Mochi._events[eventName]) {
+        window.Mochi._events[eventName] = [];
+    }
+    window.Mochi._events[eventName].push(callback);
+};
+
+window.Mochi.off = function (eventName, callback) {
+    if (!window.Mochi._events[eventName]) return;
+    window.Mochi._events[eventName] = window.Mochi._events[eventName].filter(cb => cb !== callback);
+};
+
+window.Mochi.emit = function (eventName, payload) {
+    if (!window.Mochi._events[eventName]) return;
+    window.Mochi._events[eventName].forEach(cb => {
+        try {
+            cb(payload);
+        } catch (e) {
+            console.error(`Error in Mochi event handler for ${eventName}:`, e);
+        }
+    });
+};
+
 class MochiComponent extends HTMLElement {
     constructor() {
         super();
@@ -12,6 +39,15 @@ class MochiComponent extends HTMLElement {
         if (!this._initialized) {
             this.mount(this.shadow);
             this._initialized = true;
+        }
+    }
+
+    disconnectedCallback() {
+        if (this.rubyComp && typeof this.rubyComp.$_cleanup_mochi_subscriptions === 'function') {
+            this.rubyComp.$_cleanup_mochi_subscriptions();
+        }
+        if (this.rubyComp && typeof this.rubyComp.$unmounted === 'function') {
+            this.rubyComp.$unmounted();
         }
     }
 
@@ -69,7 +105,7 @@ class MochiComponent extends HTMLElement {
                 try {
                     if (typeof item['$' + p] === 'function') return item['$' + p]();
                     if (item[p] !== undefined) return item[p];
-                } catch(e) {}
+                } catch (e) { }
                 return '{item.' + p + '}';
             });
         const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null);
@@ -84,7 +120,7 @@ class MochiComponent extends HTMLElement {
             }
         }
     }
-    
+
     // Helper to get template
     static getTemplate(id) {
         if (!window._mochi_templates[id]) {

@@ -297,7 +297,12 @@ class LegacyComponentGenerator
           }
 
           disconnectedCallback() {
-              this.rubyComp.$unmounted();
+              if (this.rubyComp && typeof this.rubyComp.$_cleanup_mochi_subscriptions === 'function') {
+                this.rubyComp.$_cleanup_mochi_subscriptions();
+              }
+              if (this.rubyComp && typeof this.rubyComp.$unmounted === 'function') {
+                this.rubyComp.$unmounted();
+              }
           }
 
           static get observedAttributes() {

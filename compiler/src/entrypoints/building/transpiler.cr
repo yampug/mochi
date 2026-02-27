@@ -290,6 +290,27 @@ class Compiler
           end
         end
 
+        # Inject Cross-Component Event Bus APIs (Story 2.1 & 2.2)
+        injected_methods << <<-RUBY
+        def emit(event_name, payload = nil)
+          `window.Mochi.emit(\#{event_name.to_s}, \#{payload.to_n})`
+        end
+        
+        def on(event_name, &block)
+          @_mochi_subscriptions ||= []
+          @_mochi_subscriptions << { event: event_name.to_s, block: block }
+          `window.Mochi.on(\#{event_name.to_s}, \#{block})`
+        end
+
+        def _cleanup_mochi_subscriptions
+          return unless @_mochi_subscriptions
+          @_mochi_subscriptions.each do |sub|
+            `window.Mochi.off(\#{sub[:event]}, \#{sub[:block]})`
+          end
+          @_mochi_subscriptions = nil
+        end
+        RUBY
+
         # Find insertion point once and insert all methods together
         insertion_point = find_second_last_index(amped_ruby_code, "end")
         if insertion_point && insertion_point > 0
