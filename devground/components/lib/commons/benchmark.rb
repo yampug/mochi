@@ -21,12 +21,12 @@ class MochiBenchmark
         <div class="header">
           <h1>Mochi Benchmark</h1>
           <div class="controls">
-            <button id="run" on:click={run}>Create 1,000 rows</button>
-            <button id="runlots" on:click={run_lots}>Create 10,000 rows</button>
-            <button id="add" on:click={add}>Append 1,000 rows</button>
-            <button id="update" on:click={update}>Update every 10th row</button>
-            <button id="clear" on:click={clear}>Clear</button>
-            <button id="swaprows" on:click={swap_rows}>Swap Rows</button>
+            <button id="run" onclick="{run}">Create 1,000 rows</button>
+            <button id="runlots" onclick="{run_lots}">Create 10,000 rows</button>
+            <button id="add" onclick="{add}">Append 1,000 rows</button>
+            <button id="update" onclick="{update}">Update every 10th row</button>
+            <button id="clear" onclick="{clear}">Clear</button>
+            <button id="swaprows" onclick="{swap_rows}">Swap Rows</button>
           </div>
         </div>
         <div class="test-data">

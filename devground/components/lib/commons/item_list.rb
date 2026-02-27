@@ -30,8 +30,8 @@ class ItemList
       <div class="wrapper">
         <h2>Item List (Each Block Demo)</h2>
         <p>Counter: {counter}</p>
-        <button on:click={add_item}>Add Item</button>
-        <button on:click={remove_item}>Remove Item</button>
+        <button onclick="{add_item}">Add Item</button>
+        <button onclick="{remove_item}">Remove Item</button>
 
         <div class="items">
           {each @items as item, index}

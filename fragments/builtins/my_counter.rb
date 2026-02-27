@@ -11,8 +11,8 @@ class MyCounter
     %Q{
           <div class="wrapper">
             <h1>Count: {count}</h1>
-            <button on:click={increment}>Increment</button>
-            <button on:click={decrement}>Decrement</button>
+            <button onclick="{increment}">Increment</button>
+            <button onclick="{decrement}">Decrement</button>
           </div>
         }
   end

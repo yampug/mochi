@@ -87,11 +87,11 @@ async function checkCounter(page, counterIndex: number, countValue: string, modi
 
     const incBtn = counter.locator("button").nth(0);
     await expect(incBtn).toHaveText('Increment');
-    await expect(incBtn).toHaveAttribute('on:click', "{increment}");
+    await expect(incBtn).toHaveAttribute('onclick', "{increment}");
 
     const decBtn = counter.locator("button").nth(1);
     await expect(decBtn).toHaveText('Decrement');
-    await expect(decBtn).toHaveAttribute('on:click', "{decrement}");
+    await expect(decBtn).toHaveAttribute('onclick', "{decrement}");
 
     let plusFive = counter.locator(".plus-five");
     let plusFiveBtn = plusFive.locator("button");
@@ -101,6 +101,6 @@ async function checkCounter(page, counterIndex: number, countValue: string, modi
 
     let input = counter.locator("input");
     await expect(input).toHaveAttribute('value', countValue);
-    await expect(input).toHaveAttribute('on:change', "{input_changed}");
+    await expect(input).toHaveAttribute('onchange', "{input_changed}");
     await expect(input).toHaveAttribute('type', "text");
 }

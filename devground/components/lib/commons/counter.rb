@@ -32,10 +32,10 @@ class Counter
         {if @count < 0}
           <p style="background: orange; padding: 10px; border-radius: 8px;">Count is negative!</p>
         {end}
-        <button on:click={increment}>Increment</button>
-        <button on:click={decrement}>Decrement</button>
+        <button onclick="{increment}">Increment</button>
+        <button onclick="{decrement}">Decrement</button>
         <plus-five bind:pfcount="{count}"></plus-five>
-        <input value={count} on:change={input_changed} type="text"></input>
+        <input value={count} onchange="{input_changed}" type="text"></input>
       </div>
     }
   end

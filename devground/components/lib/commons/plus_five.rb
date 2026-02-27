@@ -17,7 +17,7 @@ class PlusFive
   def html
     %Q{
       <div class="plus-five">
-        <button on:click={increment}>Increment</button>
+        <button onclick="{increment}">Increment</button>
         <div>pfcount: {pfcount}</div>
       </div>
     }
