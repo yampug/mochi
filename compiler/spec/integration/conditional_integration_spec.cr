@@ -6,12 +6,12 @@ require "../../src/bind_extractor"
 require "../../src/html/conditional_processor"
 require "../../src/ruby/conditional_method_generator"
 require "../../src/ruby/ruby_understander"
-require "../../src/webcomponents/legacy_component_generator"
 require "../../src/webcomponents/web_component"
 require "../../src/mochi_cmp"
 require "../../src/tree-sitter/instance_var_analyzer"
 require "../../src/html/attribute_conditional_extractor"
 require "../../src/ruby/attribute_method_generator"
+require "../../src/webcomponents/new_component_generator"
 
 def find_second_last_index(text : String, substring_to_find : String) : Int32?
   last_idx = text.rindex(substring_to_find)
@@ -39,10 +39,10 @@ def transpile_test_component(rb_file : String)
     imports = RubyUnderstander.get_imports(rb_file)
     css = RubyUnderstander.extract_raw_string_from_def_body(methods["css"].body, "css")
     html = RubyUnderstander.extract_raw_string_from_def_body(methods["html"].body, "html")
-    
+
     attr_cond_result = AttributeConditionalExtractor.process(html)
     html = attr_cond_result.html
-    
+
     amped_ruby_code = AttributeMethodGenerator.inject_methods_into_class(
       amped_ruby_code,
       cls_name,
@@ -51,15 +51,15 @@ def transpile_test_component(rb_file : String)
 
     # Use InstanceVarAnalyzer
     vars = TreeSitter::InstanceVarAnalyzer.analyze(rb_file)
-    reactive_vars = vars.select do |v| 
-      (v.is_bound && (v.writes > 0 || v.attr_mutated)) || v.attr_mutated || v.written_outside_constructor 
+    reactive_vars = vars.select do |v|
+      (v.is_bound && (v.writes > 0 || v.attr_mutated)) || v.attr_mutated || v.written_outside_constructor
     end
     reactables_arr = reactive_vars.map { |v| v.name.sub(/^@/, "") }
-    
+
     attr_cond_result.conditionals.each do |cond|
       reactables_arr << "__mochi_attr_cond_#{cond.id}"
     end
-    
+
     reactables = "['#{reactables_arr.join("', '")}']"
 
     # Process conditionals
@@ -99,7 +99,7 @@ def transpile_test_component(rb_file : String)
         end
       end
 
-      web_comp_generator = LegacyComponentGenerator.new
+      web_comp_generator = NewComponentGenerator.new
       web_component = web_comp_generator.generate(
         mochi_cmp_name = cls_name,
         tag_name = tag_name.not_nil!,
@@ -186,7 +186,7 @@ RUBY
         ruby_code.should contain("@count < 0")
 
         # Verify JavaScript calls methods by ID
-        js_code.should contain("evaluateCondition(condId)")
+        js_code.should contain("updateConditional(")
         js_code.should contain("$__mochi_cond_")
 
         # Verify comment anchors are used
@@ -293,9 +293,9 @@ RUBY
         ruby_code.should contain("@outer")
         ruby_code.should contain("@inner")
 
-        # HTML should have comment anchors for both conditionals
-        js_code.should contain("'if-anchor-0'")
-        js_code.should contain("'if-anchor-1'")
+        # Both conditionals should be evaluated in JS
+        js_code.should contain("$__mochi_cond_0")
+        js_code.should contain("$__mochi_cond_1")
       end
     end
 

@@ -14,7 +14,6 @@ require "./html/each_processor"
 require "./ruby/each_method_generator"
 require "./ruby/ruby_understander"
 require "./ruby/ruby_rewriter"
-require "./webcomponents/legacy_component_generator"
 require "./webcomponents/web_component"
 require "./mochi_cmp"
 require "./opal/opal_runtime_generator"
@@ -79,7 +78,6 @@ dev_server_root = ""
 dev_server_config_path = ""
 is_standalone_typecheck = false
 keep_granular_build_artifacts = false
-use_new_engine = false
 
 desc_dev_server = "Launch dev server"
 
@@ -178,7 +176,7 @@ else
     exit 0
   end
 
-  puts "Mochi v0.2"
+  puts "Mochi v0.3"
   if !project_name.empty?
     Initializer.new(project_name)
   else
@@ -189,7 +187,6 @@ else
       with_tc,
       with_mini,
       keep_granular_build_artifacts,
-      use_new_engine
     )
   end
 end
