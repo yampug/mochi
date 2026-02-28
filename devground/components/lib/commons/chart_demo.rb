@@ -20,7 +20,7 @@ class ChartDemo
     }
   end
 
-  def mounted(comp)
+  def mounted
     puts "ChartDemo mounted"
 
     Log.info(self, "this is an info log")

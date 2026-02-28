@@ -145,7 +145,7 @@ class ItemList
     end
   end
 
-  def mounted(comp)
+  def mounted
     puts "ItemList mounted with #{@items.length} items"
   end
 

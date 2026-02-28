@@ -76,7 +76,7 @@ class Counter
     @modifications = @modifications + 1
   end
 
-  def mounted(comp)
+  def mounted
     puts "Counter mounted"
     interval_id = Mochi.interval(proc do
       t = Time.now

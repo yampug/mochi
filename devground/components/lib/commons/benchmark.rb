@@ -62,7 +62,7 @@ class MochiBenchmark
     }
   end
 
-  def mounted(comp)
+  def mounted
   end
 
   def unmounted

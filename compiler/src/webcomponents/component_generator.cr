@@ -184,7 +184,7 @@ class ComponentGenerator
         s << "    this.shadow.appendChild(style);\n"
 
         s << "    target.appendChild(r);\n"
-        s << "    if (this.rubyComp.$mounted) this.rubyComp.$mounted(this);\n"
+        s << "    if (this.rubyComp.$mounted) this.rubyComp.$mounted();\n"
         s << "    this.updateAll();\n"
         s << "  }\n\n"
 

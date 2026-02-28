@@ -25,7 +25,7 @@ class MochiRouter
           }
   end
 
-  def mounted(comp)
+  def mounted
   end
 
   def unmounted

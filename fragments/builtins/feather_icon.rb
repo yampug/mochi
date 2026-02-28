@@ -27,9 +27,9 @@ class FeatherIcon
     }
   end
 
-  def mounted(comp)
+  def mounted
     @rendered_svg = `feather.icons[#{@icon}].toSvg([])`
-    `#{comp}.syncAttributes()`
+    `#{@element}.syncAttributes()`
   end
 
   def unmounted

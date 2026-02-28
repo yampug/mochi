@@ -37,10 +37,10 @@ class Route
           }
   end
 
-  def mounted(comp)
-    @component_ref = comp
+  def mounted
+    @component_ref = @element
 
-    match_attr = Mochi.get_attr(comp, "match")
+    match_attr = Mochi.get_attr(@element, "match")
     @match = match_attr || "/"
 
     ::MochiRouter.init_browser_listeners_once

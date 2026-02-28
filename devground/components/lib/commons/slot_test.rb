@@ -43,7 +43,7 @@ class SlotTest
     }
   end
 
-  def mounted(comp)
+  def mounted
     puts "SlotTest mounted - slots should work!"
   end
 
