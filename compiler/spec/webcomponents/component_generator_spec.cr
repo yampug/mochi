@@ -1,9 +1,9 @@
 require "spec"
 require "lexbor"
-require "../../src/webcomponents/new_component_generator"
+require "../../src/webcomponents/component_generator"
 require "../code_test_utils"
 
-describe NewComponentGenerator do
+describe ComponentGenerator do
   it "generates correct bindings and paths" do
     # Mixed text node (static prefix + variable) -> :text binding
     # Pure variable node -> :html binding (uses innerHTML for SVG/HTML content)
@@ -11,7 +11,7 @@ describe NewComponentGenerator do
     reactables = "['count', 'active']"
     bindings = {} of String => String
 
-    gen = NewComponentGenerator.new
+    gen = ComponentGenerator.new
     comp = gen.generate("TestCmp", "test-cmp", "", html, reactables, bindings)
 
     js = comp.js_code
@@ -21,7 +21,7 @@ describe NewComponentGenerator do
     js.should contain("constructor()")
     js.should contain("this.rubyComp = Opal.TestCmp.$new()")
     js.should contain("mount(target)")
-    js.should contain("this.rubyComp.$__mochi_mounted(this.shadow, this)")
+    js.should contain("this.rubyComp.$__mochi_mounted(this)")
     js.should contain("customElements.define('test-cmp', TestCmpWebComp)")
 
     # Check paths
@@ -53,7 +53,7 @@ describe NewComponentGenerator do
     reactables = "['rendered_svg']"
     bindings = {} of String => String
 
-    gen = NewComponentGenerator.new
+    gen = ComponentGenerator.new
     comp = gen.generate("TestCmp", "test-cmp", "", html, reactables, bindings)
 
     js = comp.js_code

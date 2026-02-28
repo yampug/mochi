@@ -33,8 +33,8 @@ class MochiBenchmark
           {each @rows as row, index}
             <div class="row-item" data-testid="row">
               <span class="col-id">{item.id}</span>
-              <span class="col-label"><a class="lbl">{item.label}</a></span>
-              <span class="col-remove"><a class="remove" aria-label="remove">&#x2715;</a></span>
+              <span class="col-label"><a class="lbl" onclick="{select_row($element)}">{item.label}</a></span>
+              <span class="col-remove"><a class="remove" aria-label="remove" onclick="{remove_row_by_element($element)}">&#x2715;</a></span>
             </div>
           {end}
         </div>
@@ -62,31 +62,26 @@ class MochiBenchmark
     }
   end
 
-  def mounted(shadow, comp)
-    `(function(shadow, comp) {
-      shadow.addEventListener('click', function(e) {
-        var lbl = e.target.closest('.lbl');
-        if (lbl) {
-          var row = lbl.closest('.row-item');
-          if (!row) return;
-          var all = shadow.querySelectorAll('.row-item.danger');
-          for (var i = 0; i < all.length; i++) all[i].classList.remove('danger');
-          row.classList.add('danger');
-          return;
-        }
-        var rem = e.target.closest('.remove');
-        if (rem) {
-          var row = rem.closest('.row-item');
-          if (!row) return;
-          var id = parseInt(row.querySelector('.col-id').textContent);
-          comp.rubyComp.$remove_row(id);
-          comp.updateAll ? comp.updateAll() : (comp.syncAttributes(), comp.render());
-        }
-      });
-    })(#{shadow}, #{comp})`
+  def mounted(comp)
   end
 
   def unmounted
+  end
+
+  def select_row(el)
+    `(function(el) {
+      var row = el.closest('.row-item');
+      if (!row) return;
+      var all = row.closest('.test-data').querySelectorAll('.row-item.danger');
+      for (var i = 0; i < all.length; i++) all[i].classList.remove('danger');
+      row.classList.add('danger');
+    })(#{el})`
+  end
+
+  def remove_row_by_element(el)
+    row = `#{el}.closest('.row-item')`
+    id = `parseInt(#{row}.querySelector('.col-id').textContent)`
+    remove_row(id)
   end
 
   def run

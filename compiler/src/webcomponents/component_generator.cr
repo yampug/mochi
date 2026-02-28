@@ -3,7 +3,7 @@ require "./web_component"
 require "../html/conditional_processor"
 require "../html/each_processor"
 
-class NewComponentGenerator
+class ComponentGenerator
 
   class Binding
     property path : Array(Int32)
@@ -74,7 +74,7 @@ class NewComponentGenerator
         
         # Mount
         s << "  mount(target) {\n"
-        s << "    this.rubyComp.$__mochi_mounted(this.shadow, this);\n"
+        s << "    this.rubyComp.$__mochi_mounted(this);\n"
         s << "    const t = MochiComponent.getTemplate('#{mochi_cmp_name}');\n"
         s << "    const r = t.content.cloneNode(true);\n"
         s << "    this.dom_refs = {};\n"
@@ -184,7 +184,7 @@ class NewComponentGenerator
         s << "    this.shadow.appendChild(style);\n"
 
         s << "    target.appendChild(r);\n"
-        s << "    if (this.rubyComp.$mounted) this.rubyComp.$mounted(this.shadow, this);\n"
+        s << "    if (this.rubyComp.$mounted) this.rubyComp.$mounted(this);\n"
         s << "    this.updateAll();\n"
         s << "  }\n\n"
 

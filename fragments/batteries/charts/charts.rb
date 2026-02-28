@@ -21,8 +21,8 @@ class Charts
     puts "Successfully set up charts environment."
   end
 
-  def self.init_on_element_by_query(shadow_root, query)
-    return `echarts.init(#{shadow_root}.querySelector(#{query}))`
+  def self.init_on_element(el)
+    return `echarts.init(#{el})`
   end
 
   def self.load_config(chart_el, config)

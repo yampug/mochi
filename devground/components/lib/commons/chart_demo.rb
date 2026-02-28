@@ -20,9 +20,8 @@ class ChartDemo
     }
   end
 
-  def mounted(shadow_root)
+  def mounted(comp)
     puts "ChartDemo mounted"
-    `console.log(shadow_root)`
 
     Log.info(self, "this is an info log")
     Log.warn(self, "this is a warn log")
@@ -40,7 +39,7 @@ class ChartDemo
       Mochi.timeout(proc do
         Mochi.clear_interval(interval_id)
 
-        chart_el = Charts.init_on_element_by_query(shadow_root, "#main")
+        chart_el = Charts.init_on_element(query("#main"))
         config = ChartConfigBuilder.new()
           .set_title("My Own Chart Title")
           .set_legend(["sales"])

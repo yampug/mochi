@@ -37,7 +37,7 @@ class Route
           }
   end
 
-  def mounted(shadow_root, comp)
+  def mounted(comp)
     @component_ref = comp
 
     match_attr = Mochi.get_attr(comp, "match")

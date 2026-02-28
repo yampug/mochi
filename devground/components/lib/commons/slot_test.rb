@@ -43,7 +43,7 @@ class SlotTest
     }
   end
 
-  def mounted(shadow_root, comp)
+  def mounted(comp)
     puts "SlotTest mounted - slots should work!"
   end
 

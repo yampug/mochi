@@ -11,7 +11,7 @@ require "../../src/mochi_cmp"
 require "../../src/tree-sitter/instance_var_analyzer"
 require "../../src/html/attribute_conditional_extractor"
 require "../../src/ruby/attribute_method_generator"
-require "../../src/webcomponents/new_component_generator"
+require "../../src/webcomponents/component_generator"
 
 def find_second_last_index(text : String, substring_to_find : String) : Int32?
   last_idx = text.rindex(substring_to_find)
@@ -99,7 +99,7 @@ def transpile_test_component(rb_file : String)
         end
       end
 
-      web_comp_generator = NewComponentGenerator.new
+      web_comp_generator = ComponentGenerator.new
       web_component = web_comp_generator.generate(
         mochi_cmp_name = cls_name,
         tag_name = tag_name.not_nil!,

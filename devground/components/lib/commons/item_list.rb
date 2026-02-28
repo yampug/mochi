@@ -145,7 +145,7 @@ class ItemList
     end
   end
 
-  def mounted(web_component)
+  def mounted(comp)
     puts "ItemList mounted with #{@items.length} items"
   end
 

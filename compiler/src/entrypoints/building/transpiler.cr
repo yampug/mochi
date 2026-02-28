@@ -2,7 +2,7 @@ require "./../../quickjs"
 require "./../../caching/cache"
 require "../../../../fragments/vendor/libpftrace/bindings/crystal/src/pftrace"
 require "./trace_helper"
-require "../../webcomponents/new_component_generator"
+require "../../webcomponents/component_generator"
 require "../../tree-sitter/instance_var_analyzer"
 require "../../html/attribute_conditional_extractor"
 require "../../html/attribute_hash_extractor"
@@ -272,7 +272,9 @@ class Compiler
       if tag_name
         # Build all methods to inject (getters, setters, and internal mounted bridge)
         injected_methods = [] of String
-        injected_methods << "def __mochi_mounted(shadow, el); @element = el; end"
+        injected_methods << "def __mochi_mounted(el); @element = el; end"
+        injected_methods << "def query(selector); `\#{@element}.shadowRoot.querySelector(\#{selector})`; end"
+        injected_methods << "def query_all(selector); `\#{@element}.shadowRoot.querySelectorAll(\#{selector})`; end"
 
         reactables_arr.each do |var_name|
           if var_name.starts_with?("__mochi_attr_cond_") || var_name.starts_with?("__mochi_attr_hash_")
@@ -316,7 +318,7 @@ class Compiler
           amped_ruby_code += "\n\n#{injected_methods.join("\n\n")}\n"
         end
 
-        web_component = NewComponentGenerator.new.generate(
+        web_component = ComponentGenerator.new.generate(
             mochi_cmp_name = cls_name,
             tag_name = tag_name.not_nil!,
             css,
