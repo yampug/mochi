@@ -64,4 +64,11 @@ describe ComponentGenerator do
     js.should contain("innerHTML = this.rubyComp.$get_rendered_svg()")
     js.should contain("r.type === 'html') r.node.innerHTML = val")
   end
+  
+  it "generate static component html" do
+      puts "abc"
+      gen = ComponentGenerator.new
+      result = gen.generate_static()
+  puts "end: '#{result}'"
+  end
 end

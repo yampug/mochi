@@ -46,6 +46,9 @@ class MochiComponent extends HTMLElement {
         if (this.rubyComp && typeof this.rubyComp.$_cleanup_mochi_subscriptions === 'function') {
             this.rubyComp.$_cleanup_mochi_subscriptions();
         }
+        if (this.rubyComp && typeof this.rubyComp.$_cleanup_dom_listeners === 'function') {
+            this.rubyComp.$_cleanup_dom_listeners();
+        }
         if (this.rubyComp && typeof this.rubyComp.$unmounted === 'function') {
             this.rubyComp.$unmounted();
         }

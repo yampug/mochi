@@ -305,6 +305,28 @@ class Compiler
           end
           @_mochi_subscriptions = nil
         end
+
+        def on_window(event, &block)
+          handler = `function(e) { \#{block}.$call(e) }`
+          `window.addEventListener(\#{event}, \#{handler})`
+          @__dom_listeners ||= []
+          @__dom_listeners << [`window`, event, handler]
+        end
+
+        def on_document(event, &block)
+          handler = `function(e) { \#{block}.$call(e) }`
+          `document.addEventListener(\#{event}, \#{handler})`
+          @__dom_listeners ||= []
+          @__dom_listeners << [`document`, event, handler]
+        end
+
+        def _cleanup_dom_listeners
+          return unless @__dom_listeners
+          @__dom_listeners.each do |target, event, handler|
+            `\#{target}.removeEventListener(\#{event}, \#{handler})`
+          end
+          @__dom_listeners = nil
+        end
         RUBY
 
         # Find insertion point once and insert all methods together

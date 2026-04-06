@@ -10,12 +10,16 @@ class ComponentGenerator
     property type : Symbol # :text, :html, :attr, :anchor
     property name : String? # attribute name or nil
     property value : String # variable name or anchor id
-    
+
     def initialize(@path, @type, @value, @name = nil)
     end
   end
 
   def initialize
+  end
+
+  def generate_static() : String
+    return ""
   end
 
   def generate(
@@ -31,15 +35,15 @@ class ComponentGenerator
     # 1. Parse HTML and find bindings
     doc = Lexbor.new(html)
     doc_bindings = [] of Binding
-    
+
     body = doc.body
     if body
       traverse(body, [] of Int32, doc_bindings)
     end
-    
+
     # Clean HTML for template
     clean_html = body ? body.inner_html : ""
-    
+
     # Parse reactables string to array
     react_vars = reactables.gsub(/[\[\]"']/, "").split(",").map(&.strip).reject(&.empty?)
 
@@ -71,7 +75,7 @@ class ComponentGenerator
         s << "    this.element = this;\n"
         s << "    this.rubyComp = Opal.#{mochi_cmp_name}.$new();\n"
         s << "  }\n\n"
-        
+
         # Mount
         s << "  mount(target) {\n"
         s << "    this.rubyComp.$__mochi_mounted(this);\n"
@@ -79,7 +83,7 @@ class ComponentGenerator
         s << "    const r = t.content.cloneNode(true);\n"
         s << "    this.dom_refs = {};\n"
         s << "    this.anchors = {};\n\n"
-        
+
         # Event Delegation
         s << "    this.shadow.addEventListener('click', (event) => {\n"
         s << "      const target = event.target.closest('[onclick]');\n"
@@ -147,10 +151,10 @@ class ComponentGenerator
             b.path.each do |idx|
                 path_str += ".childNodes[#{idx}]"
             end
-            
+
             ref_name = "ref_#{i}"
             s << "    const #{ref_name} = #{path_str};\n"
-            
+
             if b.type == :text
                var_name = b.value.gsub(/[{}]/, "")
                # Read template string from the cloned node (contains e.g. "Count123: {count}")
@@ -177,7 +181,7 @@ class ComponentGenerator
                s << "    this.anchors['#{anchor_id}'] = #{ref_name};\n"
             end
         end
-        
+
         # CSS
         s << "    const style = document.createElement('style');\n"
         s << "    style.textContent = `#{css.gsub("`", "\\`").gsub("${", "\\${")}`;\n"
@@ -250,13 +254,13 @@ class ComponentGenerator
         s << "}\n"
         s << "customElements.define('#{tag_name}', #{mochi_cmp_name}WebComp);\n"
     end
-    
+
     WebComponent.new("#{mochi_cmp_name}WebComp", js)
   end
-  
+
   def traverse(node : Lexbor::Node, path : Array(Int32), bindings : Array(Binding))
     tag = node.tag_name
-    
+
     if tag == "_text"
         text = node.tag_text
         if text =~ /\{([^}]+)\}/
@@ -289,7 +293,7 @@ class ComponentGenerator
           end
           remove_attrs.each { |k| node.attribute_remove(k) }
         end
-        
+
         if node.children
            node.children.each_with_index do |child, i|
                traverse(child, path + [i], bindings)
